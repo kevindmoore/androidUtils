@@ -11,6 +11,8 @@ public class LockManager {
 	protected static WifiManager.WifiLock wifiLock;
 	protected static Context context;
 	private static LockManager instance;
+	private static boolean wifiLockCreated = false;
+	private static boolean lockCreated = false;
 
 	public static LockManager getInstance() {
 		if (instance == null) {
@@ -32,19 +34,28 @@ public class LockManager {
 		// Make sure our connection is working
 		NetworkManager.primeInternet();
 
-		PowerLock.getWakeLock(context);
+		if (!lockCreated) {
+			Logger.debug("Creating lock");
+			PowerLock.getWakeLock(context);
+			lockCreated = true;
+		}
 	}
 
 	public static void createWifiLock() {
-		if (NetworkManager.wifiIsActive()) {
-			Logger.debug("Running on wifi");
+		if (NetworkManager.wifiIsActive() && !wifiLockCreated) {
+			Logger.debug("Running on wifi - Creating wifi lock");
 			wifiLock = NetworkManager.getWifiLock();
+			wifiLockCreated = true;
 		}
 	}
 
 	public static void	endLocks() {
 		releaseWifiLock();
-		PowerLock.releaseWakeLock();
+		if (lockCreated) {
+			PowerLock.releaseWakeLock();
+			Logger.debug("Releasing lock");
+		}
+		lockCreated = false;
 	}
 
 	public static void releaseWifiLock() {
@@ -52,6 +63,7 @@ public class LockManager {
 			Logger.debug("Releasing wifi lock");
 			NetworkManager.releaseWifiLock(wifiLock);
 		}
+		wifiLockCreated = false;
 		wifiLock = null;
 	}
 

@@ -17,7 +17,7 @@ public class MasterListView extends ListView {
     protected int currentScrollState = OnScrollListener.SCROLL_STATE_IDLE;
     protected boolean scrolling = false;
     protected boolean pressed = false;
-	private GestureDetector gestureDetector;
+//	private GestureDetector gestureDetector;
 	private Handler handler = new Handler();
 //	protected CheckForLongPress pendingCheckForLongPress;
 	/**
@@ -49,7 +49,7 @@ public class MasterListView extends ListView {
     public MasterListView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
 		setItemsCanFocus(true);
-		gestureDetector = new GestureDetector(context, new GestureListener());
+//		gestureDetector = new GestureDetector(context, new GestureListener());
 //		gestureDetector.setIsLongpressEnabled(false);
 //        setOnScrollListener(new OnScrollListener() {
 //
@@ -128,7 +128,34 @@ public class MasterListView extends ListView {
     }
 */
 
-	private View getView(int y) {
+/*
+	@Override
+	public boolean onTouchEvent(MotionEvent ev) {
+		if (!isEnabled()) {
+			// A disabled view that is clickable still consumes the touch
+			// events, it just doesn't respond to them.
+			return isClickable() || isLongClickable();
+		}
+		final int action = ev.getAction();
+		switch (action) {
+			case MotionEvent.ACTION_UP:
+				final int y = (int)ev.getY();
+				View v = getView(y);
+				if (v != null) {
+//						super.dispatchTouchEvent(ev);
+					if (handleActionUp(y)) {
+						Logger.debug("MasterListView onSingleTapConfirmed - Handled");
+						return true;
+					}
+				}
+		}
+        boolean result = super.onTouchEvent(ev);
+        return result;
+
+	}
+*/
+
+	public View getView(int y) {
 		// This count is just the # of visible items
 		int childCount = getChildCount();
 		if (childCount > 0) {
@@ -145,7 +172,7 @@ public class MasterListView extends ListView {
 		return null;
 	}
 
-	private boolean handleActionUp(int y) {
+	public boolean handleActionUp(int y) {
 		if (onItemClickListener != null) {
 		   	final View view = getView(y);
 			if (view != null) {
@@ -162,12 +189,14 @@ public class MasterListView extends ListView {
 		return false;
 	}
 
+/*
 	@Override
 	public boolean dispatchTouchEvent(MotionEvent ev) {
 		if (gestureDetector.onTouchEvent(ev))
 		{
 			return true;
 		}
+*/
 /*
 		final int action = ev.getAction();
 		switch (action) {
@@ -189,9 +218,11 @@ public class MasterListView extends ListView {
 				scrolling = false;
 				break;
 		}
-*/
+*//*
+
 		return super.dispatchTouchEvent(ev);
 	}
+*/
 
 
 

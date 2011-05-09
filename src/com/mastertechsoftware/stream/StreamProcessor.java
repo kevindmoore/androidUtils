@@ -14,6 +14,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.UnknownHostException;
 
@@ -144,6 +145,10 @@ public class StreamProcessor<Result> {
 		} catch (SocketException e) {
 			exception = new StreamException(e);
 			exception.setExceptionType(StreamException.SOCKET_EXCEPTION_TYPE);
+			throw exception;
+		} catch (SocketTimeoutException e) {
+			exception = new StreamException(e);
+			exception.setExceptionType(StreamException.SOCKET_TIMEOUT_EXCEPTION_TYPE);
 			throw exception;
 		} catch (UnknownHostException e) {
 			exception = new StreamException(e);

@@ -28,31 +28,31 @@ public class NetworkListener {
 
 	public void startListening() {
 		hasWifiLock = NetworkManager.wifiIsActive() && LockManager.hasWifiLock();
-		Logger.debug("NetworkListener " + (hasWifiLock ? " has wifi lock" : " does not have wifi lock"));
+		Logger.error("NetworkListener " + (hasWifiLock ? " has wifi lock" : " does not have wifi lock"));
 		handlerThread = new LooperThread(new LooperThread.LooperCallback() {
 			@Override
 			public boolean handleMessage(Message msg) {
-				Logger.debug("NetworkListener msg received");
+				Logger.error("NetworkListener msg received");
 				Bundle data = msg.getData();
 				if (data != null) {
-					Logger.debug("NetworkListener found data");
+					Logger.error("NetworkListener found data");
 					int state = data.getInt("state");
-					Logger.debug("NetworkListener state=" + state);
+					Logger.error("NetworkListener state=" + state);
 					if (threadWait.isWaiting() && state == NetworkManager.State.CONNECTED.ordinal()) {
-						Logger.debug("Network Connected");
+						Logger.error("Network Connected");
 						if (hasWifiLock && wifiReleased) {
 							if (NetworkManager.wifiIsActive()) {
-								Logger.debug("Creating wifi lock");
+								Logger.error("Creating wifi lock");
 								LockManager.createWifiLock();
 								wifiReleased = false;
 							}
 						}
 						threadWait.resume(); // Wake up thread
 					} else if (state == NetworkManager.State.NOT_CONNECTED.ordinal()) {
-						Logger.debug("Network Disconnected");
+						Logger.error("Network Disconnected");
 						if (hasWifiLock) {
 							if (!NetworkManager.wifiIsActive()) {
-								Logger.debug("Releasing wifi lock");
+								Logger.error("Releasing wifi lock");
 								LockManager.releaseWifiLock();
 								wifiReleased = true;
 							}
@@ -65,7 +65,7 @@ public class NetworkListener {
 
 			@Override
 			public void setHandler(Handler handler) {
-				Logger.debug("NetworkListener setHandler");
+				Logger.error("NetworkListener setHandler");
 				NetworkManager.registerHandler(handler, 0);
 				NetworkManager.startListening();
 			}

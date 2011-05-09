@@ -35,7 +35,7 @@ public class XMLParser {
 	 * @param input
 	 * @return root XMLNode
 	 */
-	public XMLNode parse(InputStream input) {
+	public XMLNode parse(InputStream input) throws XMLException {
 //		Debug.startMethodTracing("XMLParser");
 
 		long start = System.currentTimeMillis();
@@ -60,7 +60,7 @@ public class XMLParser {
 //			}
 		} catch (Exception e) {
 			Logger.error(e);
-            return null;
+            throw new XMLException("XMLParser: Problems reading stream", e);
 		}
 		long end = System.currentTimeMillis();
 		Logger.debug("Reading took " + ((end - start)) + " milliseconds");

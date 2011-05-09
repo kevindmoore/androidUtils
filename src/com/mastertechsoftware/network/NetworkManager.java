@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -127,7 +128,14 @@ public class NetworkManager {
 	 */
 	public static boolean wifiIsActive() {
 		WifiManager mgr = (WifiManager)mContext.getSystemService(Context.WIFI_SERVICE);
-		return mgr.isWifiEnabled();
+		boolean active = false;
+		if (mgr.isWifiEnabled()) {
+			WifiInfo connectionInfo = mgr.getConnectionInfo();
+			if (connectionInfo != null && connectionInfo.getBSSID() != null ) {
+				active = true;
+			}
+		}
+		return active;
 	}
 
 	/**
@@ -268,6 +276,7 @@ public class NetworkManager {
 		if (!mListening) {
 			IntentFilter filter = new IntentFilter();
 			filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+			Logger.debug("NetworkManager: startListening");
 			mContext.registerReceiver(mReceiver, filter);
 			mListening = true;
 		}
