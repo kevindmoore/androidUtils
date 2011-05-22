@@ -14,7 +14,7 @@ public class AbstractStreamHandler<Result> implements StreamHandler<Result> {
 		return GET_TYPE;
 	}
 
-	public Result processInputStream(InputStream stream) throws StreamException {
+	public Result processInputStream(InputStream stream, long contentLength) throws StreamException {
 		return null;
 	}
 

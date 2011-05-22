@@ -24,13 +24,22 @@ public class IconifiedText implements Comparable<IconifiedText>{
      private String mText = "";
      private Drawable mIcon;
      private boolean mSelectable = true;
+     private boolean isSelected = false;
 
      public IconifiedText(String text, Drawable bullet) {
           mIcon = bullet;
           mText = text;
      }
-     
-     public boolean isSelectable() {
+
+	public boolean isSelected() {
+		return isSelected;
+	}
+
+	public void setSelected(boolean selected) {
+		isSelected = selected;
+	}
+
+	public boolean isSelectable() {
           return mSelectable;
      }
      

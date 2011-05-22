@@ -345,7 +345,7 @@ public class UtilReflector
             methodObject.setAccessible(true);
             Object returnObject = methodObject.invoke(mainClass, args);
             return returnObject;
-}
+		}
         catch (IllegalAccessException iae)
         {
             System.out.println("Illegal Access Exception: " + iae.getMessage() + " for method " + methodObject.getName());

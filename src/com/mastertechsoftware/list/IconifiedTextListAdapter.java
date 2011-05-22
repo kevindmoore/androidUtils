@@ -17,13 +17,13 @@ package com.mastertechsoftware.list;
 * limitations under the License.
 */
 
-import java.util.ArrayList;
-import java.util.List;
-
 import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /** @author Steven Osborn - http://steven.bitsetters.com */
 public class IconifiedTextListAdapter extends BaseAdapter {
@@ -72,6 +72,7 @@ public class IconifiedTextListAdapter extends BaseAdapter {
               btv = (IconifiedTextView) convertView;
               btv.setText(mItems.get(position).getText());
               btv.setIcon(mItems.get(position).getIcon());
+              btv.setSelected(mItems.get(position).isSelected());
          }
          return btv;
     }

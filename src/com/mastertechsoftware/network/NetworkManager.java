@@ -243,6 +243,7 @@ public class NetworkManager {
 
 		}
 	}
+
 	public static State getNetworkState(NetworkInfo.State systemState) {
 		if (systemState.equals(NetworkInfo.State.CONNECTED)) {
 				return State.CONNECTED;

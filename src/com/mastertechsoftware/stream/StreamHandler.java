@@ -14,7 +14,7 @@ public interface StreamHandler<Result> {
 	public static int PUT_TYPE = 3;
 
 	int getType();
-	Result processInputStream(InputStream stream) throws StreamException;
+	Result processInputStream(InputStream stream, long contentLength) throws StreamException;
 	void writeOutputStream(OutputStream stream) throws StreamException;
 	void setupConnection(URLConnection connection);
 	void setStreamProcessor(StreamProcessor<Result> processor);

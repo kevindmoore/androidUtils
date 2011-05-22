@@ -1,6 +1,17 @@
 package com.mastertechsoftware.stream;
 
 import com.mastertechsoftware.util.Logger;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.params.HttpClientParams;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -22,19 +33,23 @@ import java.net.UnknownHostException;
  * @author Kevin Moore
  */
 public class StreamProcessor<Result> {
-	private static int defaultBufferSize = 8192;
-	public static int DEFAULT_BUFFER_LENGTH = 64000;
+	protected static int defaultBufferSize = 8192;
+	protected static int DEFAULT_BUFFER_LENGTH = 64000;
 	protected HttpURLConnection connection;
 	protected String urlString;
 	protected URL url;
 	protected StreamHandler<Result> streamHandler;
 	protected int bufferLength = DEFAULT_BUFFER_LENGTH;
-	 //the socket timeout, to prevent blocking if the server connection is lost.
-	 protected final int CONNECTION_TIMEOUT = 500;
-	 protected final int READ_TIMEOUT = 30 * 1000;
+	private static final String USER_AGENT = "Android/1.0";
+	//the socket timeout, to prevent blocking if the server connection is lost.
+	protected final int CONNECTION_TIMEOUT = 20 * 1000;
+	protected final int READ_TIMEOUT = 30 * 1000;
+	protected DefaultHttpClient httpClient;
+	protected long contentLength = 0;
 
 	/**
 	 * Constructor.
+	 *
 	 * @param url
 	 * @param streamHandler - stream handle that expects Result to be returned
 	 */
@@ -45,11 +60,13 @@ public class StreamProcessor<Result> {
 
 	public StreamProcessor(URL url, StreamHandler<Result> streamHandler) {
 		this.url = url;
+		urlString = url.toString();
 		this.streamHandler = streamHandler;
 	}
 
 	/**
 	 * Main routine to do the connection, process and then close streams
+	 *
 	 * @return Result
 	 * @throws StreamException
 	 */
@@ -61,7 +78,7 @@ public class StreamProcessor<Result> {
 			if (url == null) {
 				url = new URL(urlString);
 			}
-	        connection = (HttpURLConnection)url.openConnection();
+			connection = (HttpURLConnection) url.openConnection();
 			setupConnection(connection);
 
 			switch (streamHandler.getType()) {
@@ -79,12 +96,10 @@ public class StreamProcessor<Result> {
 
 			}
 
-			return streamHandler.processInputStream(inputStream);
-		}
-		catch (StreamException e) {
+			return streamHandler.processInputStream(inputStream, 0);
+		} catch (StreamException e) {
 			throw e;
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			if (connection != null) {
 				throw new StreamException(parseResponse(connection.getErrorStream()), e);
 			}
@@ -108,31 +123,85 @@ public class StreamProcessor<Result> {
 	}
 
 	/**
-	 * Main routine to do the connection, process and then close streams
-	 * @param stream
-	 * @throws StreamException generic exception
+	 * Use HttpClient to get a InputStream and process it
+	 *
+	 * @param url
+	 * @param data
+	 * @return Result
+	 * @throws StreamException
 	 */
-	public void copyStream(OutputStream stream) throws StreamException {
-		BufferedInputStream inputStream = null;
-		BufferedOutputStream outputStream = null;
-		streamHandler.setStreamProcessor(this);
+	public Result processInputStream(URL url, HttpEntity data) throws StreamException {
+		return processInputStream(url.toString(), data);
+	}
+
+	/**
+	 * Use HttpClient to get a InputStream and process it
+	 *
+	 * @param url
+	 * @param data
+	 * @return Result
+	 * @throws StreamException
+	 */
+	public Result processInputStream(String url, HttpEntity data) throws StreamException {
 		StreamException exception = null;
+		HttpParams params = new BasicHttpParams();
+
+		// Turn off stale checking.  Our connections break all the time anyway,
+		// and it's not worth it to pay the penalty of checking every time.
+		HttpConnectionParams.setStaleCheckingEnabled(params, false);
+
+		// Default connection and socket timeout of 20 seconds.  Tweak to taste.
+		HttpConnectionParams.setConnectionTimeout(params, CONNECTION_TIMEOUT);
+		HttpConnectionParams.setSoTimeout(params, READ_TIMEOUT);
+		HttpConnectionParams.setSocketBufferSize(params, bufferLength);
+
+		// Follow redirects as this usually can happen several times
+		HttpClientParams.setRedirecting(params, true);
+
+		httpClient = new DefaultHttpClient(params);
+		HttpResponse response = null;
 		try {
-			if (url == null) {
-				url = new URL(urlString);
+			switch (streamHandler.getType()) {
+				case StreamHandler.GET_TYPE:
+					response = httpClient.execute(new HttpGet(url));
+					break;
+
+				case StreamHandler.PUT_TYPE:
+					HttpPut httpPut = new HttpPut(url);
+					httpPut.setEntity(data);
+					response = httpClient.execute(httpPut);
+					break;
+
+				case StreamHandler.POST_TYPE:
+					HttpPost httpPost = new HttpPost(url);
+					httpPost.setEntity(data);
+					response = httpClient.execute(httpPost);
+					break;
+
+				case StreamHandler.DELETE_TYPE:
+					response = httpClient.execute(new HttpDelete(url));
+					break;
+
+				default:
+					throw new StreamException("StreamProcessor.processInputStream. Invalid type");
 			}
-			connection = (HttpURLConnection)url.openConnection();
-			connection.setConnectTimeout(CONNECTION_TIMEOUT);
-			connection.setReadTimeout(READ_TIMEOUT);
-			inputStream = new BufferedInputStream(connection.getInputStream(), bufferLength);
-			outputStream = new BufferedOutputStream(stream, bufferLength);
-			byte[] buffer = new byte[bufferLength];
-			int read = inputStream.read(buffer);
-			while (read > 0) {
-				outputStream.write(buffer, 0, read);
-				read = inputStream.read(buffer);
+			if (response != null) {
+				if (response.getStatusLine().getStatusCode() == 200) {
+					HttpEntity entity = response.getEntity();
+					if (entity != null) {
+						contentLength = entity.getContentLength();
+						InputStream content = entity.getContent();
+						if (content != null) {
+							return streamHandler.processInputStream(new BufferedInputStream(content, defaultBufferSize), contentLength);
+						}
+					}
+				} else {
+					Logger.error("StreamProcessor.processInputStream. Response: " + response.getStatusLine().getStatusCode());
+					exception = new StreamException("StreamProcessor.processInputStream. Response: " + response.getStatusLine().getStatusCode());
+					exception.setExceptionType(StreamException.EXCEPTION_TYPE);
+					throw exception;
+				}
 			}
-			outputStream.flush();
 		} catch (MalformedURLException e) {
 			exception = new StreamException(e);
 			exception.setExceptionType(StreamException.MALFORMED_URL_TYPE);
@@ -159,20 +228,108 @@ public class StreamProcessor<Result> {
 			exception.setExceptionType(StreamException.IO_EXCEPTION_TYPE);
 			throw exception;
 		} catch (Exception e) {
-			if (connection != null) {
-				InputStream errorStream = connection.getErrorStream();
-				String message = null;
-				if (errorStream != null) {
-					message = parseResponse(errorStream);
-				}
-				if (message != null && message.length() > 0) {
-					exception = new StreamException(message, e);
-				} else {
-					exception = new StreamException(e);
-				}
-				exception.setExceptionType(StreamException.EXCEPTION_TYPE);
-				throw exception;
+			exception = new StreamException(e);
+			exception.setExceptionType(StreamException.EXCEPTION_TYPE);
+			throw exception;
+		} finally {
+			if (httpClient != null) {
+				httpClient.getConnectionManager().shutdown();
 			}
+		}
+		return null;
+	}
+
+	public long getContentLength() {
+		if (connection != null) {
+			return connection.getContentLength();
+		} else if (httpClient != null) {
+			return contentLength;
+		}
+		return 0;
+	}
+
+	/**
+	 * Main routine to do the connection, process and then close streams
+	 *
+	 * @param stream
+	 * @throws StreamException generic exception
+	 */
+	public void copyStream(OutputStream stream) throws StreamException {
+		BufferedInputStream inputStream = null;
+		BufferedOutputStream outputStream = null;
+		streamHandler.setStreamProcessor(this);
+		StreamException exception = null;
+		try {
+			HttpParams params = new BasicHttpParams();
+
+			// Turn off stale checking.  Our connections break all the time anyway,
+			// and it's not worth it to pay the penalty of checking every time.
+			HttpConnectionParams.setStaleCheckingEnabled(params, false);
+
+			// Default connection and socket timeout of 20 seconds.  Tweak to taste.
+			HttpConnectionParams.setConnectionTimeout(params, CONNECTION_TIMEOUT);
+			HttpConnectionParams.setSoTimeout(params, READ_TIMEOUT);
+			HttpConnectionParams.setSocketBufferSize(params, bufferLength);
+
+			// Follow redirects as this usually can happen several times
+			HttpClientParams.setRedirecting(params, true);
+
+			httpClient = new DefaultHttpClient(params);
+			HttpResponse response = null;
+
+			response = httpClient.execute(new HttpGet(urlString));
+			if (response != null) {
+				if (response.getStatusLine().getStatusCode() == 200) {
+					HttpEntity entity = response.getEntity();
+					if (entity != null) {
+						contentLength = entity.getContentLength();
+						InputStream content = entity.getContent();
+						if (content != null) {
+							inputStream = new BufferedInputStream(content, bufferLength);
+							outputStream = new BufferedOutputStream(stream, bufferLength);
+							byte[] buffer = new byte[bufferLength];
+							int read = inputStream.read(buffer);
+							while (read > 0) {
+								outputStream.write(buffer, 0, read);
+								read = inputStream.read(buffer);
+							}
+							outputStream.flush();
+						}
+					}
+				} else {
+					Logger.error("StreamProcessor.processInputStream. Response: " + response.getStatusLine().getStatusCode());
+					exception = new StreamException("StreamProcessor.processInputStream. Response: " + response.getStatusLine().getStatusCode());
+					exception.setExceptionType(StreamException.EXCEPTION_TYPE);
+					throw exception;
+				}
+			}
+
+		} catch (MalformedURLException e) {
+			exception = new StreamException(e);
+			exception.setExceptionType(StreamException.MALFORMED_URL_TYPE);
+			throw exception;
+		} catch (FileNotFoundException e) {
+			exception = new StreamException(e);
+			exception.setExceptionType(StreamException.FILE_NOT_FOUND_TYPE);
+			throw exception;
+			// Both of these next errors could be a disconnect from the internet
+		} catch (SocketException e) {
+			exception = new StreamException(e);
+			exception.setExceptionType(StreamException.SOCKET_EXCEPTION_TYPE);
+			throw exception;
+		} catch (SocketTimeoutException e) {
+			exception = new StreamException(e);
+			exception.setExceptionType(StreamException.SOCKET_TIMEOUT_EXCEPTION_TYPE);
+			throw exception;
+		} catch (UnknownHostException e) {
+			exception = new StreamException(e);
+			exception.setExceptionType(StreamException.UNKNOWN_HOST_EXCEPTION_TYPE);
+			throw exception;
+		} catch (IOException e) {
+			exception = new StreamException(e);
+			exception.setExceptionType(StreamException.IO_EXCEPTION_TYPE);
+			throw exception;
+		} catch (Exception e) {
 			exception = new StreamException(e);
 			exception.setExceptionType(StreamException.EXCEPTION_TYPE);
 			throw exception;
@@ -191,11 +348,15 @@ public class StreamProcessor<Result> {
 					Logger.error("StreamProcessor.startStream. Could not close output stream", e);
 				}
 			}
+			if (httpClient != null) {
+				httpClient.getConnectionManager().shutdown();
+			}
 		}
 	}
 
 	/**
 	 * Set the buffer length for copying a stream
+	 *
 	 * @param bufferLength
 	 */
 	public void setBufferLength(int bufferLength) {
@@ -204,6 +365,7 @@ public class StreamProcessor<Result> {
 
 	/**
 	 * Get the Error stream.
+	 *
 	 * @return InputStream
 	 */
 	public InputStream getErrorStream() {
@@ -212,6 +374,7 @@ public class StreamProcessor<Result> {
 
 	/**
 	 * Get the response code
+	 *
 	 * @return -1 for an error, otherwise what the connection returns
 	 * @throws StreamException
 	 */
@@ -228,6 +391,7 @@ public class StreamProcessor<Result> {
 
 	/**
 	 * Check for valid response code
+	 *
 	 * @param code
 	 * @return true if valid
 	 */
@@ -240,6 +404,7 @@ public class StreamProcessor<Result> {
 
 	/**
 	 * Depending on the connection type, setup the input/output settings. Let the handler do some setup
+	 *
 	 * @param connection
 	 * @throws StreamException
 	 */
@@ -281,6 +446,7 @@ public class StreamProcessor<Result> {
 
 	/**
 	 * Read the error string from the error input stream.
+	 *
 	 * @param is
 	 * @return error string
 	 */
@@ -291,13 +457,12 @@ public class StreamProcessor<Result> {
 		BufferedReader bufferedReader = null;
 		try {
 			bufferedReader = new BufferedReader(new InputStreamReader(is), defaultBufferSize);
-			String	line;
+			String line;
 			StringBuilder builder = new StringBuilder();
 			try {
 				while ((line = bufferedReader.readLine()) != null)
 					builder.append(line);
-			}
-			catch (IOException e) {
+			} catch (IOException e) {
 				Logger.error("cannot log response", e);
 			}
 			return builder.toString();
