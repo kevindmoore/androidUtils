@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -16,6 +17,7 @@ import com.mastertechsoftware.util.Logger;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * @author Kevin Moore
@@ -111,6 +113,10 @@ public class NetworkManager {
 	 */
 	public static boolean hasActiveNetwork() {
 		boolean result = false;
+		if (mContext == null) {
+			Logger.error("NetworkManager:hasActiveNetwork: Context is null");
+			return false;
+		}
 
 		ConnectivityManager mgr = (ConnectivityManager)mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo netInfo = mgr.getActiveNetworkInfo();
@@ -127,6 +133,10 @@ public class NetworkManager {
 	 * @return
 	 */
 	public static boolean wifiIsActive() {
+		if (mContext == null) {
+			Logger.error("NetworkManager:wifiIsActive: Context is null");
+			return false;
+		}
 		WifiManager mgr = (WifiManager)mContext.getSystemService(Context.WIFI_SERVICE);
 		boolean active = false;
 		if (mgr.isWifiEnabled()) {
@@ -143,6 +153,10 @@ public class NetworkManager {
 	 * @return  WifiLock
 	 */
 	public static WifiManager.WifiLock getWifiLock() {
+		if (mContext == null) {
+			Logger.error("NetworkManager:getWifiLock: Context is null");
+			return null;
+		}
 		WifiManager mgr = (WifiManager)mContext.getSystemService(Context.WIFI_SERVICE);
 		WifiManager.WifiLock wifiLock = mgr.createWifiLock(WifiManager.WIFI_MODE_FULL, mContext.getClass().toString());
 		wifiLock.acquire();
@@ -274,6 +288,10 @@ public class NetworkManager {
 	 *
 	 */
 	public static synchronized void startListening() {
+		if (mContext == null) {
+			Logger.error("NetworkManager:startListening: Context is null");
+			return;
+		}
 		if (!mListening) {
 			IntentFilter filter = new IntentFilter();
 			filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
@@ -287,6 +305,10 @@ public class NetworkManager {
 	 * This method stops this class from listening for network changes.
 	 */
 	public static synchronized void stopListening() {
+		if (mContext == null) {
+			Logger.error("NetworkManager:stopListening: Context is null");
+			return;
+		}
 		if (mListening) {
 			mContext.unregisterReceiver(mReceiver);
 			mNetworkInfo = null;
@@ -325,6 +347,73 @@ public class NetworkManager {
 		return mState;
 	}
 
+	public static WifiInfo getWifiNetwork() {
+		if (mContext == null) {
+			Logger.error("NetworkManager:getWifiNetwork: Context is null");
+			return null;
+		}
+		WifiManager mgr = (WifiManager)mContext.getSystemService(Context.WIFI_SERVICE);
+		return mgr.getConnectionInfo();
+	}
+
+	public static int getWifiState() {
+		if (mContext == null) {
+			Logger.error("NetworkManager:getWifiState: Context is null");
+			return 0;
+		}
+		WifiManager mgr = (WifiManager)mContext.getSystemService(Context.WIFI_SERVICE);
+		return mgr.getWifiState();
+	}
+
+
+	public static List<WifiConfiguration> getWifiNetworks() {
+		if (mContext == null) {
+			Logger.error("NetworkManager:getWifiNetworks: Context is null");
+			return null;
+		}
+		WifiManager mgr = (WifiManager)mContext.getSystemService(Context.WIFI_SERVICE);
+		return mgr.getConfiguredNetworks();
+	}
+
+	public static void disableWifi() {
+		if (mContext == null) {
+			Logger.error("NetworkManager:enableWifi: Context is null");
+			return;
+		}
+		WifiManager mgr = (WifiManager)mContext.getSystemService(Context.WIFI_SERVICE);
+		if (mgr.isWifiEnabled()) {
+			mgr.setWifiEnabled(false);
+		}
+	}
+
+	public static void enableWifi() {
+		if (mContext == null) {
+			Logger.error("NetworkManager:enableWifi: Context is null");
+			return;
+		}
+		WifiManager mgr = (WifiManager)mContext.getSystemService(Context.WIFI_SERVICE);
+		if (!mgr.isWifiEnabled()) {
+			mgr.setWifiEnabled(true);
+		}
+	}
+
+	public static void disableWifiNetwork(int id) {
+		if (mContext == null) {
+			Logger.error("NetworkManager:disableWifiNetwork: Context is null");
+			return;
+		}
+		WifiManager mgr = (WifiManager)mContext.getSystemService(Context.WIFI_SERVICE);
+		mgr.disableNetwork(id);
+	}
+
+	public static void enableWifiNetwork(int id) {
+		if (mContext == null) {
+			Logger.error("NetworkManager:enableWifiNetwork: Context is null");
+			return;
+		}
+		WifiManager mgr = (WifiManager)mContext.getSystemService(Context.WIFI_SERVICE);
+		mgr.enableNetwork(id, false);
+	}
 	/**
 	 * Return the NetworkInfo associated with the most recent connectivity event.
 	 *

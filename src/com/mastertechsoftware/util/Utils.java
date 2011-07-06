@@ -1,6 +1,7 @@
 package com.mastertechsoftware.util;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.res.Configuration;
 import android.text.Html;
 import android.util.Log;
@@ -19,13 +20,38 @@ public class Utils {
         if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             return true;
         }
-        final Display defaultDisplay = activity.getWindow().getWindowManager()
-		.getDefaultDisplay();
+        final Display defaultDisplay = activity.getWindow().getWindowManager().getDefaultDisplay();
 		int h = defaultDisplay.getHeight();
 		int w = defaultDisplay.getWidth();
 		return (w > h);
 	}
+
+	public static boolean isLargeScreen(Context context) {
+		Configuration configuration = context.getResources().getConfiguration();
+		// TODO - Change last size large to XLARGE
+		if (((configuration.screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) == Configuration.SCREENLAYOUT_SIZE_LARGE) ||
+		 ((configuration.screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) == Configuration.SCREENLAYOUT_SIZE_LARGE)) {
+			return true;
+		}
+		return false;
+	}
 	
+	public static boolean isSmallScreen(Context context) {
+		Configuration configuration = context.getResources().getConfiguration();
+		if ((configuration.screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) == Configuration.SCREENLAYOUT_SIZE_SMALL) {
+			return true;
+		}
+		return false;
+	}
+
+	public static boolean isNormalScreen(Context context) {
+		Configuration configuration = context.getResources().getConfiguration();
+		if ((configuration.screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) == Configuration.SCREENLAYOUT_SIZE_NORMAL) {
+			return true;
+		}
+		return false;
+	}
+
 	public static boolean isPortrait(Activity activity) {
 		return !isLandscape(activity);
 	}

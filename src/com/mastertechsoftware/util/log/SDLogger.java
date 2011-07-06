@@ -14,7 +14,8 @@ import java.util.Date;
  */
 public class SDLogger {
     private static File sdFile;
-    private static String directory = "/sdcard/com.mastertechsoftware";
+    private static String directory = "/sdcard/com.mastertechsoftware/";
+    private static String logFile = "Log.txt";
     protected static SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy hh:mm");
 
     public static void error(String msg, Throwable e) {
@@ -39,7 +40,7 @@ public class SDLogger {
 
     private static void initFile() {
         if (sdFile == null) {
-            sdFile = new File(directory + "/Log.txt");
+            sdFile = new File(directory + logFile);
             if (!sdFile.exists()) {
                 java.util.StringTokenizer tokenizer = new java.util.StringTokenizer(directory, "/");
                 String path = "";
@@ -59,4 +60,12 @@ public class SDLogger {
             }
         }
     }
+
+	public static void setDirectory(String directory) {
+		SDLogger.directory = directory;
+	}
+
+	public static void setLogFile(String logFile) {
+		SDLogger.logFile = logFile;
+	}
 }

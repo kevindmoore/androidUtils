@@ -1,11 +1,13 @@
 package com.mastertechsoftware.buton;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.widget.ImageButton;
+import com.mastertechsoftware.AndroidUtil.R;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -23,22 +25,46 @@ public class CustomButton extends ImageButton {
 
     public CustomButton(Context context) {
         super(context);
-        init();
+        init(null, 0);
     }
 
     public CustomButton(Context context, AttributeSet attrs) {
         super(context, attrs);
-        init();
+		init(attrs, 0);
     }
 
     public CustomButton(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        init();
+        init(attrs, defStyle);
     }
 
-    protected void init() {
+    protected void init(AttributeSet attrs, int defStyle) {
         setPadding(0,0,0,0);
         setBackgroundDrawable(null);
+		if (attrs != null) {
+			TypedArray typedArray =
+				getContext().obtainStyledAttributes(
+					attrs, R.styleable.CustomButton, 0, defStyle);
+			int n = typedArray.getIndexCount();
+			for (int i = 0; i < n; i++) {
+				int attr = typedArray.getIndex(i);
+
+				switch (attr) {
+					case R.styleable.CustomButton_defaultImage:
+						setDefaultImage(typedArray.getDrawable(attr));
+						break;
+					case R.styleable.CustomButton_downImage:
+						downImage = typedArray.getDrawable(attr);
+						break;
+					case R.styleable.CustomButton_upImage:
+						upImage = typedArray.getDrawable(attr);
+						break;
+					case R.styleable.CustomButton_disabledImage:
+						disabledImage = typedArray.getDrawable(attr);
+						break;
+				}
+			}
+		}
     }
     public Drawable getDefaultImage() {
         return defaultImage;

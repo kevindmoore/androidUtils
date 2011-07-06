@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="CustomButton">
+
+        <!-- Sets the default drawable. -->
+        <attr name="defaultImage" format="reference"/>
+        <attr name="downImage" format="reference"/>
+        <attr name="upImage" format="reference"/>
+        <attr name="disabledImage" format="reference"/>
+    </declare-styleable>
+
+    <!-- Inherits from ViewGroup -->
+    <declare-styleable name="GridLayout">
+
+        <!-- Number of rows & columns. -->
+        <attr name="numRows" format="integer"/>
+        <attr name="numColumns" format="integer"/>
+        <attr name="columnStart" format="integer"/>
+        <attr name="rowStart" format="integer"/>
+        <attr name="columnEnd" format="integer"/>
+        <attr name="rowEnd" format="integer"/>
+    </declare-styleable>
+<!--
+    <declare-styleable name="GridLayout_Layout">
+
+        <attr name="columnStart" format="integer"/>
+        <attr name="rowStart" format="integer"/>
+        <attr name="columnEnd" format="integer"/>
+        <attr name="rowEnd" format="integer"/>
+    </declare-styleable>
+-->
+</resources>

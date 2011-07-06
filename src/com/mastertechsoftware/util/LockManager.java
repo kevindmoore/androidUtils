@@ -34,9 +34,13 @@ public class LockManager {
 		// Make sure our connection is working
 		NetworkManager.primeInternet();
 
+		createWakeLock();
+	}
+
+	public static void createWakeLock() {
 		if (!lockCreated) {
-			Logger.error("Creating lock");
-//			Logger.debug("Creating lock");
+//			Logger.error("Creating lock");
+			Logger.debug("Creating lock");
 			PowerLock.getWakeLock(context);
 			lockCreated = true;
 		}
@@ -44,8 +48,8 @@ public class LockManager {
 
 	public static void createWifiLock() {
 		if (NetworkManager.wifiIsActive() && !wifiLockCreated) {
-			Logger.error("Running on wifi - Creating wifi lock");
-//			Logger.debug("Running on wifi - Creating wifi lock");
+//			Logger.error("Running on wifi - Creating wifi lock");
+			Logger.debug("Running on wifi - Creating wifi lock");
 			wifiLock = NetworkManager.getWifiLock();
 			wifiLockCreated = true;
 		}
@@ -53,18 +57,22 @@ public class LockManager {
 
 	public static void	endLocks() {
 		releaseWifiLock();
+		releaseWakeLock();
+	}
+
+	public static void releaseWakeLock() {
 		if (lockCreated) {
 			PowerLock.releaseWakeLock();
-			Logger.error("Releasing lock");
-//			Logger.debug("Releasing lock");
+//			Logger.error("Releasing lock");
+			Logger.debug("Releasing lock");
 		}
 		lockCreated = false;
 	}
 
 	public static void releaseWifiLock() {
 		if (wifiLock != null) {
-			Logger.error("Releasing wifi lock");
-//			Logger.debug("Releasing wifi lock");
+//			Logger.error("Releasing wifi lock");
+			Logger.debug("Releasing wifi lock");
 			NetworkManager.releaseWifiLock(wifiLock);
 		}
 		wifiLockCreated = false;

@@ -3,5 +3,4 @@
       package="com.mastertechsoftware.AndroidUtil"
       android:versionCode="1"
       android:versionName="1.0">
-    <application android:name="com.mastertechsoftware.AndroidUtil"></application>
 </manifest>

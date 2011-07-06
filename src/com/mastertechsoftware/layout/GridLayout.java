@@ -1,16 +1,21 @@
 package com.mastertechsoftware.layout;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
+import com.mastertechsoftware.AndroidUtil.R;
 import com.mastertechsoftware.util.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This class layout out child elements in a grid fashion with rows and columns.
+ * NOTE: This layout does not use margins but does use padding.
+ */
 public class GridLayout extends ViewGroup {
 	public static final int GridLayout_columnEnd = 6;
 	public static final int GridLayout_columnStart = 4;
@@ -20,11 +25,8 @@ public class GridLayout extends ViewGroup {
 	public static final int GridLayout_preferredCellWidth = 2;
 	public static final int GridLayout_rowEnd = 7;
 	public static final int GridLayout_rowStart = 5;
-	private int layoutLeft;
-	private int layoutTop;
-	private int layoutRight;
-	private int layoutBottom;
 	private boolean debugging = false;
+	private boolean debugLayout = false;
 //	private boolean debugging = true;
 
 
@@ -70,28 +72,38 @@ public class GridLayout extends ViewGroup {
 			this(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, rowStart, rowEnd, columnStart, columnEnd);
 		}
 
-		public LayoutParams(Context c, AttributeSet attrs) {
-			super(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-//            TypedArray a = c
-//                    .obtainStyledAttributes(attrs,
-//                            R.styleable.GridLayout);
-//            this.columnStart = a.getInt(
-//                    R.styleable.GridLayout_columnStart, -1);
-//            this.rowStart = a.getInt(
-//                    R.styleable.GridLayout_rowStart, -1);
-//            this.columnEnd = a.getInt(
-//                    R.styleable.GridLayout_columnEnd,
-//                    this.columnStart + 1);
-//            this.rowEnd = a.getInt(
-//                    R.styleable.GridLayout_rowEnd,
-//                    this.rowStart + 1);
-//            a.recycle();
-			this.columnStart = attrs.getAttributeIntValue(GridLayout_columnStart, -1);
-			this.rowStart = attrs.getAttributeIntValue(GridLayout_rowStart, -1);
-			this.columnEnd = attrs.getAttributeIntValue(GridLayout_columnEnd,
+		public LayoutParams(Context context, AttributeSet attrs) {
+			super(context, attrs);
+			TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.GridLayout);
+/*
+			int n = typedArray.getIndexCount();
+
+			for (int i = 0; i < n; i++) {
+				int attr = typedArray.getIndex(i);
+
+				switch (attr) {
+					case R.styleable.GridLayout_Layout_columnStart:
+						this.columnStart = typedArray.getInt(attr, 0);
+						break;
+					case R.styleable.GridLayout_Layout_rowStart:
+						this.rowStart = typedArray.getInt(attr, 0);
+						break;
+					case R.styleable.GridLayout_Layout_columnEnd:
+						this.columnEnd = typedArray.getInt(attr, this.columnStart + 1);
+						break;
+					case R.styleable.GridLayout_Layout_rowEnd:
+						this.rowEnd = typedArray.getInt(attr, this.rowStart + 1);
+						break;
+				}
+			}
+*/
+			this.columnStart = typedArray.getInt(R.styleable.GridLayout_columnStart, 0);
+			this.rowStart = typedArray.getInt(R.styleable.GridLayout_rowStart, 0);
+			this.columnEnd = typedArray.getInt(R.styleable.GridLayout_columnEnd,
 					this.columnStart + 1);
-			this.rowEnd = attrs.getAttributeIntValue(GridLayout_rowEnd,
+			this.rowEnd = typedArray.getInt(R.styleable.GridLayout_rowEnd,
 					this.rowStart + 1);
+			typedArray.recycle();
 		}
 
 		public int getColumnLength() {
@@ -144,10 +156,6 @@ public class GridLayout extends ViewGroup {
 	}
 
 
-	private int measuredWidth = -1;
-	private int measuredHeight = -1;
-	private int layoutWidth = -1;
-	private int layoutHeight = -1;
 	private int numRows = -1;
 	private int numColumns = -1;
 	private float preferredCellWidth;
@@ -156,6 +164,10 @@ public class GridLayout extends ViewGroup {
 	protected ArrayList<MeasureListener> measureListeners = new ArrayList<MeasureListener>();
 	protected ArrayList<LayoutListener> layoutListeners = new ArrayList<LayoutListener>();
 
+	/**
+	 * Constructor
+	 * @param context
+	 */
 	public GridLayout(Context context) {
 		super(context);
 		this.numRows = 1;
@@ -164,49 +176,38 @@ public class GridLayout extends ViewGroup {
 		this.preferredCellHeight = 0;
 	}
 
+	/**
+	 * Constructor
+	 * @param context
+	 * @param attrs
+	 */
 	public GridLayout(Context context, AttributeSet attrs) {
 		super(context, attrs);
 		readAttr(context, attrs);
 	}
 
+	/**
+	 * Constructor
+	 * @param context
+	 * @param attrs
+	 * @param defStyle
+	 */
 	public GridLayout(Context context, AttributeSet attrs,
 					  int defStyle) {
 		super(context, attrs, defStyle);
 		readAttr(context, attrs);
 	}
 
-	private void readAttr(Context c, AttributeSet attrs) {
-		this.numRows = attrs.getAttributeIntValue(GridLayout_numRows, 0);
-		this.numColumns = attrs.getAttributeIntValue(GridLayout_numColumns, 0);
-		this.preferredCellWidth = attrs.getAttributeIntValue(GridLayout_preferredCellWidth, 0);
-		this.preferredCellHeight = attrs.getAttributeIntValue(GridLayout_preferredCellHeight, 0);
-//        TypedArray a = c
-//                .obtainStyledAttributes(attrs, R.styleable.GridLayout);
-//        int n = a.getIndexCount();
-//
-//		attrs.
-//        for (int i = 0; i < n; i++)
-//
-//        {
-//            int attr = a.getIndex(i);
-//            switch (attr) {
-//                case R.styleable.GridLayout_numRows:
-//                    this.numRows = a.getInt(R.styleable.GridLayout_numRows, -1);
-//                    break;
-//                case R.styleable.GridLayout_numColumns:
-//                    this.numColumns = a.getInt(R.styleable.GridLayout_numColumns, -1);
-//                    break;
-//                case R.styleable.GridLayout_preferredCellWidth:
-//                    this.preferredCellWidth = a.getDimension(
-//                            R.styleable.GridLayout_preferredCellWidth, 0);
-//                    break;
-//                case R.styleable.GridLayout_preferredCellHeight:
-//                    this.preferredCellHeight = a.getDimension(
-//                            R.styleable.GridLayout_preferredCellHeight, 0);
-//                    break;
-//            }
-//        }
-//        a.recycle();
+	/**
+	 * Read
+	 * @param context
+	 * @param attrs
+	 */
+	private void readAttr(Context context, AttributeSet attrs) {
+		TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.GridLayout);
+		this.numRows = typedArray.getResourceId(R.styleable.GridLayout_numRows, 1);
+		this.numColumns = typedArray.getResourceId(R.styleable.GridLayout_numColumns, 1);
+        typedArray.recycle();
 	}
 
 	public void addMeasureListener(MeasureListener listener) {
@@ -430,6 +431,91 @@ public class GridLayout extends ViewGroup {
 		return null;
 	}
 
+	/**
+	 * Find the column position this column object is in
+	 * @param columnToFind
+	 * @return column (0-n)
+	 */
+	protected int getColumnPosition(Column columnToFind) {
+		for (Row row : rows) {
+			int columnPosition = 0;
+			for (Column column : row.getColumns()) {
+				if (column == columnToFind) {
+					return columnPosition;
+				}
+				columnPosition++;
+			}
+		}
+		return -1;
+	}
+
+	/**
+	 * Find the row this column is in
+	 * @param columnToFind
+	 * @return row position
+	 */
+	protected int getRowPosition(Column columnToFind) {
+		int rowPosition = 0;
+		for (Row row : rows) {
+			for (Column column : row.getColumns()) {
+				if (column == columnToFind) {
+					return rowPosition;
+				}
+			}
+			rowPosition++;
+		}
+		return -1;
+	}
+
+	/**
+	 * Get the left padding if the column is in the 1st position
+	 * @param column
+	 * @return left padding
+	 */
+	protected int getColumnLeftPadding(Column column) {
+		if (getColumnPosition(column) == 0) {
+			return getPaddingLeft();
+		}
+		return 0;
+	}
+
+	/**
+	 * Get the right padding if the column is in the 1st position
+	 * @param column
+	 * @return right padding
+	 */
+	protected int getColumnRightPadding(Column column) {
+		if (getColumnPosition(column) == (getNumColumns() - 1)) {
+			return getPaddingRight();
+		}
+		return 0;
+	}
+
+	/**
+	 * Get the top padding if the column is in the 1st position
+	 * @param column
+	 * @return top padding
+	 */
+	protected int getColumnTopPadding(Column column) {
+		if (getRowPosition(column) == 0) {
+			return getPaddingTop();
+		}
+		return 0;
+	}
+
+	/**
+	 * Get the bottom padding if the column is in the 1st position
+	 * @param column
+	 * @return bottom padding
+	 */
+	protected int getColumnBottomPadding(Column column) {
+		if (getRowPosition(column) == (getNumRows() - 1)) {
+			return getPaddingBottom();
+		}
+		return 0;
+	}
+
+
 	public int findViewRow(Class classType) {
 		int rowIndex = 0;
 		for (Row row : rows) {
@@ -553,8 +639,6 @@ public class GridLayout extends ViewGroup {
 		int widthSize = MeasureSpec.getSize(widthMeasureSpec);
 		int heightSize = MeasureSpec.getSize(heightMeasureSpec);
 		int rowHeight = heightSize;
-		measuredWidth = widthSize;
-		measuredHeight = heightSize;
 		rowHeight = rowHeight - getPaddingTop() - getPaddingBottom();
 		int numRows = getVisibleRows();
 		if (numRows == 0) {
@@ -597,10 +681,14 @@ public class GridLayout extends ViewGroup {
 		// Need to go through all the cells, give the minimum to those who don't expand, then give the rest to those who want to expand
 
 		int heightToUse = heightSize - getPaddingTop() - getPaddingBottom();
+//		int heightToUse = heightSize;
 		int totalRowHeights = 0, maxColumnWidth = 0, totalExpandableHeight = 0;
 		int expandableRows = 0; //, rowCount = 0, columnCount = 0;
+		int childWidthSpec, childHeightSpec;
 
+		// ********************* Non-Expandable Rows ***************************
 		// First go through all the rows that are not expandable to get the fixed row height
+		int rowCount = 0;
 		for (Row row : rows) {
 			boolean visibleRow = rowIsVisible(row);
 			if (row.isExpandable() && visibleRow) {
@@ -610,10 +698,8 @@ public class GridLayout extends ViewGroup {
 			if (!visibleRow) {
 				continue;
 			}
-//			if (debugging) {
-//				Logger.debug("Non-Expandable Row:" + rowCount++);
-//			}
 			int widthToUse = widthSize - getPaddingLeft() - getPaddingRight();
+//			int widthToUse = widthSize;
 			int maxHeight = 0, totalColumnWidths = 0;
 			int nonExpandableColumns = 0, expandableColumns = 0;
 			int visibleColumns = row.getVisibleNonExpandableColumns();
@@ -624,12 +710,8 @@ public class GridLayout extends ViewGroup {
 			} else {
 				cellWidth = columnWidth / visibleColumns;
 			}
-//			if (debugging) {
-//				Logger.debug("visibleColumns:" + visibleColumns);
-//				Logger.debug("cellWidth:" + cellWidth);
-//			}
-//			columnCount = 0;
 			// Go through non-expandable columns
+			// ********************* non-Expandable Columns ***************************
 			for (Column column : row.columns) {
 				View child = column.getView();
 				if (child == null) {
@@ -640,33 +722,33 @@ public class GridLayout extends ViewGroup {
 						expandableColumns++;
 						continue;
 					}
-//					if (debugging) {
-//						Logger.debug("Non Expandable Column:" + columnCount++);
-//					}
 					nonExpandableColumns++;
 					LayoutParams lp = (LayoutParams) child.getLayoutParams();
 					int width = Math.round(cellWidth * lp.getColumnLength());
 					int height = Math.round(cellHeight * lp.getRowLength());
+					childWidthSpec = makeSpec(widthToUse);
+					if (row.getFixedHeight() != 0) {
+						childHeightSpec = MeasureSpec.makeMeasureSpec(row.getFixedHeight(), MeasureSpec.EXACTLY);
+					} else {
+						childHeightSpec = makeSpec(heightToUse);
+					}
 
-					setChildWidth(height, column, child, width);
+					setChildWidth(childHeightSpec, column, child, childWidthSpec);
 
+					if (row.getFixedHeight() != 0) {
+						column.setHeight(row.getFixedHeight());
+					}
 					totalColumnWidths += column.getWidth();
 
-//					if (debugging) {
-//						Logger.debug("View: " + child.getClass().toString() + " width:" + column.getWidth());
-//					}
 					widthToUse -= column.getWidth();
-					maxHeight = Math.max(maxHeight, child.getMeasuredHeight() + child.getPaddingTop() + child.getPaddingBottom());
+					maxHeight = Math.max(maxHeight, column.getHeight());
 				}
 			}
 			row.setNonExpandableColumns(nonExpandableColumns);
-			// Go through expandable columns
+			// ********* Go through expandable columns ***************
 			if (expandableColumns > 0) {
 				// Divide up the width left by the # of columns that are expandable
 				int remainderColumnWidth = widthToUse / expandableColumns;
-//				if (debugging) {
-//					Logger.debug("Expandable Column count:" + expandableColumns);
-//				}
 				for (Column column : row.columns) {
 					if (!column.isExpandable()) {
 						continue;
@@ -676,27 +758,70 @@ public class GridLayout extends ViewGroup {
 						continue;
 					}
 					if (child.getVisibility() != GONE) {
-//						if (debugging) {
-//							Logger.debug("Expandable Column remainderColumnWidth:" + remainderColumnWidth);
-//						}
 						LayoutParams lp = (LayoutParams) child.getLayoutParams();
 						// Fixed row height
 						int height = Math.round(cellHeight * lp.getRowLength());
 
-						setChildWidth(height, column, child, remainderColumnWidth);
+						childWidthSpec = makeSpec(remainderColumnWidth);
+						if (row.getFixedHeight() != 0) {
+							childHeightSpec = MeasureSpec.makeMeasureSpec(row.getFixedHeight(), MeasureSpec.EXACTLY);
+						} else {
+							childHeightSpec = makeSpec(heightToUse);
+						}
+
+						setChildWidth(childHeightSpec, column, child, childWidthSpec);
+
+						if (row.getFixedHeight() != 0) {
+							column.setHeight(row.getFixedHeight());
+						}
 
 						totalColumnWidths += column.getWidth();
-						maxHeight = Math.max(maxHeight, child.getMeasuredHeight() + child.getPaddingTop() + child.getPaddingBottom());
-//						if (debugging) {
-//							Logger.debug("maxHeight:" + maxHeight);
-//						}
+						widthToUse -= column.getWidth();
+						maxHeight = Math.max(maxHeight, column.getHeight());
+					}
+				}
+			}
+			// Left over space
+			if (widthToUse > 0 && expandableColumns > 0) {
+				// Divide up the width left by the # of columns that are expandable
+				int remainderColumnWidth = widthToUse / expandableColumns;
+				for (Column column : row.columns) {
+					if (!column.isExpandable()) {
+						continue;
+					}
+					View child = column.getView();
+					if (child == null) {
+						continue;
+					}
+					if (child.getVisibility() != GONE) {
+
+						childWidthSpec = MeasureSpec.makeMeasureSpec(column.getWidth() + remainderColumnWidth, MeasureSpec.EXACTLY);
+						LayoutParams lp = (LayoutParams) child.getLayoutParams();
+						// Fixed row height
+						int height = Math.round(cellHeight * lp.getRowLength());
+						if (row.getFixedHeight() != 0) {
+							childHeightSpec = MeasureSpec.makeMeasureSpec(row.getFixedHeight(), MeasureSpec.EXACTLY);
+						} else {
+							// Height is already set
+							if (column.getHeight() != 0 ) {
+								childHeightSpec = MeasureSpec.makeMeasureSpec(column.getHeight(), MeasureSpec.EXACTLY);
+							} else {
+								childHeightSpec = makeSpec(heightToUse);
+							}
+						}
+						setChildWidth(childHeightSpec, column, child, childWidthSpec);
+
+						if (row.getFixedHeight() != 0) {
+							column.setHeight(row.getFixedHeight());
+						}
+						totalColumnWidths += remainderColumnWidth;
+						widthToUse -= remainderColumnWidth;
 					}
 				}
 			}
 			maxColumnWidth = Math.max(maxColumnWidth, totalColumnWidths);
 			if (row.getFixedHeight() == 0) {
 				if (maxHeight == 0) {
-//                    Logger.debug("maxHeight = 0 setting to RowHeight:" + rowHeight);
 					row.setHeight(rowHeight);
 				} else {
 					row.setHeight(maxHeight);
@@ -705,13 +830,16 @@ public class GridLayout extends ViewGroup {
 				row.setHeight(row.getFixedHeight());
 			}
 			totalRowHeights += row.getHeight();
-//			if (debugging) {
-//				Logger.debug("setting RowHeight:" + maxHeight);
-//			}
 			heightToUse -= row.getHeight();
+			// Recalculate cellheight
+			rowCount++;
+			if (numRows > rowCount) {
+				cellHeight = heightToUse / (numRows - rowCount);
+			}
 		}
 
 
+		// ********************* Expandable Rows ***************************
 		int remainderRowHeight = 0;
 		if (expandableRows > 0) {
 			remainderRowHeight = heightToUse / expandableRows;
@@ -724,10 +852,8 @@ public class GridLayout extends ViewGroup {
 				continue;
 			}
 			row.setHeight(remainderRowHeight);
-//			if (debugging) {
-//				Logger.debug("Exandable Row:" + rowCount++);
-//			}
 			int widthToUse = widthSize - getPaddingLeft() - getPaddingRight();
+//			int widthToUse = widthSize;
 			int maxHeight = 0, totalColumnWidths = 0;
 			int nonExpandableColumns = 0, expandableColumns = 0;
 			int visibleColumns = row.getVisibleNonExpandableColumns();
@@ -736,10 +862,6 @@ public class GridLayout extends ViewGroup {
 			} else {
 				cellWidth = columnWidth / visibleColumns;
 			}
-//			if (debugging) {
-//				Logger.debug("cellWidth:" + cellWidth);
-//			}
-//			columnCount = 0;
 			// Go through non-expandable columns
 			for (Column column : row.columns) {
 				View child = column.getView();
@@ -751,22 +873,19 @@ public class GridLayout extends ViewGroup {
 						expandableColumns++;
 						continue;
 					}
-//					if (debugging) {
-//						Logger.debug("Column:" + columnCount++);
-//					}
 					nonExpandableColumns++;
 					LayoutParams lp = (LayoutParams) child.getLayoutParams();
 					int width = Math.round(cellWidth * lp.getColumnLength());
 
-					setChildWidth(remainderRowHeight, column, child, width);
+					childWidthSpec = makeSpec(widthToUse);
+					childHeightSpec = makeSpec(remainderRowHeight);
+
+					setChildWidth(childHeightSpec, column, child, childWidthSpec);
 
 					totalColumnWidths += column.getWidth();
-//					if (debugging) {
-//						Logger.debug("View: " + child.getClass().toString() + " width:" + column.getWidth());
-//					}
 
 					widthToUse -= column.getWidth();
-					maxHeight = Math.max(maxHeight, child.getMeasuredHeight() + child.getPaddingTop() + child.getPaddingBottom());
+					maxHeight = Math.max(maxHeight, column.getHeight());
 				}
 			}
 			row.setNonExpandableColumns(nonExpandableColumns);
@@ -785,96 +904,210 @@ public class GridLayout extends ViewGroup {
 					}
 					if (child.getVisibility() != GONE) {
 
-						setChildWidth(remainderRowHeight, column, child, remainderColumnWidth);
+						childWidthSpec = makeSpec(remainderColumnWidth);
+						childHeightSpec = makeSpec(remainderRowHeight);
+
+						setChildWidth(childHeightSpec, column, child, childWidthSpec);
 
 						totalColumnWidths += column.getWidth();
-						maxHeight = Math.max(maxHeight, child.getMeasuredHeight() + child.getPaddingTop() + child.getPaddingBottom());
-//						if (debugging) {
-//							Logger.debug("maxHeight:" + maxHeight);
-//						}
+						widthToUse -= column.getWidth();
+						maxHeight = Math.max(maxHeight, column.getHeight());
 					}
 				}
 			}
+			// Left over space
+			if (widthToUse > 0 && expandableColumns > 0) {
+				// Divide up the width left by the # of columns that are expandable
+				int remainderColumnWidth = widthToUse / expandableColumns;
+				for (Column column : row.columns) {
+					if (!column.isExpandable()) {
+						continue;
+					}
+					View child = column.getView();
+					if (child == null) {
+						continue;
+					}
+					if (child.getVisibility() != GONE) {
+
+						childWidthSpec = MeasureSpec.makeMeasureSpec(column.getWidth() + remainderColumnWidth, MeasureSpec.EXACTLY);
+						// Height is already set
+						int height = row.getHeight();
+						if (column.getHeight() != 0 ) {
+							childHeightSpec = MeasureSpec.makeMeasureSpec(column.getHeight(), MeasureSpec.EXACTLY);
+						} else {
+							childHeightSpec = makeSpec(heightToUse);
+						}
+
+						setChildWidth(childHeightSpec, column, child, childWidthSpec);
+
+						totalColumnWidths += remainderColumnWidth;
+						widthToUse -= remainderColumnWidth;
+					}
+				}
+			}
+			row.setHeight(maxHeight);
+			heightToUse -= row.getHeight();
 			totalRowHeights += row.getHeight();
 			maxColumnWidth = Math.max(maxColumnWidth, totalColumnWidths);
 		}
-		setMeasuredDimension(maxColumnWidth, totalRowHeights);
+
+		// ********************* Remainder height for Expandable Rows ***************************
+		if (expandableRows > 0 && heightToUse > 0) {
+			remainderRowHeight = heightToUse / expandableRows;
+			// Now go through expandable rows
+			for (Row row : rows) {
+				boolean visibleRow = rowIsVisible(row);
+				if (!row.isExpandable() || !visibleRow) {
+					continue;
+				}
+				row.setHeight(row.getHeight() + remainderRowHeight);
+				for (Column column : row.columns) {
+					View child = column.getView();
+					if (child == null) {
+						continue;
+					}
+					if (child.getVisibility() != GONE) {
+
+						childWidthSpec = MeasureSpec.makeMeasureSpec(column.getWidth(), MeasureSpec.EXACTLY);
+						// Height is already set
+						int currentRowHeight = row.getHeight();
+						if (column.getHeight() != 0 ) {
+							childHeightSpec = MeasureSpec.makeMeasureSpec(column.getHeight() + remainderRowHeight, MeasureSpec.EXACTLY);
+						} else {
+							// We've already added the remainder to the height
+							childHeightSpec = MeasureSpec.makeMeasureSpec(currentRowHeight, MeasureSpec.EXACTLY);
+						}
+
+						setChildWidth(childHeightSpec, column, child, childWidthSpec);
+					}
+				}
+			}
+		}
+
+		maxColumnWidth += getPaddingLeft() + getPaddingRight();
+		totalRowHeights += getPaddingTop() + getPaddingBottom();
+		int width = resolveSize(maxColumnWidth, widthMeasureSpec);
+		int height = resolveSize(totalRowHeights, heightMeasureSpec);
+
+//		setMeasuredDimension(maxColumnWidth, totalRowHeights);
+		setMeasuredDimension(width, height);
 		fireMeasureListeners();
 		if (debugging) {
 			debug();
 			Logger.debug("setMeasuredDimension for GridLayout");
+			Logger.debug("width:" + width);
+			Logger.debug("height:" + height);
 			Logger.debug("maxColumnWidth:" + maxColumnWidth);
 			Logger.debug("totalRowHeights:" + totalRowHeights);
 		}
 	}
 
 	/**
+	 * Make a spec, checking for 0 size
+	 * @param size
+	 * @return  MeasureSpec
+	 */
+	protected int makeSpec(int size) {
+		if (size <= 0) {
+			return MeasureSpec.makeMeasureSpec(size, MeasureSpec.UNSPECIFIED);
+		}
+		return MeasureSpec.makeMeasureSpec(size, MeasureSpec.AT_MOST);
+	}
+
+	/**
 	 * Set the child's width
-	 * @param height
+	 * @param heightSpec
 	 * @param column
 	 * @param child
-	 * @param width
+	 * @param widthSpec
 	 */
-	private void setChildWidth(int height, Column column, View child, int width) {
-		int heightSpec = 0;
-		int widthSpec = 0;
+	private void setChildWidth(int heightSpec, Column column, View child, int widthSpec) {
+		int height = MeasureSpec.getSize(heightSpec) ;
+		int width = MeasureSpec.getSize(widthSpec);
+		int widthMode = MeasureSpec.getMode(widthSpec);
+		int heightMode = MeasureSpec.getMode(heightSpec);
+		int widthPadding = 0, heightPadding = 0;
+
 
 		if (height <= 0) {
 			heightSpec = MeasureSpec.makeMeasureSpec(height,
 				MeasureSpec.UNSPECIFIED);
-		} else {
-			heightSpec = MeasureSpec.makeMeasureSpec(height,
-				MeasureSpec.AT_MOST);
-		}
-
-
-		if ((column.isExpandable() && (child instanceof TextView))) {
-			widthSpec = MeasureSpec.makeMeasureSpec(width,
-				MeasureSpec.AT_MOST);
-			child.measure(widthSpec, heightSpec);
-			int measuredWidth = child.getMeasuredWidth();
-			if (measuredWidth < width) {
-				measuredWidth += child.getPaddingLeft() + child.getPaddingRight();
-			}
-			column.setColumnWidth(measuredWidth);
-		}
-		if ((child instanceof GridLayout) || column.isExpandable()) {
-			widthSpec = MeasureSpec.makeMeasureSpec(width,
-				MeasureSpec.EXACTLY);
-
-		} else {
-			widthSpec = MeasureSpec.makeMeasureSpec(width,
-				MeasureSpec.AT_MOST);
-
 		}
 		if (width <= 0) {
 			widthSpec = MeasureSpec.makeMeasureSpec(width,
 				MeasureSpec.UNSPECIFIED);
 		}
 
+		widthPadding = child.getPaddingLeft() + child.getPaddingRight() + getColumnLeftPadding(column) + getColumnRightPadding(column);
+		column.setWidthPadding(widthPadding);
+		heightPadding = child.getPaddingTop() + child.getPaddingBottom() + getColumnTopPadding(column) + getColumnBottomPadding(column);
+		column.setHeightPadding(heightPadding);
+
+
+
+		if (debugging) {
+			Logger.debug("Child " + child.getClass().getName() + " has starting width: " + width + " height: " + height);
+		}
+
+		// We need to get the real size of the item
+		if ((column.getColumnWidth() == 0 && widthMode == MeasureSpec.EXACTLY) ||
+			(column.getColumnHeight() == 0 && heightMode == MeasureSpec.EXACTLY)) {
+			int colWidthSpec = widthSpec;
+			int colHeightSpec = heightSpec;
+			if (column.getColumnWidth() == 0 && widthMode == MeasureSpec.EXACTLY) {
+				colWidthSpec = makeSpec(width - widthPadding);
+			}
+			if (column.getColumnHeight() == 0 && heightMode == MeasureSpec.EXACTLY) {
+				colHeightSpec = makeSpec(height - heightPadding);
+			}
+			child.measure(colWidthSpec, colHeightSpec);
+			if (column.getColumnWidth() == 0 && widthMode == MeasureSpec.EXACTLY) {
+				column.setColumnWidth(child.getMeasuredWidth());
+			}
+			if (column.getColumnHeight() == 0 && heightMode == MeasureSpec.EXACTLY) {
+				column.setColumnHeight(child.getMeasuredHeight());
+			}
+		}
+
 		// Measure should take into account padding
 		child.measure(widthSpec, heightSpec);
+
 		int childWidth = child.getMeasuredWidth();
-		int changedChildWidth = childWidth;
-		if (childWidth == 0) {
-			changedChildWidth = width;
+		int childHeight = child.getMeasuredHeight();
+
+		if (column.getColumnWidth() == 0 || widthMode != MeasureSpec.EXACTLY) {
+			column.setColumnWidth(childWidth);
 		}
-		if (childWidth < width) {
-			changedChildWidth += child.getPaddingLeft() + child.getPaddingRight();
+		if (column.getColumnHeight() == 0 || heightMode != MeasureSpec.EXACTLY) {
+			column.setColumnHeight(childHeight);
 		}
-		if (childWidth != changedChildWidth) {
-			childWidth = changedChildWidth;
-			widthSpec = MeasureSpec.makeMeasureSpec(childWidth,
-				MeasureSpec.EXACTLY);
-			child.measure(widthSpec, heightSpec);
+
+		if (widthMode != MeasureSpec.EXACTLY && width > 0 && widthPadding > 0 && childWidth < width) {
+			childWidth = Math.min(width, childWidth + widthPadding);
+			if (childWidth == column.getColumnWidth()) {
+				column.setColumnWidth(childWidth - widthPadding);
+			}
 		}
+		if (heightMode != MeasureSpec.EXACTLY && height > 0 && heightPadding > 0 && childHeight < height) {
+			childHeight = Math.min(height, childHeight + heightPadding);
+			if (childHeight == column.getColumnHeight()) {
+				column.setColumnHeight(childHeight - heightPadding);
+			}
+		}
+
+		column.setHeight(childHeight);
+
 		// Check to see if it hasn't been set
 		if (column.getFixedWidth() == 0) {
 			column.setWidth(childWidth);
 		} else {
 			column.setWidth(column.getFixedWidth());
 		}
+		if (debugging) {
+			Logger.debug("Child " + child.getClass().getName() + " has set width: " + column.getWidth() + " height: " + childHeight);
+		}
 	}
+
 
 	/**
 	 * Measure all children with the exact size. Not meant to measure the gridlayout
@@ -951,15 +1184,18 @@ public class GridLayout extends ViewGroup {
 
 
 	public void debug() {
-		Logger.debug("GridLayout has " + rows.size() + " rows");
-		Logger.debug("Measured Width " + measuredWidth);
-		Logger.debug("Measured height " + measuredHeight);
-		Logger.debug("Layout Width " + layoutWidth);
-		Logger.debug("Layout height " + layoutHeight);
-		Logger.debug("Layout left " + layoutLeft);
-		Logger.debug("Layout top " + layoutTop);
-		Logger.debug("Layout right " + layoutRight);
-		Logger.debug("Layout bottom " + layoutBottom);
+		Logger.debug("GridLayout");
+		Logger.debug(rows.size() + " rows");
+		Logger.debug("Layout Width " + getMeasuredWidth());
+		Logger.debug("Layout height " + getMeasuredHeight());
+		Logger.debug("Layout left " + getLeft());
+		Logger.debug("Layout top " + getTop());
+		Logger.debug("Layout right " + getRight());
+		Logger.debug("Layout bottom " + getBottom());
+		Logger.debug("Layout padding left " + getPaddingLeft());
+		Logger.debug("Layout padding top " + getPaddingTop());
+		Logger.debug("Layout padding right " + getPaddingRight());
+		Logger.debug("Layout padding bottom " + getPaddingBottom());
 		int rowCount = 0;
 		for (Row row : rows) {
 			int rectHeight = row.getHeight();
@@ -970,7 +1206,7 @@ public class GridLayout extends ViewGroup {
 			for (Column column : row.columns) {
 				View child = column.getView();
 				Logger.debug("Column " + columnCount + " has view " + child.getClass().getName());
-				Logger.debug("Column " + columnCount + " is " + column.getWidth() + " wide");
+				Logger.debug("Column " + columnCount + " is " + column.getWidth() + " wide" + " with Column width: " + column.getColumnWidth() + " and Column Height: " + column.getColumnHeight());
 				Logger.debug("Column " + columnCount + " " + (column.isVisible() ? "is visible " : "is not visible"));
 				Logger.debug("Column " + columnCount + " is " + (column.isExpandable() ? "expandable" : "not expandable"));
 				Logger.debug("Column " + columnCount + " Padding Top: " + child.getPaddingTop() + " Padding Left: " + child.getPaddingLeft() + " Padding Right: " + child.getPaddingRight() + " Padding Bottom: " + child.getPaddingBottom());
@@ -988,62 +1224,100 @@ public class GridLayout extends ViewGroup {
 	protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
 		int width = right - left;
 		int height = bottom - top;
-		layoutLeft = left;
-		layoutTop = top;
-		layoutRight = right;
-		layoutBottom = bottom;
-		layoutWidth = width;
-		layoutHeight = height;
-		if (debugging) {
+		if (debugLayout) {
 			Logger.debug("onLayout");
-//			Logger.debug("layout left:" + left);
-//			Logger.debug("layout top:" + top);
-//			Logger.debug("layout width:" + width);
-//			Logger.debug("layout height:" + height);
+			Logger.debug("layout left:" + left);
+			Logger.debug("layout top:" + top);
+			Logger.debug("layout width:" + width);
+			Logger.debug("layout height:" + height);
+			Logger.debug("layout Padding Top: " + getPaddingTop() + " Padding Left: " + getPaddingLeft() + " Padding Right: " + getPaddingRight() + " Padding Bottom: " + getPaddingBottom());
 //			Logger.debug("Num Rows:" + rows.size());
 //            int startTop = t + getPaddingTop(), cl=l, ct = 0, cr = 0, cb = 0;
 		}
 		int startTop = getPaddingTop(), cl = 0, ct = 0, cr = 0, cb = 0;
+		int rowCount = 0;
 		for (Row row : rows) {
 			boolean visibleRow = rowIsVisible(row);
 			if (!visibleRow) {
+				rowCount++;
 				continue;
 			}
-			int startLeft = 0;
-			int rectHeight = row.getHeight();
-			int totalColumnWidths = 0;
+			int startLeft = getPaddingLeft();
+			int rowHeight = row.getHeight();
+			int startCenter = -1;
+			int totalCenterWidth = 0;
+			int columnCount = 0;
+			if (debugLayout) {
+				Logger.debug("Row: " + rowCount++ + " is " + (row.isExpandable() ? "expandable" : "not expandable") + " startTop = " + startTop + " row Height: " + rowHeight);
+			}
+
 			for (Column column : row.columns) {
 				View child = column.getView();
 				if (child == null) {
+					columnCount++;
 					continue;
 				}
 				if (child.getVisibility() != GONE) {
 					LayoutParams lp = (LayoutParams) child.getLayoutParams();
+					int cellHeight = column.getHeight();
+					int colHeight = column.getColumnHeight();
 					int colWidth = column.getColumnWidth();
-					int rectWidth = column.getWidth()  - getPaddingRight() - child.getPaddingRight();
+					int cellWidth = column.getWidth();
+
 					cl = startLeft + child.getPaddingLeft();
 
 					if (lp.gravity == Gravity.CENTER_HORIZONTAL || lp.gravity == Gravity.CENTER) {
 
-						if ((column.isExpandable() && (child instanceof TextView))) {
-							cl += ((width-startLeft)/2) - (colWidth/2);
-						} else if (rectWidth < width) {
-							cl += ((width-startLeft)/2) - (rectWidth/2);
-						}
+						totalCenterWidth += colWidth + column.getWidthPadding();
+						totalCenterWidth = Math.min(totalCenterWidth, width);
+						columnCount++;
+						continue;
 					} else if (lp.gravity == Gravity.RIGHT) {
-						cl = right - column.getWidth()  - getPaddingRight();
+						cl = right - colWidth - column.getWidthPadding();
 					}
-					ct = startTop + child.getPaddingTop();
+					ct = startTop;
+					boolean verticalCentered = false;
 					if (lp.gravity == Gravity.CENTER_VERTICAL || lp.gravity == Gravity.CENTER) {
-						int extraHeight = (rectHeight / 2) - ((child.getMeasuredHeight() - child.getPaddingTop()) / 2);
-						if (extraHeight > 0 && ((extraHeight + ct) < rectHeight)) {
-							ct += extraHeight;
+						verticalCentered = true;
+						if (colHeight == height) {
+							ct += child.getPaddingTop();
+						} else {
+							ct += (height / 2) - (colHeight / 2);
+							if ((ct + colHeight) > height) {
+								ct -= (ct + colHeight) - height;
+							}
 						}
+					} else {
+						ct += child.getPaddingTop();
 					}
-					cr = cl + column.getWidth();
-					cr = Math.min(cr, layoutWidth);
-					cb = ct + rectHeight;
-					cb = Math.min(cb, layoutHeight);
+
+					// We know we're not centered
+					if (column.isExpandable()) {
+						cr = startLeft + cellWidth;
+					} else if (column.getFixedWidth() != 0){
+						cr = startLeft + cellWidth;
+					} else {
+						cr = cl + colWidth;
+					}
+
+					if (row.isExpandable() && !verticalCentered) {
+						cb = startTop + cellHeight;
+					} else if (row.getFixedHeight() != 0){
+						if (verticalCentered) {
+							cb = ct + colHeight;
+						} else {
+							cb = startTop + cellHeight;
+						}
+					} else {
+						cb = ct + colHeight;
+					}
+					if (debugLayout) {
+						Logger.debug("Column " + columnCount + " has view " + child.getClass().getName() + " with id: " + LayoutIDGenerator.getStringID(child.getId()));
+						Logger.debug("Column " + columnCount + " is " + column.getWidth() + " wide" + " with Column width: " + column.getColumnWidth() + " and Column Height: " + column.getColumnHeight());
+						Logger.debug("Column " + columnCount + " is " + (column.isExpandable() ? "expandable" : "not expandable") + (column.getFixedWidth() > 0 ? " fixed width" : " not fixed width") + (verticalCentered ? " vertically centered" : " not vertically centered"));
+						Logger.debug("Column " + columnCount + " Padding Top: " + child.getPaddingTop() + " Padding Left: " + child.getPaddingLeft() + " Padding Right: " + child.getPaddingRight() + " Padding Bottom: " + child.getPaddingBottom());
+						Logger.debug("Column " + columnCount + " left:" + cl + " top:" + ct + " right:" + cr + " bottom: " + cb + " width: " + (cr-cl) + " height: " + (cb-ct));
+					}
 					if (debugging) {
 						Logger.debug("View: " + child.getClass().toString());
 						Logger.debug("setting layout left:" + cl + " top:" + ct + " right:" + cr + " bottom: " + cb);
@@ -1055,22 +1329,109 @@ public class GridLayout extends ViewGroup {
 					} else {
 						child.layout(cl, ct, cr, cb);
 					}
-					startLeft += column.getWidth();
+					startLeft += cellWidth;
+					if (debugLayout) {
+						Logger.debug("Column " + columnCount + " Start Left: " + startLeft);
+					}
+				}
+				columnCount++;
+			}
+			if (totalCenterWidth > 0) {
+				startLeft = getPaddingLeft();
+				columnCount = 0;
+				for (Column column : row.columns) {
+					View child = column.getView();
+					if (child == null) {
+						columnCount++;
+						continue;
+					}
+					if (child.getVisibility() != GONE) {
+						LayoutParams lp = (LayoutParams) child.getLayoutParams();
+						if (lp.gravity != Gravity.CENTER_HORIZONTAL && lp.gravity != Gravity.CENTER) {
+							columnCount++;
+							continue;
+						}
+						int cellHeight = column.getHeight();
+						int colHeight = column.getColumnHeight();
+						int colWidth = column.getColumnWidth();
+						int cellWidth = column.getWidth();
+						if (startCenter == -1) {
+							startCenter = (width/2) - totalCenterWidth/2;
+							startLeft = startCenter;
+						}
+						cl = startLeft + child.getPaddingLeft();
 
-					totalColumnWidths += column.getWidth();
+						ct = startTop;
+						boolean verticalCentered = false;
+ 						if (lp.gravity == Gravity.CENTER_VERTICAL || lp.gravity == Gravity.CENTER) {
+							 verticalCentered = true;
+							 if (colHeight == height) {
+								 ct += child.getPaddingTop();
+							 } else {
+								 ct += (height / 2) - (colHeight / 2);
+								 if ((ct + colHeight) > height) {
+									 ct -= (ct + colHeight) - height;
+								 }
+							 }
+						} else {
+							ct += child.getPaddingTop();
+						}
+
+						// We know we're centered horiz
+						if (column.getFixedWidth() != 0) {
+							cr = cl + colWidth;
+						} else {
+							cr = cl + colWidth;
+						}
+
+						if (row.isExpandable() && !verticalCentered) {
+							cb = startTop + cellHeight;
+						} else if (row.getFixedHeight() != 0){
+							cb = startTop + cellHeight;
+						} else {
+							cb = ct + colHeight;
+						}
+						if (debugLayout) {
+							Logger.debug("Centered Column ");
+							Logger.debug("Column " + columnCount + " has view " + child.getClass().getName() + " with id: " + LayoutIDGenerator.getStringID(child.getId()));
+							Logger.debug("Column " + columnCount + " is " + column.getWidth() + " wide" + " with Column width: " + column.getColumnWidth() + " and Column Height: " + column.getColumnHeight());
+							Logger.debug("Column " + columnCount + " is " + (column.isExpandable() ? "expandable" : "not expandable") + (column.getFixedWidth() > 0 ? " fixed width" : " not fixed width") + (verticalCentered ? " vertically centered" : " not vertically centered"));
+							Logger.debug("Column " + columnCount + " Padding Top: " + child.getPaddingTop() + " Padding Left: " + child.getPaddingLeft() + " Padding Right: " + child.getPaddingRight() + " Padding Bottom: " + child.getPaddingBottom());
+							Logger.debug("Column " + columnCount + " left:" + cl + " top:" + ct + " right:" + cr + " bottom: " + cb + " width: " + (cr-cl) + " height: " + (cb-ct));
+						}
+						if (debugging) {
+							Logger.debug("View: " + child.getClass().toString());
+							Logger.debug("setting layout left:" + cl + " top:" + ct + " right:" + cr + " bottom: " + cb);
+						}
+						if (child instanceof GridLayout) {
+							if (((GridLayout) child).getVisibleRows() != 0) {
+								child.layout(cl, ct, cr, cb);
+							}
+						} else {
+							child.layout(cl, ct, cr, cb);
+						}
+						startLeft += cellWidth;
+						if (debugLayout) {
+							Logger.debug("Column " + columnCount + " Start Left: " + startLeft);
+						}
+					}
+					columnCount++;
 				}
 			}
-			startTop += rectHeight;
+			startTop += rowHeight;
 		}
 		if (debugging) {
 			debug();
+		}
+		if (debugLayout) {
+			Logger.debug("onLayout: End Layout");
 		}
 		fireLayoutListeners();
 	}
 
 	public android.view.ViewGroup.LayoutParams generateLayoutParams(
 			AttributeSet attrs) {
-		return LayoutParams.createLayout(1, 1);
+		return new LayoutParams(getContext(), attrs);
 	}
 
 	@Override
@@ -1227,12 +1588,20 @@ public class GridLayout extends ViewGroup {
 			}
 			return count;
 		}
+
+		public int getColumnCount() {
+			return columns.size();
+		}
 	}
 
 	class Column {
 		protected int columnWidth;
+		protected int columnHeight;
 		protected int width;
+		protected int height;
 		protected int fixedWidth;
+		protected int widthPadding;
+		protected int heightPadding;
 		protected int x;
 		private View view;
 		private int columnStart;
@@ -1273,6 +1642,38 @@ public class GridLayout extends ViewGroup {
 
 		public void setFixedWidth(int fixedWidth) {
 			this.fixedWidth = fixedWidth;
+		}
+
+		public int getColumnHeight() {
+			return columnHeight;
+		}
+
+		public void setColumnHeight(int columnHeight) {
+			this.columnHeight = columnHeight;
+		}
+
+		public int getHeight() {
+			return height;
+		}
+
+		public void setHeight(int height) {
+			this.height = height;
+		}
+
+		public int getHeightPadding() {
+			return heightPadding;
+		}
+
+		public void setHeightPadding(int heightPadding) {
+			this.heightPadding = heightPadding;
+		}
+
+		public int getWidthPadding() {
+			return widthPadding;
+		}
+
+		public void setWidthPadding(int widthPadding) {
+			this.widthPadding = widthPadding;
 		}
 
 		public int getX() {

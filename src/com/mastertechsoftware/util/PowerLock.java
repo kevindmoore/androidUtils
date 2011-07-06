@@ -7,6 +7,10 @@ public class PowerLock {
 	private static PowerManager.WakeLock wakeLock;
 
 	public static void getWakeLock(Context context) {
+		if (context == null) {
+			Logger.error("PowerLock:getWakeLock: Context is null");
+			return;
+		}
  		releaseWakeLock();
 		PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
 		wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "aMusicPlayer");

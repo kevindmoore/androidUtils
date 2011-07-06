@@ -26,4 +26,14 @@ public class LayoutIDGenerator {
             return -1;
         }
     }
+
+	public static String getStringID(int id) {
+		for (String key : ids.keySet()) {
+			int intValue = ids.get(key);
+			if (intValue == id) {
+				return key;
+			}
+		}
+		return "";
+	}
 }

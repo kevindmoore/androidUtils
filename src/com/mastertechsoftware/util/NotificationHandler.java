@@ -61,26 +61,66 @@ public class NotificationHandler {
 
 		mgr.notify(id, notification);
 	}
+
 	public static void cancelNotification(int id) {
 		NotificationManager mgr = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
 		mgr.cancel(id);
 	}
 
-	public static void startForeground(Service service, int id, Notification notification) {
-		Method method = UtilReflector.getMethod(service, "startForeground", new Class[]{int.class, Notification.class});
-		if (method != null) {
-			UtilReflector.executeMethod(service, new Object[]{id, notification}, method);
-		} else {
-			service.setForeground(true);
+	/**
+	 * Start in foreground and notify
+	 * @param service
+	 * @param id
+	 * @param notification
+	 */
+	public static void startAndNotify(Service service, int id, Notification notification) {
+		if (!startForeground(service, id, notification)) {
+			notify(id, notification);
 		}
 	}
 
-	public static void stopForeground(Service service) {
+	/**
+	 * Stop the foreground process and cancel the notification
+	 * @param service
+	 * @param id
+	 */
+	public static void stopAndCancelNotify(Service service, int id) {
+		if (!stopForeground(service)) {
+			cancelNotification(id);
+		}
+	}
+
+	/**
+	 * Start in the foreground
+	 * @param service
+	 * @param id
+	 * @param notification
+	 * @return
+	 */
+	public static boolean startForeground(Service service, int id, Notification notification) {
+		Method method = UtilReflector.getMethod(service, "startForeground", new Class[]{int.class, Notification.class});
+		if (method != null) {
+			UtilReflector.executeMethod(service, new Object[]{id, notification}, method);
+			return true;
+		} else {
+			service.setForeground(true);
+			return false;
+		}
+	}
+
+	/**
+	 * Stop foreground processing
+	 * @param service
+	 * @return
+	 */
+	public static boolean stopForeground(Service service) {
 		Method method = UtilReflector.getMethod(service, "stopForeground", new Class[]{boolean.class});
 		if (method != null) {
 			UtilReflector.executeMethod(service, new Object[]{true}, method);
+			return true;
 		} else {
 			service.setForeground(false);
+			return false;
 		}
 	}
 }

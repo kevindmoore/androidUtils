@@ -1,10 +1,15 @@
 package com.mastertechsoftware.location;
 
+import android.app.PendingIntent;
 import android.content.Context;
+import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.location.LocationProvider;
 import android.os.Bundle;
+import android.os.Looper;
+import com.mastertechsoftware.util.Logger;
 
 /**
  * Date: Oct 31, 2010
@@ -12,44 +17,148 @@ import android.os.Bundle;
 public class LocationHelper {
     private static final int TWO_MINUTES = 1000 * 60 * 2;
     private static Location currentBestLocation;
+    private static HelperLocationListener locationListener;
+	public static Double kEarthRadiusKms = 6376.5;
 
 
-    public static void getLocation(final Context context, final LocationCallback callback) {
+    public static void startLocationListening(final Context context, long timeout, float distance, final LocationCallback callback) {
         // Acquire a reference to the system Location Manager
         LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 
         // Define a listener that responds to location updates
-        LocationListener locationListener = new LocationListener() {
-            public void onLocationChanged(Location location) {
-                // Remove the listener you previously added
-                LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-                locationManager.removeUpdates(this);
-                // Called when a new location is found by the network location provider.
-                if (isBetterLocation(location, currentBestLocation)) {
-                    currentBestLocation = location;
-                    callback.newLocation(location);
-                }
-            }
-
-            public void onStatusChanged(String provider, int status, Bundle extras) {
-            }
-
-            public void onProviderEnabled(String provider) {
-            }
-
-            public void onProviderDisabled(String provider) {
-            }
-        };
+        locationListener = new HelperLocationListener(callback);
 
         // Register the listener with the Location Manager to receive location updates
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 3000, 0, locationListener);
+		Criteria criteria = new Criteria();
+		criteria.setAccuracy(Criteria.ACCURACY_FINE);
+		criteria.setPowerRequirement(Criteria.NO_REQUIREMENT);
+		String criteriaName = locationManager.getBestProvider(criteria, false);
+		if (criteriaName == null) {
+			criteria.setAccuracy(Criteria.ACCURACY_COARSE);
+			criteriaName = locationManager.getBestProvider(criteria, false);
+		}
+		if (criteriaName != null) {
+	        locationManager.requestLocationUpdates(criteriaName, timeout, distance, locationListener);
+		} else {
+			Logger.error("Could not get a Location Provider");
+		}
     }
+
+    public static void startGPSLocationListening(final Context context, long timeout, float distance, final LocationCallback callback) {
+        // Acquire a reference to the system Location Manager
+        LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+
+        // Define a listener that responds to location updates
+        locationListener = new HelperLocationListener(callback);
+
+        // Register the listener with the Location Manager to receive location updates
+		Criteria criteria = new Criteria();
+		criteria.setAccuracy(Criteria.ACCURACY_FINE);
+		criteria.setPowerRequirement(Criteria.NO_REQUIREMENT);
+		String criteriaName = locationManager.getBestProvider(criteria, false);
+		if (criteriaName != null) {
+	        locationManager.requestLocationUpdates(criteriaName, timeout, distance, locationListener);
+		} else {
+			Logger.error("Could not get a Location Provider");
+		}
+    }
+
+    public static void startGPSLocationListening(final Context context, long timeout, float distance, final LocationCallback callback, Looper looper) {
+        // Acquire a reference to the system Location Manager
+        LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+
+        // Define a listener that responds to location updates
+        locationListener = new HelperLocationListener(callback);
+
+        // Register the listener with the Location Manager to receive location updates
+		Criteria criteria = new Criteria();
+		criteria.setAccuracy(Criteria.ACCURACY_FINE);
+		criteria.setPowerRequirement(Criteria.NO_REQUIREMENT);
+		String criteriaName = locationManager.getBestProvider(criteria, false);
+		if (criteriaName != null) {
+	        locationManager.requestLocationUpdates(criteriaName, timeout, distance, locationListener, looper);
+		} else {
+			Logger.error("Could not get a Location Provider");
+		}
+    }
+
+    public static void startNetworkLocationListening(final Context context, long timeout, float distance, final LocationCallback callback) {
+        // Acquire a reference to the system Location Manager
+        LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+
+        // Define a listener that responds to location updates
+        locationListener = new HelperLocationListener(callback);
+
+        // Register the listener with the Location Manager to receive location updates
+		Criteria criteria = new Criteria();
+		criteria.setAccuracy(Criteria.ACCURACY_COARSE);
+		criteria.setPowerRequirement(Criteria.NO_REQUIREMENT);
+		String criteriaName = locationManager.getBestProvider(criteria, false);
+		if (criteriaName != null) {
+	        locationManager.requestLocationUpdates(criteriaName, timeout, distance, locationListener);
+		} else {
+			Logger.error("Could not get a Location Provider");
+		}
+    }
+
+    public static void startNetworkLocationListening(final Context context, long timeout, float distance, final LocationCallback callback, Looper looper) {
+        // Acquire a reference to the system Location Manager
+        LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+
+        // Define a listener that responds to location updates
+        locationListener = new HelperLocationListener(callback);
+
+        // Register the listener with the Location Manager to receive location updates
+		Criteria criteria = new Criteria();
+		criteria.setAccuracy(Criteria.ACCURACY_COARSE);
+		criteria.setPowerRequirement(Criteria.NO_REQUIREMENT);
+		String criteriaName = locationManager.getBestProvider(criteria, false);
+		if (criteriaName != null) {
+	        locationManager.requestLocationUpdates(criteriaName, timeout, distance, locationListener, looper);
+		} else {
+			Logger.error("Could not get a Location Provider");
+		}
+    }
+
+	public static void removeListener(Context context) {
+		if (locationListener != null) {
+			// Acquire a reference to the system Location Manager
+			LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+			locationManager.removeUpdates(locationListener);
+			locationListener = null;
+		}
+
+	}
+
+	public static void addProximityAlert(Context context, double latitude, double longitude, float radius, PendingIntent intent) {
+		// Acquire a reference to the system Location Manager
+		LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+		locationManager.addProximityAlert(latitude, longitude, radius, -1, intent);
+	}
+
+	public static void removeProximityAlert(Context context, PendingIntent intent) {
+		// Acquire a reference to the system Location Manager
+		LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+		locationManager.removeProximityAlert(intent);
+
+	}
+
+	public static Location getCurrentLocation(Context context) {
+		LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+		LocationProvider provider = locationManager.getProvider(LocationManager.NETWORK_PROVIDER);
+		if (provider == null) {
+			Logger.error("LocationHelper:getCurrentLocation: Provider " + LocationManager.NETWORK_PROVIDER + " does not exist");
+			return null;
+		}
+		return locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+	}
 
     /**
      * Determines whether one Location reading is better than the current Location fix
      *
      * @param location            The new Location that you want to evaluate
      * @param currentBestLocation The current Location fix, to which you want to compare the new one
+	 * @return true if better
      */
     protected static boolean isBetterLocation(Location location, Location currentBestLocation) {
         if (currentBestLocation == null) {
@@ -93,13 +202,114 @@ public class LocationHelper {
         return false;
     }
 
-    /**
-     * Checks whether two providers are the same
-     */
+	public static double calcDistance(Location startpoint, Location endpoint) {
+		double d2r = (180 / Math.PI);
+		double distance = 0;
+
+		try{
+			double dlong = (endpoint.getLongitude() - startpoint.getLongitude()) * d2r;
+			double dlat = (endpoint.getLatitude() - startpoint.getLatitude()) * d2r;
+			double a =
+				Math.pow(Math.sin(dlat / 2.0), 2)
+					+ Math.cos(startpoint.getLatitude() * d2r)
+					* Math.cos(endpoint.getLatitude() * d2r)
+					* Math.pow(Math.sin(dlong / 2.0), 2);
+			double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+			double d = 6367 * c;
+
+			return d;
+
+		} catch(Exception e){
+			e.printStackTrace();
+		}
+		return 0;
+	}
+
+	public static double haversine(double Lat1,
+				  double Long1, double Lat2, double Long2)
+	{
+		/*
+			The Haversine formula according to Dr. Math.
+			http://mathforum.org/library/drmath/view/51879.html
+
+			dlon = lon2 - lon1
+			dlat = lat2 - lat1
+			a = (sin(dlat/2))^2 + cos(lat1) * cos(lat2) * (sin(dlon/2))^2
+			c = 2 * atan2(sqrt(a), sqrt(1-a))
+			d = R * c
+
+			Where
+				* dlon is the change in longitude
+				* dlat is the change in latitude
+				* c is the great circle distance in Radians.
+				* R is the radius of a spherical Earth.
+				* The locations of the two points in
+					spherical coordinates (longitude and
+					latitude) are lon1,lat1 and lon2, lat2.
+		*/
+		double dDistance = Double.MIN_VALUE;
+		double dLat1InRad = Lat1 * (Math.PI / 180.0);
+		double dLong1InRad = Long1 * (Math.PI / 180.0);
+		double dLat2InRad = Lat2 * (Math.PI / 180.0);
+		double dLong2InRad = Long2 * (Math.PI / 180.0);
+
+		double dLongitude = dLong2InRad - dLong1InRad;
+		double dLatitude = dLat2InRad - dLat1InRad;
+
+		// Intermediate result a.
+
+		double a = Math.pow(Math.sin(dLatitude / 2.0), 2.0) +
+				   Math.cos(dLat1InRad) * Math.cos(dLat2InRad) *
+				   Math.pow(Math.sin(dLongitude / 2.0), 2.0);
+
+		// Intermediate result c (great circle distance in Radians).
+
+		double c = 2.0 * Math.atan2(Math.sqrt(a), Math.sqrt(1.0 - a));
+
+		// Distance.
+
+		// const Double kEarthRadiusMiles = 3956.0;
+
+		dDistance = kEarthRadiusKms * c;
+
+		return dDistance;
+	}
+
+	/**
+	 * Checks whether two providers are the same
+	 * @param provider1
+	 * @param provider2
+	 * @return if they are the same provider
+	 */
     private static boolean isSameProvider(String provider1, String provider2) {
         if (provider1 == null) {
             return provider2 == null;
         }
         return provider1.equals(provider2);
     }
+
+	static class HelperLocationListener implements LocationListener {
+		private LocationCallback callback;
+
+		HelperLocationListener(LocationCallback callback) {
+			this.callback = callback;
+		}
+
+		public void onLocationChanged(Location location) {
+			// Called when a new location is found by the network location provider.
+			if (isBetterLocation(location, currentBestLocation)) {
+				currentBestLocation = location;
+				callback.newLocation(location);
+			}
+		}
+
+		public void onStatusChanged(String provider, int status, Bundle extras) {
+		}
+
+		public void onProviderEnabled(String provider) {
+		}
+
+		public void onProviderDisabled(String provider) {
+		}
+	}
 }

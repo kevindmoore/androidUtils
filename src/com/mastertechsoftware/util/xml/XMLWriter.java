@@ -19,150 +19,135 @@ import java.util.Map;
 
 /**
  * Class used to write XML Files using XML Nodes
+ *
  * @author Kevin Moore
  */
-public class XMLWriter
-{
+public class XMLWriter {
 	protected Writer writer;
 	protected ArrayList<XMLNode> nodes;
 	protected int indentLevel = -1;
 	protected boolean doIndents = true;
 	protected boolean writeHeader = false;
 	private String xmlIntro = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-    private File xmlFile;
+	private File xmlFile;
 
-    /**
+	/**
 	 * Constructor
+	 *
 	 * @param xmlFile
 	 */
-	public XMLWriter(File xmlFile)
-	{
-        this.xmlFile = xmlFile;
+	public XMLWriter(File xmlFile) {
+		this.xmlFile = xmlFile;
 	}
-	
+
 	/**
 	 * Alternate constructor. Pass in a string representing an xml file
 	 */
-	public XMLWriter()
-	{
+	public XMLWriter() {
 	}
 
-    protected boolean createWriter() {
-        if (writer != null) {
-            return true;
-        }
-        if (xmlFile != null) {
-            try
-            {
-                writer = new FileWriter(xmlFile);
-            }
-            catch (IOException ex)
-            {
-                Logger.error(ex);
-                return false;
-            }
-        } else {
-            writer = new StringWriter();
-        }
-        return true;
-    }
+	protected boolean createWriter() {
+		if (writer != null) {
+			return true;
+		}
+		if (xmlFile != null) {
+			try {
+				writer = new FileWriter(xmlFile);
+			} catch (IOException ex) {
+				Logger.error(ex);
+				return false;
+			}
+		} else {
+			writer = new StringWriter();
+		}
+		return true;
+	}
 
-    /**
+	/**
 	 * Return the string representing the XML file
+	 *
 	 * @return String
 	 */
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		return writer.toString();
 	}
-	
+
 	/**
 	 * Add Node to list
+	 *
 	 * @param node
 	 */
-	public void addXMLNode(XMLNode node)
-	{
-		if (nodes == null)
-		{
+	public void addXMLNode(XMLNode node) {
+		if (nodes == null) {
 			nodes = new ArrayList<XMLNode>();
 		}
 		nodes.add(node);
 	}
-	
+
 	/**
 	 * Write out all of our nodes
-     * @return true if written
+	 *
+	 * @return true if written
 	 */
-	public boolean writeNodes()
-	{
-        if (!createWriter()) {
-            return false;
-        }
-        try
-		{
+	public boolean writeNodes() {
+		if (!createWriter()) {
+			return false;
+		}
+		try {
 			if (writeHeader)
 				writer.write(xmlIntro);
 			boolean noProblems = writeNodes(nodes);
 			writer.close();
-            if (!noProblems) {
-                return false;
-            }
-        }
-		catch (IOException ex)
-		{
-            Logger.error(ex);
-            return false;
-        }
-        return true;
-    }
-	
+			if (!noProblems) {
+				return false;
+			}
+		} catch (IOException ex) {
+			Logger.error(ex);
+			return false;
+		}
+		return true;
+	}
+
 	/**
 	 * Recursively write out a node and it's children
+	 *
 	 * @param nodeList
-     * @return true if written
+	 * @return true if written
 	 */
-	public boolean writeNodes(List<XMLNode> nodeList)
-	{
+	public boolean writeNodes(List<XMLNode> nodeList) {
 		if (nodeList == null)
 			return true;
 		Iterator<XMLNode> iter = nodeList.iterator();
-		while (iter.hasNext())
-		{
+		while (iter.hasNext()) {
 			XMLNode node = iter.next();
 			indentLevel++;
 			if (doIndents)
 				if (!writeIndents()) {
-                    return false;
-                }
-			try
-			{
+					return false;
+				}
+			try {
 				String nodeName = node.getNodeName();
 				if ((nodeName == null) || (nodeName.length() == 0) && (node.getChildNodes() != null)) // Empty node
 				{
-//					indentLevel--;
+					//					indentLevel--;
 					doIndents = false;
 					writeNodes(node.getChildNodes());
 					continue;
-				}
-				else if (nodeName.length() == 0)
-				{
-//					indentLevel--;
+				} else if (nodeName.length() == 0) {
+					//					indentLevel--;
 					doIndents = false;
 					continue;
 				}
 				doIndents = true;
 				writer.write("<" + nodeName);
 				Map<String, String> attributes = node.getAttributes();
-				if (attributes != null)
-				{
+				if (attributes != null) {
 					Iterator<String> keys = attributes.keySet().iterator();
-					if (keys.hasNext())
-					{
-    					writer.write(" ");
-    				}
-					while (keys.hasNext())
-					{
+					if (keys.hasNext()) {
+						writer.write(" ");
+					}
+					while (keys.hasNext()) {
 						String attribute = (String) keys.next();
 						String value = (String) attributes.get(attribute);
 						if (value != null && value.length() > 0)
@@ -171,11 +156,9 @@ public class XMLWriter
 							writer.write(" ");
 					}
 				}
-				if (node.getChildNodes() == null)
-				{
+				if (node.getChildNodes() == null) {
 					String value = node.getValue();
-					if (value != null)
-					{
+					if (value != null) {
 						writer.write(">\n");
 						indentLevel++;
 						writeIndents();
@@ -183,25 +166,18 @@ public class XMLWriter
 						indentLevel--;
 						writeIndents();
 						writer.write("</" + node.getNodeName() + ">\n");
-					}
-					else
-					{
+					} else {
 						writer.write("/>\n");
 					}
-				}
-				else
-				{
+				} else {
 					String value = node.getValue();
-					if (value != null)
-					{
+					if (value != null) {
 						writer.write(">\n");
 						indentLevel++;
 						writeIndents();
 						indentLevel--;
 						writer.write(value + "\n");
-					}
-					else
-					{
+					} else {
 						writer.write(">\n");
 					}
 					writeNodes(node.getChildNodes());
@@ -209,50 +185,42 @@ public class XMLWriter
 					writer.write("</" + node.getNodeName() + ">\n");
 				}
 				indentLevel--;
+			} catch (IOException ex) {
+				Logger.error(ex);
+				return false;
 			}
-			catch (IOException ex)
-			{
-                Logger.error(ex);
-                return false;
-            }
 		}
-        return true;
-    }
-	
+		return true;
+	}
+
 	/**
 	 * Write out indenting strings
-     * @return true if written ok
+	 *
+	 * @return true if written ok
 	 */
-	protected boolean writeIndents()
-	{
-		for (int i = 0; i < indentLevel	; i++)
-		{
-			try
-			{
+	protected boolean writeIndents() {
+		for (int i = 0; i < indentLevel; i++) {
+			try {
 				writer.write("\t");
+			} catch (IOException ex) {
+				Logger.error(ex);
+				return false;
 			}
-			catch (IOException ex)
-			{
-                Logger.error(ex);
-                return false;
-            }
 		}
-        return true;
-    }
+		return true;
+	}
 
-    /**
+	/**
 	 * @return Returns the writeHeader.
 	 */
-	public boolean isWriteHeader()
-	{
+	public boolean isWriteHeader() {
 		return writeHeader;
 	}
 
-    /**
+	/**
 	 * @param writeHeader The writeHeader to set.
 	 */
-	public void setWriteHeader(boolean writeHeader)
-	{
+	public void setWriteHeader(boolean writeHeader) {
 		this.writeHeader = writeHeader;
 	}
 }
