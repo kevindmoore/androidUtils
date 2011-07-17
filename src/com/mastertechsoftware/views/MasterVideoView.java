@@ -13,9 +13,9 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 import android.widget.MediaController;
-import android.widget.VideoView;
 import com.mastertechsoftware.AndroidUtil.R;
 
 import java.io.IOException;
@@ -23,25 +23,27 @@ import java.util.Map;
 
 /**
  * User: kevin.moore
+ * Copied straight from VideoView
  */
-public class MasterVideoView extends VideoView {
+//public class MasterVideoView extends VideoView {
+public class MasterVideoView extends SurfaceView implements MediaController.MediaPlayerControl {
 
 	protected String TAG = "MasterVideoView";
 	// settable by the client
 	protected Uri mUri;
 	protected Map<String, String> mHeaders;
-	protected int         mDuration;
+	protected int mDuration;
 
 	// all possible internal states
-	protected static final int STATE_ERROR              = -1;
-	protected static final int STATE_IDLE               = 0;
-	protected static final int STATE_PREPARING          = 1;
-	protected static final int STATE_PREPARED           = 2;
-	protected static final int STATE_PLAYING            = 3;
-	protected static final int STATE_PAUSED             = 4;
+	protected static final int STATE_ERROR = -1;
+	protected static final int STATE_IDLE = 0;
+	protected static final int STATE_PREPARING = 1;
+	protected static final int STATE_PREPARED = 2;
+	protected static final int STATE_PLAYING = 3;
+	protected static final int STATE_PAUSED = 4;
 	protected static final int STATE_PLAYBACK_COMPLETED = 5;
-	protected static final int STATE_SUSPEND            = 6;
-	protected static final int STATE_RESUME             = 7;
+	protected static final int STATE_SUSPEND = 6;
+	protected static final int STATE_RESUME = 7;
 	protected static final int STATE_SUSPEND_UNSUPPORTED = 8;
 
 	// mCurrentState is a VideoView object's current state.
@@ -50,25 +52,25 @@ public class MasterVideoView extends VideoView {
 	// calling pause() intends to bring the object to a target state
 	// of STATE_PAUSED.
 	protected int mCurrentState = STATE_IDLE;
-	protected int mTargetState  = STATE_IDLE;
+	protected int mTargetState = STATE_IDLE;
 
 	// All the stuff we need for playing and showing a video
 	protected SurfaceHolder mSurfaceHolder = null;
 	protected MediaPlayer mMediaPlayer = null;
-	protected int         mVideoWidth;
-	protected int         mVideoHeight;
-	protected int         mSurfaceWidth;
-	protected int         mSurfaceHeight;
+	protected int mVideoWidth;
+	protected int mVideoHeight;
+	protected int mSurfaceWidth;
+	protected int mSurfaceHeight;
 	protected MediaController mMediaController;
 	protected MediaPlayer.OnCompletionListener mOnCompletionListener;
 	protected MediaPlayer.OnPreparedListener mOnPreparedListener;
-	protected int         mCurrentBufferPercentage;
+	protected int mCurrentBufferPercentage;
 	protected MediaPlayer.OnErrorListener mOnErrorListener;
-	protected int         mSeekWhenPrepared;  // recording the seek position while preparing
-	protected boolean     mCanPause;
-	protected boolean     mCanSeekBack;
-	protected boolean     mCanSeekForward;
-	protected int         mStateWhenSuspended;  //state before calling suspend()
+	protected int mSeekWhenPrepared;  // recording the seek position while preparing
+	protected boolean mCanPause;
+	protected boolean mCanSeekBack;
+	protected boolean mCanSeekForward;
+	protected int mStateWhenSuspended;  //state before calling suspend()
 
 	public MasterVideoView(Context context) {
 		super(context);
@@ -92,24 +94,24 @@ public class MasterVideoView extends VideoView {
 		int width = getDefaultSize(mVideoWidth, widthMeasureSpec);
 		int height = getDefaultSize(mVideoHeight, heightMeasureSpec);
 
-//		DisplayMetrics metrics = getContext().getResources().getDisplayMetrics();
-		width = (width/16) * 16;
-		height = ((height)/9) * 9;
-/*
-		if (mVideoWidth > 0 && mVideoHeight > 0) {
-			if ( mVideoWidth * height  > width * mVideoHeight ) {
-				//Log.i("@@@", "image too tall, correcting");
-				height = height * mVideoHeight / mVideoWidth;
-			} else if ( mVideoWidth * height  < width * mVideoHeight ) {
-				//Log.i("@@@", "image too wide, correcting");
-				width = width * mVideoWidth / mVideoHeight;
-			} else {
-				//Log.i("@@@", "aspect ratio is correct: " +
-						//width+"/"+height+"="+
-						//mVideoWidth+"/"+mVideoHeight);
-			}
-		}
-*/
+		//		DisplayMetrics metrics = getContext().getResources().getDisplayMetrics();
+		width = (width / 16) * 16;
+		height = ((height) / 9) * 9;
+		/*
+		  if (mVideoWidth > 0 && mVideoHeight > 0) {
+			  if ( mVideoWidth * height  > width * mVideoHeight ) {
+				  //Log.i("@@@", "image too tall, correcting");
+				  height = height * mVideoHeight / mVideoWidth;
+			  } else if ( mVideoWidth * height  < width * mVideoHeight ) {
+				  //Log.i("@@@", "image too wide, correcting");
+				  width = width * mVideoWidth / mVideoHeight;
+			  } else {
+				  //Log.i("@@@", "aspect ratio is correct: " +
+						  //width+"/"+height+"="+
+						  //mVideoWidth+"/"+mVideoHeight);
+			  }
+		  }
+  */
 
 		//Log.i("@@@@@@@@@@", "setting size: " + width + 'x' + height);
 		setMeasuredDimension(width, height);
@@ -118,7 +120,7 @@ public class MasterVideoView extends VideoView {
 	public int resolveAdjustedSize(int desiredSize, int measureSpec) {
 		int result = desiredSize;
 		int specMode = MeasureSpec.getMode(measureSpec);
-		int specSize =  MeasureSpec.getSize(measureSpec);
+		int specSize = MeasureSpec.getSize(measureSpec);
 
 		switch (specMode) {
 			case MeasureSpec.UNSPECIFIED:
@@ -142,7 +144,7 @@ public class MasterVideoView extends VideoView {
 				break;
 		}
 		return result;
-}
+	}
 
 	protected void initVideoView() {
 		mVideoWidth = 0;
@@ -153,7 +155,7 @@ public class MasterVideoView extends VideoView {
 		setFocusableInTouchMode(true);
 		requestFocus();
 		mCurrentState = STATE_IDLE;
-		mTargetState  = STATE_IDLE;
+		mTargetState = STATE_IDLE;
 	}
 
 	public void setVideoPath(String path) {
@@ -182,7 +184,7 @@ public class MasterVideoView extends VideoView {
 			mMediaPlayer.release();
 			mMediaPlayer = null;
 			mCurrentState = STATE_IDLE;
-			mTargetState  = STATE_IDLE;
+			mTargetState = STATE_IDLE;
 		}
 	}
 
@@ -210,7 +212,7 @@ public class MasterVideoView extends VideoView {
 			mMediaPlayer.setOnBufferingUpdateListener(mBufferingUpdateListener);
 			mCurrentBufferPercentage = 0;
 			mMediaPlayer.setDataSource(getContext(), mUri);
-//			mMediaPlayer.setDataSource(getContext(), mUri, mHeaders);
+			//			mMediaPlayer.setDataSource(getContext(), mUri, mHeaders);
 			mMediaPlayer.setDisplay(mSurfaceHolder);
 			mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 			mMediaPlayer.setScreenOnWhilePlaying(true);
@@ -224,13 +226,11 @@ public class MasterVideoView extends VideoView {
 			mCurrentState = STATE_ERROR;
 			mTargetState = STATE_ERROR;
 			mErrorListener.onError(mMediaPlayer, MediaPlayer.MEDIA_ERROR_UNKNOWN, 0);
-			return;
 		} catch (IllegalArgumentException ex) {
 			Log.w(TAG, "Unable to open content: " + mUri, ex);
 			mCurrentState = STATE_ERROR;
 			mTargetState = STATE_ERROR;
 			mErrorListener.onError(mMediaPlayer, MediaPlayer.MEDIA_ERROR_UNKNOWN, 0);
-			return;
 		}
 	}
 
@@ -246,7 +246,7 @@ public class MasterVideoView extends VideoView {
 		if (mMediaPlayer != null && mMediaController != null) {
 			mMediaController.setMediaPlayer(this);
 			View anchorView = this.getParent() instanceof View ?
-					(View)this.getParent() : this;
+				(View) this.getParent() : this;
 			mMediaController.setAnchorView(anchorView);
 			mMediaController.setEnabled(isInPlaybackState());
 		}
@@ -261,28 +261,28 @@ public class MasterVideoView extends VideoView {
 					getHolder().setFixedSize(mVideoWidth, mVideoHeight);
 				}
 			}
-	};
+		};
 
 	MediaPlayer.OnPreparedListener mPreparedListener = new MediaPlayer.OnPreparedListener() {
 		public void onPrepared(MediaPlayer mp) {
 			mCurrentState = STATE_PREPARED;
 
-/*
-			// Get the capabilities of the player for this stream
-			Metadata data = mp.getMetadata(MediaPlayer.METADATA_ALL,
-									  MediaPlayer.BYPASS_METADATA_FILTER);
+			/*
+			   // Get the capabilities of the player for this stream
+			   Metadata data = mp.getMetadata(MediaPlayer.METADATA_ALL,
+										 MediaPlayer.BYPASS_METADATA_FILTER);
 
-			if (data != null) {
-				mCanPause = !data.has(Metadata.PAUSE_AVAILABLE)
-						|| data.getBoolean(Metadata.PAUSE_AVAILABLE);
-				mCanSeekBack = !data.has(Metadata.SEEK_BACKWARD_AVAILABLE)
-						|| data.getBoolean(Metadata.SEEK_BACKWARD_AVAILABLE);
-				mCanSeekForward = !data.has(Metadata.SEEK_FORWARD_AVAILABLE)
-						|| data.getBoolean(Metadata.SEEK_FORWARD_AVAILABLE);
-			} else {
-				mCanPause = mCanSeekBack = mCanSeekForward = true;
-			}
-*/
+			   if (data != null) {
+				   mCanPause = !data.has(Metadata.PAUSE_AVAILABLE)
+						   || data.getBoolean(Metadata.PAUSE_AVAILABLE);
+				   mCanSeekBack = !data.has(Metadata.SEEK_BACKWARD_AVAILABLE)
+						   || data.getBoolean(Metadata.SEEK_BACKWARD_AVAILABLE);
+				   mCanSeekForward = !data.has(Metadata.SEEK_FORWARD_AVAILABLE)
+						   || data.getBoolean(Metadata.SEEK_FORWARD_AVAILABLE);
+			   } else {
+				   mCanPause = mCanSeekBack = mCanSeekForward = true;
+			   }
+   */
 			mCanPause = mCanSeekBack = mCanSeekForward = true;
 
 			if (mOnPreparedListener != null) {
@@ -311,12 +311,12 @@ public class MasterVideoView extends VideoView {
 							mMediaController.show();
 						}
 					} else if (!isPlaying() &&
-							   (seekToPosition != 0 || getCurrentPosition() > 0)) {
-					   if (mMediaController != null) {
-						   // Show the media controls when we're paused into a video and make 'em stick.
-						   mMediaController.show(0);
-					   }
-				   }
+						(seekToPosition != 0 || getCurrentPosition() > 0)) {
+						if (mMediaController != null) {
+							// Show the media controls when we're paused into a video and make 'em stick.
+							mMediaController.show(0);
+						}
+					}
 				}
 			} else {
 				// We don't know the video size yet, but should start anyway.
@@ -330,51 +330,51 @@ public class MasterVideoView extends VideoView {
 
 	protected MediaPlayer.OnCompletionListener mCompletionListener =
 		new MediaPlayer.OnCompletionListener() {
-		public void onCompletion(MediaPlayer mp) {
-			mCurrentState = STATE_PLAYBACK_COMPLETED;
-			mTargetState = STATE_PLAYBACK_COMPLETED;
-			if (mMediaController != null) {
-				mMediaController.hide();
+			public void onCompletion(MediaPlayer mp) {
+				mCurrentState = STATE_PLAYBACK_COMPLETED;
+				mTargetState = STATE_PLAYBACK_COMPLETED;
+				if (mMediaController != null) {
+					mMediaController.hide();
+				}
+				if (mOnCompletionListener != null) {
+					mOnCompletionListener.onCompletion(mMediaPlayer);
+				}
 			}
-			if (mOnCompletionListener != null) {
-				mOnCompletionListener.onCompletion(mMediaPlayer);
-			}
-		}
-	};
+		};
 
 	protected MediaPlayer.OnErrorListener mErrorListener =
 		new MediaPlayer.OnErrorListener() {
-		public boolean onError(MediaPlayer mp, int framework_err, int impl_err) {
-			Log.d(TAG, "Error: " + framework_err + "," + impl_err);
-			mCurrentState = STATE_ERROR;
-			mTargetState = STATE_ERROR;
-			if (mMediaController != null) {
-				mMediaController.hide();
-			}
-
-			/* If an error handler has been supplied, use it and finish. */
-			if (mOnErrorListener != null) {
-				if (mOnErrorListener.onError(mMediaPlayer, framework_err, impl_err)) {
-					return true;
-				}
-			}
-
-			/* Otherwise, pop up an error dialog so the user knows that
-			 * something bad has happened. Only try and pop up the dialog
-			 * if we're attached to a window. When we're going away and no
-			 * longer have a window, don't bother showing the user an error.
-			 */
-			if (getWindowToken() != null) {
-				Resources r = getContext().getResources();
-				int messageId;
-
-				if (framework_err == MediaPlayer.MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK) {
-					messageId = R.string.VideoView_error_text_invalid_progressive_playback;
-				} else {
-					messageId = android.R.string.VideoView_error_text_unknown;
+			public boolean onError(MediaPlayer mp, int framework_err, int impl_err) {
+				Log.d(TAG, "Error: " + framework_err + "," + impl_err);
+				mCurrentState = STATE_ERROR;
+				mTargetState = STATE_ERROR;
+				if (mMediaController != null) {
+					mMediaController.hide();
 				}
 
-				new AlertDialog.Builder(getContext())
+				/* If an error handler has been supplied, use it and finish. */
+				if (mOnErrorListener != null) {
+					if (mOnErrorListener.onError(mMediaPlayer, framework_err, impl_err)) {
+						return true;
+					}
+				}
+
+				/* Otherwise, pop up an error dialog so the user knows that
+							 * something bad has happened. Only try and pop up the dialog
+							 * if we're attached to a window. When we're going away and no
+							 * longer have a window, don't bother showing the user an error.
+							 */
+				if (getWindowToken() != null) {
+					Resources r = getContext().getResources();
+					int messageId;
+
+					if (framework_err == MediaPlayer.MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK) {
+						messageId = R.string.VideoView_error_text_invalid_progressive_playback;
+					} else {
+						messageId = android.R.string.VideoView_error_text_unknown;
+					}
+
+					new AlertDialog.Builder(getContext())
 						.setTitle(R.string.VideoView_error_title)
 						.setMessage(messageId)
 						.setPositiveButton(R.string.VideoView_error_button,
@@ -390,17 +390,17 @@ public class MasterVideoView extends VideoView {
 										   })
 						.setCancelable(false)
 						.show();
+				}
+				return true;
 			}
-			return true;
-		}
-	};
+		};
 
 	protected MediaPlayer.OnBufferingUpdateListener mBufferingUpdateListener =
 		new MediaPlayer.OnBufferingUpdateListener() {
-		public void onBufferingUpdate(MediaPlayer mp, int percent) {
-			mCurrentBufferPercentage = percent;
-		}
-	};
+			public void onBufferingUpdate(MediaPlayer mp, int percent) {
+				mCurrentBufferPercentage = percent;
+			}
+		};
 
 	/**
 	 * Register a callback to be invoked when the media file
@@ -408,8 +408,7 @@ public class MasterVideoView extends VideoView {
 	 *
 	 * @param l The callback that will be run
 	 */
-	public void setOnPreparedListener(MediaPlayer.OnPreparedListener l)
-	{
+	public void setOnPreparedListener(MediaPlayer.OnPreparedListener l) {
 		mOnPreparedListener = l;
 	}
 
@@ -419,8 +418,7 @@ public class MasterVideoView extends VideoView {
 	 *
 	 * @param l The callback that will be run
 	 */
-	public void setOnCompletionListener(MediaPlayer.OnCompletionListener l)
-	{
+	public void setOnCompletionListener(MediaPlayer.OnCompletionListener l) {
 		mOnCompletionListener = l;
 	}
 
@@ -432,19 +430,20 @@ public class MasterVideoView extends VideoView {
 	 *
 	 * @param l The callback that will be run
 	 */
-	public void setOnErrorListener(MediaPlayer.OnErrorListener l)
-	{
+	public void setOnErrorListener(MediaPlayer.OnErrorListener l) {
 		mOnErrorListener = l;
 	}
 
-	SurfaceHolder.Callback mSHCallback = new SurfaceHolder.Callback()
-	{
+	/**
+	 * SurfaceHolder callback. Handle state changes
+	 */
+	SurfaceHolder.Callback mSHCallback = new SurfaceHolder.Callback() {
+
 		public void surfaceChanged(SurfaceHolder holder, int format,
-									int w, int h)
-		{
+								   int w, int h) {
 			mSurfaceWidth = w;
 			mSurfaceHeight = h;
-			boolean isValidState =  (mTargetState == STATE_PLAYING);
+			boolean isValidState = (mTargetState == STATE_PLAYING);
 			boolean hasValidSize = (mVideoWidth == w && mVideoHeight == h);
 			if (mMediaPlayer != null && isValidState && hasValidSize) {
 				if (mSeekWhenPrepared != 0) {
@@ -457,27 +456,34 @@ public class MasterVideoView extends VideoView {
 			}
 		}
 
-		public void surfaceCreated(SurfaceHolder holder)
-		{
+		public void surfaceCreated(SurfaceHolder holder) {
 			mSurfaceHolder = holder;
 			//resume() was called before surfaceCreated()
-			if (mMediaPlayer != null && mCurrentState == STATE_SUSPEND
-				   && mTargetState == STATE_RESUME) {
+			if (mMediaPlayer != null && ((mCurrentState == STATE_SUSPEND
+				&& mTargetState == STATE_RESUME))) {
+//				&& mTargetState == STATE_RESUME) || (mCurrentState == STATE_PLAYING))) {
+//				pause();
 				mMediaPlayer.setDisplay(mSurfaceHolder);
 				resume();
 			} else {
+				if (mCurrentState == STATE_PLAYING) {
+					mSeekWhenPrepared = getCurrentPosition();
+				}
 				openVideo();
 			}
 		}
 
-		public void surfaceDestroyed(SurfaceHolder holder)
-		{
+		public void surfaceDestroyed(SurfaceHolder holder) {
 			// after we return from this we can't use the surface any more
 			mSurfaceHolder = null;
-			if (mMediaController != null) mMediaController.hide();
-			if (mCurrentState != STATE_SUSPEND) {
-				release(true);
+			if (mMediaPlayer != null) {
+				mMediaPlayer.setDisplay(null);
 			}
+			if (mMediaController != null)
+				mMediaController.hide();
+//			if (mCurrentState != STATE_SUSPEND) {
+//				release(true);
+//			}
 		}
 	};
 
@@ -491,7 +497,7 @@ public class MasterVideoView extends VideoView {
 			mMediaPlayer = null;
 			mCurrentState = STATE_IDLE;
 			if (cleartargetstate) {
-				mTargetState  = STATE_IDLE;
+				mTargetState = STATE_IDLE;
 			}
 		}
 	}
@@ -513,17 +519,16 @@ public class MasterVideoView extends VideoView {
 	}
 
 	@Override
-	public boolean onKeyDown(int keyCode, KeyEvent event)
-	{
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		boolean isKeyCodeSupported = keyCode != KeyEvent.KEYCODE_BACK &&
-									 keyCode != KeyEvent.KEYCODE_VOLUME_UP &&
-									 keyCode != KeyEvent.KEYCODE_VOLUME_DOWN &&
-									 keyCode != KeyEvent.KEYCODE_MENU &&
-									 keyCode != KeyEvent.KEYCODE_CALL &&
-									 keyCode != KeyEvent.KEYCODE_ENDCALL;
+			keyCode != KeyEvent.KEYCODE_VOLUME_UP &&
+			keyCode != KeyEvent.KEYCODE_VOLUME_DOWN &&
+			keyCode != KeyEvent.KEYCODE_MENU &&
+			keyCode != KeyEvent.KEYCODE_CALL &&
+			keyCode != KeyEvent.KEYCODE_ENDCALL;
 		if (isInPlaybackState() && isKeyCodeSupported && mMediaController != null) {
 			if (keyCode == KeyEvent.KEYCODE_HEADSETHOOK ||
-					keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE) {
+				keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE) {
 				if (mMediaPlayer.isPlaying()) {
 					pause();
 					mMediaController.show();
@@ -533,7 +538,7 @@ public class MasterVideoView extends VideoView {
 				}
 				return true;
 			} else if (keyCode == KeyEvent.KEYCODE_MEDIA_STOP
-					&& mMediaPlayer.isPlaying()) {
+				&& mMediaPlayer.isPlaying()) {
 				pause();
 				mMediaController.show();
 			} else {
@@ -571,50 +576,48 @@ public class MasterVideoView extends VideoView {
 	}
 
 	public void suspend() {
-		if (isInPlaybackState()) {
+		if (mMediaPlayer == null) {
+			return;
+		}
+		if (isInPlaybackState() && mMediaPlayer.isPlaying()) {
 			mMediaPlayer.pause();
 			mCurrentState = STATE_PAUSED;
 			mTargetState = STATE_PAUSED;
 			mCurrentState = STATE_SUSPEND_UNSUPPORTED;
-/*
-			if (mMediaPlayer.suspend()) {
-				mStateWhenSuspended = mCurrentState;
-				mCurrentState = STATE_SUSPEND;
-				mTargetState = STATE_SUSPEND;
-			} else {
-				release(false);
-				mCurrentState = STATE_SUSPEND_UNSUPPORTED;
-				Log.w(TAG, "Unable to suspend video. Release MediaPlayer.");
-			}
-*/
 		}
 	}
 
 	public void resume() {
-		if (mSurfaceHolder == null && mCurrentState == STATE_SUSPEND){
+		if (mSurfaceHolder == null && mCurrentState == STATE_SUSPEND) {
 			mTargetState = STATE_RESUME;
 			return;
 		}
-		if (mMediaPlayer != null && mCurrentState == STATE_PAUSED) {
+		if (mMediaPlayer != null && (mCurrentState == STATE_PAUSED || mCurrentState == STATE_SUSPEND)) {
 			mMediaPlayer.start();
-		}
-		if (mMediaPlayer != null && mCurrentState == STATE_SUSPEND) {
-/*
-			if (mMediaPlayer.resume()) {
-				mCurrentState = mStateWhenSuspended;
-				mTargetState = mStateWhenSuspended;
-			} else {
-				Log.w(TAG, "Unable to resume video");
-			}
-*/
-			return;
+			mTargetState = STATE_RESUME;
+			mCurrentState = STATE_RESUME;
 		}
 		if (mCurrentState == STATE_SUSPEND_UNSUPPORTED) {
 			openVideo();
 		}
 	}
 
-   // cache duration as mDuration for faster access
+	/**
+	 * Suspend the screen while playing
+	 */
+	public void suspendScreen() {
+		mMediaPlayer.setScreenOnWhilePlaying(false);
+	}
+
+	/**
+	 * Resume the screen while playing
+	 */
+	public void resumeScreen() {
+		mMediaPlayer.setScreenOnWhilePlaying(true);
+	}
+
+
+	// cache duration as mDuration for faster access
 	public int getDuration() {
 		if (isInPlaybackState()) {
 			if (mDuration > 0) {
@@ -656,9 +659,9 @@ public class MasterVideoView extends VideoView {
 
 	protected boolean isInPlaybackState() {
 		return (mMediaPlayer != null &&
-				mCurrentState != STATE_ERROR &&
-				mCurrentState != STATE_IDLE &&
-				mCurrentState != STATE_PREPARING);
+			mCurrentState != STATE_ERROR &&
+			mCurrentState != STATE_IDLE &&
+			mCurrentState != STATE_PREPARING);
 	}
 
 	public boolean canPause() {

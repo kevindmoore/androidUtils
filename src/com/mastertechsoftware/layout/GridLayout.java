@@ -1282,10 +1282,11 @@ public class GridLayout extends ViewGroup {
 						if (colHeight == height) {
 							ct += child.getPaddingTop();
 						} else {
-							ct += (height / 2) - (colHeight / 2);
-							if ((ct + colHeight) > height) {
-								ct -= (ct + colHeight) - height;
-							}
+							ct += (rowHeight / 2) - (colHeight / 2);
+//							ct += (height / 2) - (colHeight / 2);
+//							if ((ct + colHeight) > height) {
+//								ct -= (ct + colHeight) - height;
+//							}
 						}
 					} else {
 						ct += child.getPaddingTop();
@@ -1368,10 +1369,11 @@ public class GridLayout extends ViewGroup {
 							 if (colHeight == height) {
 								 ct += child.getPaddingTop();
 							 } else {
-								 ct += (height / 2) - (colHeight / 2);
-								 if ((ct + colHeight) > height) {
-									 ct -= (ct + colHeight) - height;
-								 }
+								 ct += (rowHeight / 2) - (colHeight / 2);
+	 //							ct += (height / 2) - (colHeight / 2);
+	 //							if ((ct + colHeight) > height) {
+	 //								ct -= (ct + colHeight) - height;
+	 //							}
 							 }
 						} else {
 							ct += child.getPaddingTop();
