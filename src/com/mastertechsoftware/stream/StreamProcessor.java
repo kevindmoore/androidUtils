@@ -305,32 +305,32 @@ public class StreamProcessor<Result> {
 			}
 
 		} catch (MalformedURLException e) {
-			exception = new StreamException(e);
+			exception = new StreamException(e.getMessage(), e);
 			exception.setExceptionType(StreamException.MALFORMED_URL_TYPE);
 			throw exception;
 		} catch (FileNotFoundException e) {
-			exception = new StreamException(e);
+			exception = new StreamException(e.getMessage(), e);
 			exception.setExceptionType(StreamException.FILE_NOT_FOUND_TYPE);
 			throw exception;
 			// Both of these next errors could be a disconnect from the internet
 		} catch (SocketException e) {
-			exception = new StreamException(e);
+			exception = new StreamException(e.getMessage(), e);
 			exception.setExceptionType(StreamException.SOCKET_EXCEPTION_TYPE);
 			throw exception;
 		} catch (SocketTimeoutException e) {
-			exception = new StreamException(e);
+			exception = new StreamException(e.getMessage(), e);
 			exception.setExceptionType(StreamException.SOCKET_TIMEOUT_EXCEPTION_TYPE);
 			throw exception;
 		} catch (UnknownHostException e) {
-			exception = new StreamException(e);
+			exception = new StreamException(e.getMessage(), e);
 			exception.setExceptionType(StreamException.UNKNOWN_HOST_EXCEPTION_TYPE);
 			throw exception;
 		} catch (IOException e) {
-			exception = new StreamException(e);
+			exception = new StreamException(e.getMessage(), e);
 			exception.setExceptionType(StreamException.IO_EXCEPTION_TYPE);
 			throw exception;
 		} catch (Exception e) {
-			exception = new StreamException(e);
+			exception = new StreamException(e.getMessage(), e);
 			exception.setExceptionType(StreamException.EXCEPTION_TYPE);
 			throw exception;
 		} finally {
