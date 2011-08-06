@@ -64,6 +64,7 @@ public class MasterVideoView extends SurfaceView implements MediaController.Medi
 	protected MediaController mMediaController;
 	protected MediaPlayer.OnCompletionListener mOnCompletionListener;
 	protected MediaPlayer.OnPreparedListener mOnPreparedListener;
+	private MediaPlayer.OnSeekCompleteListener mOnSeekCompleteListener;
 	protected int mCurrentBufferPercentage;
 	protected MediaPlayer.OnErrorListener mOnErrorListener;
 	protected int mSeekWhenPrepared;  // recording the seek position while preparing
@@ -206,6 +207,7 @@ public class MasterVideoView extends SurfaceView implements MediaController.Medi
 			mMediaPlayer = new MediaPlayer();
 			mMediaPlayer.setOnPreparedListener(mPreparedListener);
 			mMediaPlayer.setOnVideoSizeChangedListener(mSizeChangedListener);
+			mMediaPlayer.setOnSeekCompleteListener(mOnSeekCompleteListener);
 			mDuration = -1;
 			mMediaPlayer.setOnCompletionListener(mCompletionListener);
 			mMediaPlayer.setOnErrorListener(mErrorListener);
@@ -423,6 +425,16 @@ public class MasterVideoView extends SurfaceView implements MediaController.Medi
 	}
 
 	/**
+	 * Register a callback to be invoked when a seek operation has been
+	 * completed.
+	 *
+	 * @param listener the callback that will be run
+	 */
+	public void setOnSeekCompleteListener(MediaPlayer.OnSeekCompleteListener listener)
+	{
+		mOnSeekCompleteListener = listener;
+	}
+	/**
 	 * Register a callback to be invoked when an error occurs
 	 * during playback or setup.  If no listener is specified,
 	 * or if the listener returned false, VideoView will inform
@@ -459,12 +471,11 @@ public class MasterVideoView extends SurfaceView implements MediaController.Medi
 		public void surfaceCreated(SurfaceHolder holder) {
 			mSurfaceHolder = holder;
 			//resume() was called before surfaceCreated()
-			if (mMediaPlayer != null && ((mCurrentState == STATE_SUSPEND
-				&& mTargetState == STATE_RESUME))) {
-//				&& mTargetState == STATE_RESUME) || (mCurrentState == STATE_PLAYING))) {
-//				pause();
+			if (mMediaPlayer != null) {
 				mMediaPlayer.setDisplay(mSurfaceHolder);
-				resume();
+				if (mCurrentState == STATE_PAUSED) {
+					resume();
+				}
 			} else {
 				if (mCurrentState == STATE_PLAYING) {
 					mSeekWhenPrepared = getCurrentPosition();
@@ -583,12 +594,11 @@ public class MasterVideoView extends SurfaceView implements MediaController.Medi
 			mMediaPlayer.pause();
 			mCurrentState = STATE_PAUSED;
 			mTargetState = STATE_PAUSED;
-			mCurrentState = STATE_SUSPEND_UNSUPPORTED;
 		}
 	}
 
 	public void resume() {
-		if (mSurfaceHolder == null && mCurrentState == STATE_SUSPEND) {
+		if (mSurfaceHolder == null && mCurrentState == STATE_PAUSED) {
 			mTargetState = STATE_RESUME;
 			return;
 		}
@@ -606,14 +616,18 @@ public class MasterVideoView extends SurfaceView implements MediaController.Medi
 	 * Suspend the screen while playing
 	 */
 	public void suspendScreen() {
-		mMediaPlayer.setScreenOnWhilePlaying(false);
+		if (mMediaPlayer != null) {
+			mMediaPlayer.setScreenOnWhilePlaying(false);
+		}
 	}
 
 	/**
 	 * Resume the screen while playing
 	 */
 	public void resumeScreen() {
-		mMediaPlayer.setScreenOnWhilePlaying(true);
+		if (mMediaPlayer != null) {
+			mMediaPlayer.setScreenOnWhilePlaying(true);
+		}
 	}
 
 
