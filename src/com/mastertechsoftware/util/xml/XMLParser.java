@@ -58,6 +58,9 @@ public class XMLParser {
 //				}
 //				inputString.append(line);
 //			}
+		} catch (OutOfMemoryError e) {
+			Logger.error(e);
+            throw new XMLException("XMLParser: Problems reading stream", e);
 		} catch (Exception e) {
 			Logger.error(e);
             throw new XMLException("XMLParser: Problems reading stream", e);
