@@ -28,58 +28,26 @@ public class LocationHelper {
 	};
 	private static final int TWO_MINUTES = 1000 * 60 * 2;
 	private static Location currentBestLocation;
-	private static HelperLocationListener locationListener;
+	private static HelperLocationListener networkLocationListener;
+	private static HelperLocationListener gpsLocationListener;
 	public static Double kEarthRadiusKms = 6376.5;
 
 
-	public static void startLocationListening(final Context context, long timeout, float distance, final LocationCallback callback) {
-		// Acquire a reference to the system Location Manager
-		LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-
-		// Define a listener that responds to location updates
-		locationListener = new HelperLocationListener(callback);
-
-		// Register the listener with the Location Manager to receive location updates
-		Criteria criteria = new Criteria();
-		criteria.setAccuracy(Criteria.ACCURACY_FINE);
-		criteria.setPowerRequirement(Criteria.NO_REQUIREMENT);
-		String criteriaName = locationManager.getBestProvider(criteria, false);
-		if (criteriaName == null) {
-			criteria.setAccuracy(Criteria.ACCURACY_COARSE);
-			criteriaName = locationManager.getBestProvider(criteria, false);
-		}
-		if (criteriaName != null) {
-			locationManager.requestLocationUpdates(criteriaName, timeout, distance, locationListener);
-		} else {
-			Logger.error("Could not get a Location Provider");
-		}
-	}
-
 	public static void startGPSLocationListening(final Context context, long timeout, float distance, final LocationCallback callback) {
-		// Acquire a reference to the system Location Manager
-		LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-
-		// Define a listener that responds to location updates
-		locationListener = new HelperLocationListener(callback);
-
-		// Register the listener with the Location Manager to receive location updates
-		Criteria criteria = new Criteria();
-		criteria.setAccuracy(Criteria.ACCURACY_FINE);
-		criteria.setPowerRequirement(Criteria.NO_REQUIREMENT);
-		String criteriaName = locationManager.getBestProvider(criteria, false);
-		if (criteriaName != null) {
-			locationManager.requestLocationUpdates(criteriaName, timeout, distance, locationListener);
-		} else {
-			Logger.error("Could not get a Location Provider");
-		}
+		startGPSLocationListening(context, timeout, distance,  callback, null);
 	}
 
 	public static void startGPSLocationListening(final Context context, long timeout, float distance, final LocationCallback callback, Looper looper) {
 		// Acquire a reference to the system Location Manager
 		LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 
+		removeListener(context, gpsLocationListener);
+
 		// Define a listener that responds to location updates
-		locationListener = new HelperLocationListener(callback);
+		gpsLocationListener = new HelperLocationListener(callback);
+
+		// TODO - Seems we have an old item in there.
+		removeListener(context, gpsLocationListener);
 
 		// Register the listener with the Location Manager to receive location updates
 		Criteria criteria = new Criteria();
@@ -87,37 +55,28 @@ public class LocationHelper {
 		criteria.setPowerRequirement(Criteria.NO_REQUIREMENT);
 		String criteriaName = locationManager.getBestProvider(criteria, false);
 		if (criteriaName != null) {
-			locationManager.requestLocationUpdates(criteriaName, timeout, distance, locationListener, looper);
+			if (looper == null) {
+				locationManager.requestLocationUpdates(criteriaName, timeout, distance, gpsLocationListener);
+			} else {
+				locationManager.requestLocationUpdates(criteriaName, timeout, distance, gpsLocationListener, looper);
+			}
 		} else {
 			Logger.error("Could not get a Location Provider");
 		}
 	}
 
+
 	public static void startNetworkLocationListening(final Context context, long timeout, float distance, final LocationCallback callback) {
-		// Acquire a reference to the system Location Manager
-		LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-
-		// Define a listener that responds to location updates
-		locationListener = new HelperLocationListener(callback);
-
-		// Register the listener with the Location Manager to receive location updates
-		Criteria criteria = new Criteria();
-		criteria.setAccuracy(Criteria.ACCURACY_COARSE);
-		criteria.setPowerRequirement(Criteria.NO_REQUIREMENT);
-		String criteriaName = locationManager.getBestProvider(criteria, false);
-		if (criteriaName != null) {
-			locationManager.requestLocationUpdates(criteriaName, timeout, distance, locationListener);
-		} else {
-			Logger.error("Could not get a Location Provider");
-		}
+		startNetworkLocationListening(context, timeout, distance, callback, null);
 	}
 
 	public static void startNetworkLocationListening(final Context context, long timeout, float distance, final LocationCallback callback, Looper looper) {
 		// Acquire a reference to the system Location Manager
 		LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 
+		removeListener(context, networkLocationListener);
 		// Define a listener that responds to location updates
-		locationListener = new HelperLocationListener(callback);
+		networkLocationListener = new HelperLocationListener(callback);
 
 		// Register the listener with the Location Manager to receive location updates
 		Criteria criteria = new Criteria();
@@ -125,18 +84,39 @@ public class LocationHelper {
 		criteria.setPowerRequirement(Criteria.NO_REQUIREMENT);
 		String criteriaName = locationManager.getBestProvider(criteria, false);
 		if (criteriaName != null) {
-			locationManager.requestLocationUpdates(criteriaName, timeout, distance, locationListener, looper);
+			if (looper == null) {
+				locationManager.requestLocationUpdates(criteriaName, timeout, distance, networkLocationListener);
+			} else {
+				locationManager.requestLocationUpdates(criteriaName, timeout, distance, networkLocationListener, looper);
+			}
 		} else {
 			Logger.error("Could not get a Location Provider");
 		}
 	}
 
-	public static void removeListener(Context context) {
+	/**
+	 * Remove Network Listener
+	 * @param context
+	 */
+	public static void removeNetworkListener(Context context) {
+		removeListener(context, networkLocationListener);
+		networkLocationListener = null;
+	}
+
+	/**
+	 * Remove GPS Listener
+	 * @param context
+	 */
+	public static void removeGPSListener(Context context) {
+		removeListener(context, gpsLocationListener);
+		gpsLocationListener = null;
+	}
+
+	public static void removeListener(Context context, HelperLocationListener locationListener) {
 		if (locationListener != null) {
 			// Acquire a reference to the system Location Manager
 			LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 			locationManager.removeUpdates(locationListener);
-			locationListener = null;
 		}
 	}
 
