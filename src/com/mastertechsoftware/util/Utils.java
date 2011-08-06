@@ -62,6 +62,7 @@ public class Utils {
             return null;
         }
         try {
+			url = cleanupHTML(url);
             url = URLDecoder.decode(url, "UTF-8");
             int index = url.lastIndexOf("http");
             if (index > 0) {
