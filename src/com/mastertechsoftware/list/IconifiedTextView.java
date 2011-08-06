@@ -83,11 +83,19 @@ public class IconifiedTextView extends LinearLayout {
 		mText.setText(words);
 	}
 
+	public String getText() {
+		return mText.getText().toString();
+	}
+
 	public void setIcon(Drawable bullet) {
 		mIcon.setImageDrawable(bullet);
 	}
 
 	public void setSelected(boolean selected) {
 		checkbox.setSelected(selected);
+	}
+
+	public boolean isSelected() {
+		return checkbox.isSelected();
 	}
 }
