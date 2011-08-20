@@ -1,5 +1,7 @@
 package com.mastertechsoftware.views;
 
+import com.mastertechsoftware.AndroidUtil.R;
+
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -16,7 +18,6 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.MediaController;
-import com.mastertechsoftware.AndroidUtil.R;
 
 import java.io.IOException;
 import java.util.Map;
@@ -71,6 +72,7 @@ public class MasterVideoView extends SurfaceView implements MediaController.Medi
 	protected boolean mCanPause;
 	protected boolean mCanSeekBack;
 	protected boolean mCanSeekForward;
+	protected boolean screenSuspended = false;
 	protected int mStateWhenSuspended;  //state before calling suspend()
 
 	public MasterVideoView(Context context) {
@@ -475,6 +477,9 @@ public class MasterVideoView extends SurfaceView implements MediaController.Medi
 				mMediaPlayer.setDisplay(mSurfaceHolder);
 				if (mCurrentState == STATE_PAUSED) {
 					resume();
+				} else if (mTargetState == STATE_RESUME) {
+					mSeekWhenPrepared = getCurrentPosition();
+					openVideo();
 				}
 			} else {
 				if (mCurrentState == STATE_PLAYING) {
@@ -602,6 +607,10 @@ public class MasterVideoView extends SurfaceView implements MediaController.Medi
 			mTargetState = STATE_RESUME;
 			return;
 		}
+		if (mCurrentState == STATE_PLAYING && screenSuspended) {
+			mTargetState = STATE_RESUME;
+			return;
+		}
 		if (mMediaPlayer != null && (mCurrentState == STATE_PAUSED || mCurrentState == STATE_SUSPEND)) {
 			mMediaPlayer.start();
 			mTargetState = STATE_RESUME;
@@ -619,6 +628,7 @@ public class MasterVideoView extends SurfaceView implements MediaController.Medi
 		if (mMediaPlayer != null) {
 			mMediaPlayer.setScreenOnWhilePlaying(false);
 		}
+		screenSuspended = true;
 	}
 
 	/**
@@ -628,6 +638,7 @@ public class MasterVideoView extends SurfaceView implements MediaController.Medi
 		if (mMediaPlayer != null) {
 			mMediaPlayer.setScreenOnWhilePlaying(true);
 		}
+		screenSuspended = false;
 	}
 
 
