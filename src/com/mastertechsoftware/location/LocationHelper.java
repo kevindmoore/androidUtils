@@ -1,5 +1,7 @@
 package com.mastertechsoftware.location;
 
+import com.mastertechsoftware.util.Logger;
+
 import android.app.PendingIntent;
 import android.content.Context;
 import android.location.Criteria;
@@ -9,9 +11,9 @@ import android.location.LocationManager;
 import android.location.LocationProvider;
 import android.os.Bundle;
 import android.os.Looper;
-import com.mastertechsoftware.util.Logger;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * Date: Oct 31, 2010
@@ -91,6 +93,80 @@ public class LocationHelper {
 			}
 		} else {
 			Logger.error("Could not get a Location Provider");
+		}
+	}
+
+	/**
+	 * Returns the most accurate and timely previously detected location.
+	 * Where the last result is beyond the specified maximum distance or
+	 * latency a one-off location update is returned via the {@link LocationListener}
+	 * specified in setChangedLocationListener}.
+	 * @param context Needed for Location Manager
+	 * @param minDistance Minimum distance before we require a location update.
+	 * @param startingTimestamp Minimum time required between location updates.
+	 * @return The most accurate and / or timely previously detected location.
+	 */
+	public static Location getLastBestLocation(Context context, int minDistance, long startingTimestamp) {
+		Location bestResult = null;
+
+		// Acquire a reference to the system Location Manager
+		LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+		Criteria criteria = new Criteria();
+		// Coarse accuracy is specified here to get the fastest possible result.
+		// The calling Activity will likely (or have already) request ongoing
+		// updates using the Fine location provider.
+		criteria.setAccuracy(Criteria.ACCURACY_COARSE);
+		// Iterate through all the providers on the system, keeping
+		// note of the most accurate result within the acceptable time limit.
+		// If no result is found within maxTime, return the newest Location.
+		List<String> matchingProviders = locationManager.getAllProviders();
+		for (String provider : matchingProviders) {
+			Location location = locationManager.getLastKnownLocation(provider);
+			if (location != null) {
+				float accuracy = location.getAccuracy();
+				long time = location.getTime();
+
+				if ((time > startingTimestamp && accuracy < minDistance)) {
+                    if (isBetterLocation(location, bestResult)) {
+					    bestResult = location;
+                    }
+				}
+			}
+		}
+
+		return bestResult;
+	}
+
+	/**
+	 * This one-off {@link LocationListener} simply listens for a single location
+	 * update before unregistering itself.
+	 * The one-off location update is returned via the callback
+	 */
+	protected static class SingeUpdateListener implements LocationListener {
+		LocationManager locationManager;
+		LocationCallback callback;
+
+		public SingeUpdateListener(LocationCallback callback, LocationManager locationManager) {
+			this.callback = callback;
+			this.locationManager = locationManager;
+		}
+
+
+		public void onLocationChanged(Location location) {
+			Logger.debug("Single Location Update Received: " + location.getLatitude() + "," + location.getLongitude());
+			locationManager.removeUpdates(this);
+			if (callback != null) {
+				callback.newLocation(location);
+			}
+		}
+
+		public void onStatusChanged(String provider, int status, Bundle extras) {
+		}
+
+		public void onProviderEnabled(String provider) {
+		}
+
+		public void onProviderDisabled(String provider) {
 		}
 	}
 
