@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 abstract public class SectionedAdapter extends BaseAdapter {
+
     abstract protected View getHeaderView(String caption,
                                           int index,
                                           View convertView,
