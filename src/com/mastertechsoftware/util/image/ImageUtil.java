@@ -1,10 +1,11 @@
 package com.mastertechsoftware.util.image;
 
+import com.mastertechsoftware.util.Logger;
+
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
-import com.mastertechsoftware.util.Logger;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -15,6 +16,7 @@ import java.net.URLConnection;
 import java.util.HashMap;
 
 public class ImageUtil {
+	protected static int defaultBufferSize = 8192;
 	public static String ALBUM_CACHE = "albumCache";
     public static final BitmapFactory.Options sBitmapOptions = new BitmapFactory.Options();
 	private static HashMap<String, Drawable> cache = new HashMap<String, Drawable>();
@@ -34,7 +36,7 @@ public class ImageUtil {
          try {
               final URLConnection conn = aURL.openConnection();
               conn.connect();
-              final BufferedInputStream bis = new BufferedInputStream(conn.getInputStream());
+              final BufferedInputStream bis = new BufferedInputStream(conn.getInputStream(), defaultBufferSize);
               final Bitmap bm = BitmapFactory.decodeStream(bis);
               bis.close();
               return bm;
