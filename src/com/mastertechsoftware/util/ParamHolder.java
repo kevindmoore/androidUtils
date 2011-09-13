@@ -42,4 +42,34 @@ public class ParamHolder {
 		results.add(result);
 	}
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ParamHolder)) {
+            return false;
+        }
+
+        ParamHolder other = (ParamHolder)o;
+        if (!other.params.equals(params)) {
+            return false;
+        }
+        if (!other.results.equals(results)) {
+            return false;
+        }
+        return (result == null ? other.result == null : result.equals(other.result));
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 17;
+        hash = 31 * hash + params.hashCode();
+        hash = 31 * hash + results.hashCode();
+        if (result != null) {
+            hash = 31 * hash + result.hashCode();
+        }
+        return hash;
+    }
+
 }
