@@ -12,7 +12,7 @@ import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import com.mastertechsoftware.util.Logger;
+import com.mastertechsoftware.util.log.Logger;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -310,7 +310,11 @@ public class NetworkManager {
 			return;
 		}
 		if (mListening) {
-			mContext.unregisterReceiver(mReceiver);
+            try {
+			    mContext.unregisterReceiver(mReceiver);
+            } catch (IllegalArgumentException e) {
+                Logger.error("stopListening: unregisterReceiver", e);
+            }
 			mNetworkInfo = null;
 			mOtherNetworkInfo = null;
 			mIsFailover = false;

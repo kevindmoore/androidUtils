@@ -5,7 +5,7 @@
  */
 package com.mastertechsoftware.util.xml;
 
-import com.mastertechsoftware.util.Logger;
+import com.mastertechsoftware.util.log.Logger;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;

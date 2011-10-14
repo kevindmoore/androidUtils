@@ -1,7 +1,7 @@
 package com.mastertechsoftware.util.xml;
 
 import com.mastertechsoftware.io.BufferedReader;
-import com.mastertechsoftware.util.Logger;
+import com.mastertechsoftware.util.log.Logger;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -34,30 +34,16 @@ public class XMLParser {
 	 * Parse the input stream
 	 * @param input
 	 * @return root XMLNode
+     * @throws XMLException
 	 */
 	public XMLNode parse(InputStream input) throws XMLException {
 //		Debug.startMethodTracing("XMLParser");
 
 		long start = System.currentTimeMillis();
-//		BufferedInputStream stream = new BufferedInputStream(input);
-//   		BufferedReader reader = new BufferedReader(new InputStreamReader(input), 16384);
    		BufferedReader reader = new BufferedReader(new InputStreamReader(input));
 		StringBuilder inputString = null;//new StringBuilder();
 		try {
-//			int size = 8192;
-//			char[] buffer = new char[size];
-//			while (reader.read(buffer, 0, size) != -1) {
-//				inputString.append(buffer);
-//			}
             inputString = reader.readAll();
-//			String line;
-//			while ((line = reader.readLine()) != null) {
-//				line = line.trim();
-//				if (line.startsWith("<!--") || line.length() == 0) {
-//					continue;
-//				}
-//				inputString.append(line);
-//			}
 		} catch (OutOfMemoryError e) {
 			Logger.error(e);
             throw new XMLException("XMLParser: Problems reading stream", e);

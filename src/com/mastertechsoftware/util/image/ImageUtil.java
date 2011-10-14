@@ -1,6 +1,6 @@
 package com.mastertechsoftware.util.image;
 
-import com.mastertechsoftware.util.Logger;
+import com.mastertechsoftware.util.log.Logger;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;

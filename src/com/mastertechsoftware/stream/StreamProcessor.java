@@ -1,6 +1,6 @@
 package com.mastertechsoftware.stream;
 
-import com.mastertechsoftware.util.Logger;
+import com.mastertechsoftware.util.log.Logger;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpDelete;

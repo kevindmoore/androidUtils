@@ -16,6 +16,7 @@ public class SDLogger {
     private static File sdFile;
     private static String directory = "/sdcard/com.mastertechsoftware/";
     private static String logFile = "Log.txt";
+    private static boolean logFileSet = false;
     protected static SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy hh:mm");
 
     public static void error(String msg, Throwable e) {
@@ -67,5 +68,10 @@ public class SDLogger {
 
 	public static void setLogFile(String logFile) {
 		SDLogger.logFile = logFile;
+		logFileSet = true;
+	}
+
+	public static boolean isLogFileSet() {
+		return logFileSet;
 	}
 }

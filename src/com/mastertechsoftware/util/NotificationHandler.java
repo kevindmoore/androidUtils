@@ -56,12 +56,21 @@ public class NotificationHandler {
 		mgr.notify(id, notification);
 	}
 
+	/**
+	 * Start a new notification
+	 * @param id
+	 * @param notification
+	 */
 	public static void notify(int id, Notification notification) {
 		NotificationManager mgr = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
 
 		mgr.notify(id, notification);
 	}
 
+	/**
+	 * Cancel a currently running notification.
+	 * @param id
+	 */
 	public static void cancelNotification(int id) {
 		NotificationManager mgr = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
 		mgr.cancel(id);

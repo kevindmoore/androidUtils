@@ -1,7 +1,7 @@
-package com.mastertechsoftware.util;
+package com.mastertechsoftware.util.log;
 
 import android.util.Log;
-import com.mastertechsoftware.util.log.SDLogger;
+import com.mastertechsoftware.util.StackTraceOutput;
 
 public class Logger {
 	private static String applicationTag;

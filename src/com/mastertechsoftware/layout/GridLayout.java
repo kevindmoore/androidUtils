@@ -7,7 +7,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import com.mastertechsoftware.AndroidUtil.R;
-import com.mastertechsoftware.util.Logger;
+import com.mastertechsoftware.util.log.Logger;
 
 import java.util.ArrayList;
 import java.util.List;

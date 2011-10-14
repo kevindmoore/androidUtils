@@ -6,7 +6,7 @@ import android.os.Message;
 import com.mastertechsoftware.thread.LooperThread;
 import com.mastertechsoftware.thread.ThreadWait;
 import com.mastertechsoftware.util.LockManager;
-import com.mastertechsoftware.util.Logger;
+import com.mastertechsoftware.util.log.Logger;
 
 /**
  * @author Kevin Moore

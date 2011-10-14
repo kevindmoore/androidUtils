@@ -6,6 +6,7 @@ import android.content.res.Configuration;
 import android.text.Html;
 import android.util.Log;
 import android.view.Display;
+import com.mastertechsoftware.util.log.Logger;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -14,6 +15,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Utils {
+    private final static Pattern httpPattern = Pattern
+        .compile(".*http://.*http://.*", Pattern.DOTALL);
 
 	public static boolean isLandscape(Activity activity) {
         Configuration configuration = activity.getResources().getConfiguration();
@@ -56,6 +59,11 @@ public class Utils {
 		return !isLandscape(activity);
 	}
 
+    /**
+     * This method will remove any bad characters in a url.
+     * @param url
+     * @return cleaned up url
+     */
     public static String cleanupURL(String url) {
         if (url == null || url.length() == 0) {
             Logger.error("Null or Empty URL");
@@ -64,16 +72,47 @@ public class Utils {
         try {
 			url = cleanupHTML(url);
             url = URLDecoder.decode(url, "UTF-8");
-            int index = url.lastIndexOf("http");
-            if (index > 0) {
-                url = url.substring(index);
-            }
+			if (url.contains("|")) {
+				url = url.replace("|", "&");
+			}
         } catch (UnsupportedEncodingException e) {
             Logger.error(e);
         }
         return url;
     }
 
+    /**
+     * Return true if the url contains more than 1 http string
+     * @param url
+     * @return true if more than 1 http://
+     */
+    public static boolean containsMultipleHttp(String url) {
+        Matcher matcher = httpPattern.matcher(url);
+        return matcher.find();
+    }
+
+    /**
+     * Return the last embedded http string
+     * @param url
+     * @return last http string
+     */
+    public static String getLastHTTP(String url) {
+        if (url == null || url.length() == 0) {
+            Logger.error("Null or Empty URL");
+            return null;
+        }
+        int index = url.lastIndexOf("http");
+        if (index > 0) {
+            url = url.substring(index);
+        }
+        return url;
+    }
+
+    /**
+     * Convert HTML patterns to HTML code. i.e. &amp; to <
+     * @param html
+     * @return html string
+     */
     public static String cleanupHTML(String html) {
         Pattern htmlPattern = Pattern.compile("&[^;]{1,4};", Pattern.DOTALL);
         Matcher matcher = htmlPattern.matcher(html);
@@ -84,6 +123,11 @@ public class Utils {
         return html;
     }
 
+    /**
+     * Create directories up until the last /
+     * @param directory
+     * @return true if directory created
+     */
     public static boolean ensurePathExists(String directory) {
         java.util.StringTokenizer tokenizer = new java.util.StringTokenizer(directory, "/");
         String path = "";

@@ -3,6 +3,7 @@ package com.mastertechsoftware.util;
 import android.content.Context;
 import android.net.wifi.WifiManager;
 import com.mastertechsoftware.network.NetworkManager;
+import com.mastertechsoftware.util.log.Logger;
 
 /**
  * @author Kevin Moore

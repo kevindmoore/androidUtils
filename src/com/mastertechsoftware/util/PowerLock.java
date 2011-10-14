@@ -2,6 +2,7 @@ package com.mastertechsoftware.util;
 
 import android.content.Context;
 import android.os.PowerManager;
+import com.mastertechsoftware.util.log.Logger;
 
 public class PowerLock {
 	private static PowerManager.WakeLock wakeLock;

@@ -1,6 +1,6 @@
 package com.mastertechsoftware.location;
 
-import com.mastertechsoftware.util.Logger;
+import com.mastertechsoftware.util.log.Logger;
 
 import android.app.PendingIntent;
 import android.content.Context;

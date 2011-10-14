@@ -15,6 +15,7 @@ public abstract class QueueProcessor<QueueItem> implements Runnable {
 	protected String TAG = "QueueProcessor";
 	protected boolean running = true;
 	protected boolean shutdown = false;
+	protected boolean runOnce = false;
 	protected LinkedQueue<QueueItem> queue;
 
 
@@ -92,6 +93,14 @@ public abstract class QueueProcessor<QueueItem> implements Runnable {
 		this.running = running;
 	}
 
+    public boolean isRunOnce() {
+        return runOnce;
+    }
+
+    public void setRunOnce(boolean runOnce) {
+        this.runOnce = runOnce;
+    }
+
     public boolean isShutdown() {
         return shutdown;
     }
@@ -112,6 +121,9 @@ public abstract class QueueProcessor<QueueItem> implements Runnable {
                 if (shutdown && queue.size() == 0) {
                     break;
                 }
+                if (runOnce) {
+                    break;
+                }
 			}
 
 		} catch (Exception e) {
@@ -124,6 +136,8 @@ public abstract class QueueProcessor<QueueItem> implements Runnable {
 	 * Override these methods
 	 */
 	protected void startup() {}
+
 	protected abstract void process(QueueItem item);
+
 	protected void finish() {}
 }
