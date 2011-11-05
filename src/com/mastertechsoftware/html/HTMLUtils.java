@@ -71,6 +71,12 @@ public class HTMLUtils {
                 html = matcher.replaceAll(value);
             }
         }
+		// Remove other html codes
+		htmlPattern = Pattern.compile("&#?[^;]{1,5};", Pattern.DOTALL);
+		matcher = htmlPattern.matcher(html);
+		if (matcher.find()) {
+			html = matcher.replaceAll("");
+		}
         return html;
     }
 

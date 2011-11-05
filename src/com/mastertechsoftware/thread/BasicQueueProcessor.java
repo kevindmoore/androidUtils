@@ -1,5 +1,7 @@
 package com.mastertechsoftware.thread;
 
+import com.mastertechsoftware.util.log.Logger;
+
 /**
  * User: kevin.moore
  */
@@ -8,11 +10,19 @@ public class BasicQueueProcessor<QueueItem> extends QueueProcessor<BasicQueueTas
 	@Override
 	protected void process(final BasicQueueTask<QueueItem> queueTask) {
 //		runOnce = true;
-		queueTask.process();
+		try {
+			queueTask.process();
+		} catch (Exception e) {
+			Logger.error("BasicQueueProcessor:process", e);
+		}
 		queueTask.getActivity().runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
-				queueTask.finished();
+				try {
+					queueTask.finished();
+				} catch (Exception e) {
+					Logger.error("BasicQueueProcessor:runOnUiThread", e);
+				}
 			}
 		});
 	}
