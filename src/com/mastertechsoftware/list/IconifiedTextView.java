@@ -74,7 +74,7 @@ public class IconifiedTextView extends LinearLayout {
 		mText.setText(aIconifiedText.getText());
 		/* Now the text (after the icon) */
 		layoutParams = new LayoutParams(
-			LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT);
+			LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
 		addView(mText, layoutParams);
 		setMinimumHeight(40);
 	}

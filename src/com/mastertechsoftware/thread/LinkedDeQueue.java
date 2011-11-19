@@ -20,6 +20,7 @@ public class LinkedDeQueue<QueueItem> extends LinkedQueue<QueueItem> {
 	 * Add a queue item to the head of the list
 	 * @param queueItem
 	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public void addFirst(QueueItem queueItem) {
 		((LinkedBlockingDeque)queue).addFirst(queueItem);

@@ -7,8 +7,7 @@ import android.app.Activity;
  */
 public interface BasicQueueTask<QueueItem> {
 
-	void init(QueueItem item);
-	void process();
+	void process(QueueItem item);
 	void finished();
 	Activity getActivity();
 }

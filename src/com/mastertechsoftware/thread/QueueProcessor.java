@@ -1,8 +1,9 @@
 package com.mastertechsoftware.thread;
 
 
+import com.mastertechsoftware.util.log.Logger;
+
 import android.os.Build;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -12,7 +13,6 @@ import java.util.List;
  * User: kevin.moore
  */
 public abstract class QueueProcessor<QueueItem> implements Runnable {
-	protected String TAG = "QueueProcessor";
 	protected boolean running = true;
 	protected boolean shutdown = false;
 	protected boolean runOnce = false;
@@ -116,7 +116,11 @@ public abstract class QueueProcessor<QueueItem> implements Runnable {
 			while (running) {
 				QueueItem item = queue.take();
                 if (item != null) {
-				   process(item);
+					try {
+				    	process(item);
+					} catch (Exception e) {
+						Logger.error(e.getMessage(), e);
+					}
                 }
                 if (shutdown && queue.size() == 0) {
                     break;
@@ -127,7 +131,7 @@ public abstract class QueueProcessor<QueueItem> implements Runnable {
 			}
 
 		} catch (Exception e) {
-			Log.e(TAG, e.getMessage(), e);
+			Logger.error(e.getMessage(), e);
 		}
 		finish();
 	}

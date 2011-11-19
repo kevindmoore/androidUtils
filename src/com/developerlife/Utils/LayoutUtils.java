@@ -52,20 +52,20 @@ public class LayoutUtils {
         switch (layout) {
             case WidthFill_HeightFill:
                 view.setLayoutParams(new LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.FILL_PARENT,
-                        LinearLayout.LayoutParams.FILL_PARENT
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.MATCH_PARENT
                 ));
                 break;
             case WidthFill_HeightWrap:
                 view.setLayoutParams(new LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.FILL_PARENT,
+                        LinearLayout.LayoutParams.MATCH_PARENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT
                 ));
                 break;
             case WidthWrap_HeightFill:
                 view.setLayoutParams(new LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.WRAP_CONTENT,
-                        LinearLayout.LayoutParams.FILL_PARENT
+                        LinearLayout.LayoutParams.MATCH_PARENT
                 ));
                 break;
             case WidthWrap_HeightWrap:
@@ -83,20 +83,20 @@ public class LayoutUtils {
         switch (layout) {
             case WidthFill_HeightFill:
                 view.setLayoutParams(new LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.FILL_PARENT,
-                        LinearLayout.LayoutParams.FILL_PARENT, weight
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.MATCH_PARENT, weight
                 ));
                 break;
             case WidthFill_HeightWrap:
                 view.setLayoutParams(new LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.FILL_PARENT,
+                        LinearLayout.LayoutParams.MATCH_PARENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT, weight
                 ));
                 break;
             case WidthWrap_HeightFill:
                 view.setLayoutParams(new LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.WRAP_CONTENT,
-                        LinearLayout.LayoutParams.FILL_PARENT, weight
+                        LinearLayout.LayoutParams.MATCH_PARENT, weight
                 ));
                 break;
             case WidthWrap_HeightWrap:
@@ -114,20 +114,20 @@ public class LayoutUtils {
         switch (layout) {
             case WidthFill_HeightFill:
                 view.setLayoutParams(new ViewGroup.LayoutParams(
-                        ViewGroup.LayoutParams.FILL_PARENT,
-                        ViewGroup.LayoutParams.FILL_PARENT
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
                 ));
                 break;
             case WidthFill_HeightWrap:
                 view.setLayoutParams(new ViewGroup.LayoutParams(
-                        ViewGroup.LayoutParams.FILL_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.WRAP_CONTENT
                 ));
                 break;
             case WidthWrap_HeightFill:
                 view.setLayoutParams(new ViewGroup.LayoutParams(
                         ViewGroup.LayoutParams.WRAP_CONTENT,
-                        ViewGroup.LayoutParams.FILL_PARENT
+                        ViewGroup.LayoutParams.MATCH_PARENT
                 ));
                 break;
             case WidthWrap_HeightWrap:
@@ -145,20 +145,20 @@ public class LayoutUtils {
         switch (layout) {
             case WidthFill_HeightFill:
                 view.setLayoutParams(new TableRow.LayoutParams(
-                        TableRow.LayoutParams.FILL_PARENT,
-                        TableRow.LayoutParams.FILL_PARENT
+                        TableRow.LayoutParams.MATCH_PARENT,
+                        TableRow.LayoutParams.MATCH_PARENT
                 ));
                 break;
             case WidthFill_HeightWrap:
                 view.setLayoutParams(new TableRow.LayoutParams(
-                        TableRow.LayoutParams.FILL_PARENT,
+                        TableRow.LayoutParams.MATCH_PARENT,
                         TableRow.LayoutParams.WRAP_CONTENT
                 ));
                 break;
             case WidthWrap_HeightFill:
                 view.setLayoutParams(new TableRow.LayoutParams(
                         TableRow.LayoutParams.WRAP_CONTENT,
-                        TableRow.LayoutParams.FILL_PARENT
+                        TableRow.LayoutParams.MATCH_PARENT
                 ));
                 break;
             case WidthWrap_HeightWrap:
@@ -176,20 +176,20 @@ public class LayoutUtils {
         switch (layout) {
             case WidthFill_HeightFill:
                 view.setLayoutParams(new TableLayout.LayoutParams(
-                        TableLayout.LayoutParams.FILL_PARENT,
-                        TableLayout.LayoutParams.FILL_PARENT
+                        TableLayout.LayoutParams.MATCH_PARENT,
+                        TableLayout.LayoutParams.MATCH_PARENT
                 ));
                 break;
             case WidthFill_HeightWrap:
                 view.setLayoutParams(new TableLayout.LayoutParams(
-                        TableLayout.LayoutParams.FILL_PARENT,
+                        TableLayout.LayoutParams.MATCH_PARENT,
                         TableLayout.LayoutParams.WRAP_CONTENT
                 ));
                 break;
             case WidthWrap_HeightFill:
                 view.setLayoutParams(new TableLayout.LayoutParams(
                         TableLayout.LayoutParams.WRAP_CONTENT,
-                        TableLayout.LayoutParams.FILL_PARENT
+                        TableLayout.LayoutParams.MATCH_PARENT
                 ));
                 break;
             case WidthWrap_HeightWrap:
@@ -208,20 +208,20 @@ public class LayoutUtils {
         switch (layout) {
             case WidthFill_HeightFill:
                 view.setLayoutParams(params = new RelativeLayout.LayoutParams(
-                        RelativeLayout.LayoutParams.FILL_PARENT,
-                        RelativeLayout.LayoutParams.FILL_PARENT
+                        RelativeLayout.LayoutParams.MATCH_PARENT,
+                        RelativeLayout.LayoutParams.MATCH_PARENT
                 ));
                 break;
             case WidthFill_HeightWrap:
                 view.setLayoutParams(params = new RelativeLayout.LayoutParams(
-                        RelativeLayout.LayoutParams.FILL_PARENT,
+                        RelativeLayout.LayoutParams.MATCH_PARENT,
                         RelativeLayout.LayoutParams.WRAP_CONTENT
                 ));
                 break;
             case WidthWrap_HeightFill:
                 view.setLayoutParams(params = new RelativeLayout.LayoutParams(
                         RelativeLayout.LayoutParams.WRAP_CONTENT,
-                        RelativeLayout.LayoutParams.FILL_PARENT
+                        RelativeLayout.LayoutParams.MATCH_PARENT
                 ));
                 break;
             case WidthWrap_HeightWrap:
@@ -242,21 +242,21 @@ public class LayoutUtils {
         switch (layout) {
             case WidthFill_HeightFill:
                 view.setLayoutParams(params = new TableRow.LayoutParams(
-                        TableRow.LayoutParams.FILL_PARENT,
-                        TableRow.LayoutParams.FILL_PARENT,
+                        TableRow.LayoutParams.MATCH_PARENT,
+                        TableRow.LayoutParams.MATCH_PARENT,
                         weight
                 ));
                 break;
             case WidthFill_HeightWrap:
                 view.setLayoutParams(params = new TableRow.LayoutParams(
-                        TableRow.LayoutParams.FILL_PARENT,
+                        TableRow.LayoutParams.MATCH_PARENT,
                         TableRow.LayoutParams.WRAP_CONTENT
                 ));
                 break;
             case WidthWrap_HeightFill:
                 view.setLayoutParams(params = new TableRow.LayoutParams(
                         TableRow.LayoutParams.WRAP_CONTENT,
-                        TableRow.LayoutParams.FILL_PARENT,
+                        TableRow.LayoutParams.MATCH_PARENT,
                         weight
                 ));
                 break;

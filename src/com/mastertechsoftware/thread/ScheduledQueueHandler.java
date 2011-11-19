@@ -64,7 +64,7 @@ public class ScheduledQueueHandler<Item> {
         return executor.schedule(command, delay, unit);
     }
 
-    public <Item> ScheduledFuture<Item> schedule(Callable<Item> callable,
+    public <V> ScheduledFuture<V> schedule(Callable<V> callable,
                                            long delay,
                                            TimeUnit unit) {
         return executor.schedule(callable, delay, unit);

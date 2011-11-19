@@ -9,6 +9,7 @@ public class ViewWrapper {
 	private int position;
     private Map<Integer, View> views = new HashMap<Integer, View>();
     private Map<Integer, Object> viewData = new HashMap<Integer, Object>();
+	private Object owner;
 
 	public int getPosition() {
 		return position;
@@ -31,4 +32,12 @@ public class ViewWrapper {
     public Object getData(int position) {
         return viewData.get(position);
     }
+
+	public Object getOwner() {
+		return owner;
+	}
+
+	public void setOwner(Object owner) {
+		this.owner = owner;
+	}
 }

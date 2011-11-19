@@ -1,13 +1,14 @@
 package com.mastertechsoftware.layout;
 
+import com.mastertechsoftware.AndroidUtil.R;
+import com.mastertechsoftware.util.log.Logger;
+
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
-import com.mastertechsoftware.AndroidUtil.R;
-import com.mastertechsoftware.util.log.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -316,10 +317,10 @@ public class GridLayout extends ViewGroup {
 			}
 			Row row = new Row();
 			row.setRowStart(index);
-			row.setExpandable(params.height == LayoutParams.FILL_PARENT );
+			row.setExpandable(params.height == LayoutParams.MATCH_PARENT );
 			rows.set(index, row);
 			Column column = new Column(0, child);
-			column.setExpandable(params.width == LayoutParams.FILL_PARENT);
+			column.setExpandable(params.width == LayoutParams.MATCH_PARENT);
 			row.addColumn(column);
 		} else {
 			Row row = getRow(params);
@@ -336,7 +337,7 @@ public class GridLayout extends ViewGroup {
 		super.addView(child, index, params);
 		Row row = new Row();
 		row.setRowStart(params.rowStart);
-		row.setExpandable(params.height == LayoutParams.FILL_PARENT);
+		row.setExpandable(params.height == LayoutParams.MATCH_PARENT);
 		rows.ensureCapacity(rows.size() + 1);
 		rows.add(index, row);
 		if (row != null) {
@@ -394,7 +395,7 @@ public class GridLayout extends ViewGroup {
 			if (rows.size() <= gridParams.rowStart) {
 				row = new Row();
 				row.setRowStart(gridParams.rowStart);
-				row.setExpandable(gridParams.height == LayoutParams.FILL_PARENT);
+				row.setExpandable(gridParams.height == LayoutParams.MATCH_PARENT);
 				rows.add(row);
 				return row;
 			}
@@ -411,7 +412,7 @@ public class GridLayout extends ViewGroup {
 			if (row.getColumns().size() <= gridParams.columnStart) {
 				column = new Column();
 				column.setColumn(gridParams.columnStart);
-				column.setExpandable(gridParams.width == LayoutParams.FILL_PARENT);
+				column.setExpandable(gridParams.width == LayoutParams.MATCH_PARENT);
 				row.addColumn(column);
 				return column;
 			}

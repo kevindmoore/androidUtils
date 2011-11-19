@@ -25,8 +25,8 @@ public class QueueHandler<QueueItem> {
         this.queueProcessor = queueProcessor;
         executor = Executors.newSingleThreadExecutor();
         executor.execute(queueProcessor);
-
     }
+
     /**
      * Final shutdown steps
      */

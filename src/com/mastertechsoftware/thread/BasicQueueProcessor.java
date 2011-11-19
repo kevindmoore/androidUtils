@@ -5,21 +5,20 @@ import com.mastertechsoftware.util.log.Logger;
 /**
  * User: kevin.moore
  */
-public class BasicQueueProcessor<QueueItem> extends QueueProcessor<BasicQueueTask<QueueItem>> {
+public class BasicQueueProcessor<QueueItem> extends QueueProcessor<BasicQueue<QueueItem>> {
 
 	@Override
-	protected void process(final BasicQueueTask<QueueItem> queueTask) {
-//		runOnce = true;
+	protected void process(final BasicQueue<QueueItem> queueItem) {
 		try {
-			queueTask.process();
+			queueItem.getQueueTask().process(queueItem.getData());
 		} catch (Exception e) {
 			Logger.error("BasicQueueProcessor:process", e);
 		}
-		queueTask.getActivity().runOnUiThread(new Runnable() {
+		queueItem.getQueueTask().getActivity().runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
 				try {
-					queueTask.finished();
+					queueItem.getQueueTask().finished();
 				} catch (Exception e) {
 					Logger.error("BasicQueueProcessor:runOnUiThread", e);
 				}
