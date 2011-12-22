@@ -14,6 +14,7 @@ public class ViewWrapper {
 	public int getPosition() {
 		return position;
 	}
+
 	public void setPosition(int position) {
 		this.position = position;
 	}
@@ -25,6 +26,7 @@ public class ViewWrapper {
     public View getView(int position) {
         return views.get(position);
     }
+
     public void setData(int position, Object data) {
         viewData.put(position, data);
     }

@@ -91,6 +91,9 @@ public class StringUtilities {
 		return artistOrMbid.length() == 36 && MBID_PATTERN.matcher(artistOrMbid).matches();
 	}
 
+	public static String toNameCase(String string) {
+		return string.substring(0,1) + string.substring(1);
+	}
 	/**
 	 * Creates a Map out of an array with Strings.
 	 *

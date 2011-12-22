@@ -28,7 +28,6 @@ public class GridLayout extends ViewGroup {
 	public static final int GridLayout_rowStart = 5;
 	private boolean debugging = false;
 	private boolean debugLayout = false;
-//	private boolean debugging = true;
 
 
 	public static class LayoutParams extends
@@ -392,7 +391,7 @@ public class GridLayout extends ViewGroup {
 		if (params != null && (params instanceof GridLayout.LayoutParams) && ((GridLayout.LayoutParams) params).rowStart != -1) {
 			GridLayout.LayoutParams gridParams = (GridLayout.LayoutParams) params;
 			Row row = null;
-			if (rows.size() <= gridParams.rowStart) {
+			if (gridParams.rowStart >= rows.size()) {
 				row = new Row();
 				row.setRowStart(gridParams.rowStart);
 				row.setExpandable(gridParams.height == LayoutParams.MATCH_PARENT);
@@ -409,7 +408,7 @@ public class GridLayout extends ViewGroup {
 		if (params != null && (params instanceof GridLayout.LayoutParams) && ((GridLayout.LayoutParams) params).columnStart != -1) {
 			GridLayout.LayoutParams gridParams = (GridLayout.LayoutParams) params;
 			Column column = null;
-			if (row.getColumns().size() <= gridParams.columnStart) {
+			if (gridParams.columnStart >= row.getColumns().size()) {
 				column = new Column();
 				column.setColumn(gridParams.columnStart);
 				column.setExpandable(gridParams.width == LayoutParams.MATCH_PARENT);
@@ -677,7 +676,7 @@ public class GridLayout extends ViewGroup {
 //			Logger.debug("columnWidth:" + columnWidth);
 		}
 
-		float cellWidth = 0, cellHeight = rowHeight;
+//		float cellWidth = 0, cellHeight = rowHeight;
 
 		// Need to go through all the cells, give the minimum to those who don't expand, then give the rest to those who want to expand
 
@@ -700,17 +699,8 @@ public class GridLayout extends ViewGroup {
 				continue;
 			}
 			int widthToUse = widthSize - getPaddingLeft() - getPaddingRight();
-//			int widthToUse = widthSize;
 			int maxHeight = 0, totalColumnWidths = 0;
 			int nonExpandableColumns = 0, expandableColumns = 0;
-			int visibleColumns = row.getVisibleNonExpandableColumns();
-
-			// Split the width evenly between the columns
-			if (visibleColumns == 0) {
-				cellWidth = columnWidth;
-			} else {
-				cellWidth = columnWidth / visibleColumns;
-			}
 			// Go through non-expandable columns
 			// ********************* non-Expandable Columns ***************************
 			for (Column column : row.columns) {
@@ -724,9 +714,6 @@ public class GridLayout extends ViewGroup {
 						continue;
 					}
 					nonExpandableColumns++;
-					LayoutParams lp = (LayoutParams) child.getLayoutParams();
-					int width = Math.round(cellWidth * lp.getColumnLength());
-					int height = Math.round(cellHeight * lp.getRowLength());
 					childWidthSpec = makeSpec(widthToUse);
 					if (row.getFixedHeight() != 0) {
 						childHeightSpec = MeasureSpec.makeMeasureSpec(row.getFixedHeight(), MeasureSpec.EXACTLY);
@@ -759,9 +746,7 @@ public class GridLayout extends ViewGroup {
 						continue;
 					}
 					if (child.getVisibility() != GONE) {
-						LayoutParams lp = (LayoutParams) child.getLayoutParams();
 						// Fixed row height
-						int height = Math.round(cellHeight * lp.getRowLength());
 
 						childWidthSpec = makeSpec(remainderColumnWidth);
 						if (row.getFixedHeight() != 0) {
@@ -797,9 +782,7 @@ public class GridLayout extends ViewGroup {
 					if (child.getVisibility() != GONE) {
 
 						childWidthSpec = MeasureSpec.makeMeasureSpec(column.getWidth() + remainderColumnWidth, MeasureSpec.EXACTLY);
-						LayoutParams lp = (LayoutParams) child.getLayoutParams();
 						// Fixed row height
-						int height = Math.round(cellHeight * lp.getRowLength());
 						if (row.getFixedHeight() != 0) {
 							childHeightSpec = MeasureSpec.makeMeasureSpec(row.getFixedHeight(), MeasureSpec.EXACTLY);
 						} else {
@@ -834,9 +817,6 @@ public class GridLayout extends ViewGroup {
 			heightToUse -= row.getHeight();
 			// Recalculate cellheight
 			rowCount++;
-			if (numRows > rowCount) {
-				cellHeight = heightToUse / (numRows - rowCount);
-			}
 		}
 
 
@@ -854,15 +834,8 @@ public class GridLayout extends ViewGroup {
 			}
 			row.setHeight(remainderRowHeight);
 			int widthToUse = widthSize - getPaddingLeft() - getPaddingRight();
-//			int widthToUse = widthSize;
 			int maxHeight = 0, totalColumnWidths = 0;
 			int nonExpandableColumns = 0, expandableColumns = 0;
-			int visibleColumns = row.getVisibleNonExpandableColumns();
-			if (visibleColumns == 0) {
-				cellWidth = columnWidth;
-			} else {
-				cellWidth = columnWidth / visibleColumns;
-			}
 			// Go through non-expandable columns
 			for (Column column : row.columns) {
 				View child = column.getView();
@@ -875,8 +848,6 @@ public class GridLayout extends ViewGroup {
 						continue;
 					}
 					nonExpandableColumns++;
-					LayoutParams lp = (LayoutParams) child.getLayoutParams();
-					int width = Math.round(cellWidth * lp.getColumnLength());
 
 					childWidthSpec = makeSpec(widthToUse);
 					childHeightSpec = makeSpec(remainderRowHeight);
@@ -932,7 +903,6 @@ public class GridLayout extends ViewGroup {
 
 						childWidthSpec = MeasureSpec.makeMeasureSpec(column.getWidth() + remainderColumnWidth, MeasureSpec.EXACTLY);
 						// Height is already set
-						int height = row.getHeight();
 						if (column.getHeight() != 0 ) {
 							childHeightSpec = MeasureSpec.makeMeasureSpec(column.getHeight(), MeasureSpec.EXACTLY);
 						} else {
@@ -1056,10 +1026,10 @@ public class GridLayout extends ViewGroup {
 			int colWidthSpec = widthSpec;
 			int colHeightSpec = heightSpec;
 			if (column.getColumnWidth() == 0 && widthMode == MeasureSpec.EXACTLY) {
-				colWidthSpec = makeSpec(width - widthPadding);
+				colWidthSpec = makeSpec(width);
 			}
 			if (column.getColumnHeight() == 0 && heightMode == MeasureSpec.EXACTLY) {
-				colHeightSpec = makeSpec(height - heightPadding);
+				colHeightSpec = makeSpec(height);
 			}
 			child.measure(colWidthSpec, colHeightSpec);
 			if (column.getColumnWidth() == 0 && widthMode == MeasureSpec.EXACTLY) {
@@ -1085,15 +1055,19 @@ public class GridLayout extends ViewGroup {
 
 		if (widthMode != MeasureSpec.EXACTLY && width > 0 && widthPadding > 0 && childWidth < width) {
 			childWidth = Math.min(width, childWidth + widthPadding);
-			if (childWidth == column.getColumnWidth()) {
+//			childWidth = Math.min(width, childWidth);
+//			if (childWidth == column.getColumnWidth()) {
+//				column.setColumnWidth(childWidth);
 				column.setColumnWidth(childWidth - widthPadding);
-			}
+//			}
 		}
 		if (heightMode != MeasureSpec.EXACTLY && height > 0 && heightPadding > 0 && childHeight < height) {
 			childHeight = Math.min(height, childHeight + heightPadding);
-			if (childHeight == column.getColumnHeight()) {
+//			childHeight = Math.min(height, childHeight);
+//			if (childHeight == column.getColumnHeight()) {
+//				column.setColumnHeight(childHeight);
 				column.setColumnHeight(childHeight - heightPadding);
-			}
+//			}
 		}
 
 		column.setHeight(childHeight);
@@ -1295,9 +1269,9 @@ public class GridLayout extends ViewGroup {
 
 					// We know we're not centered
 					if (column.isExpandable()) {
-						cr = startLeft + cellWidth;
+						cr = startLeft + cellWidth - child.getPaddingRight();
 					} else if (column.getFixedWidth() != 0){
-						cr = startLeft + cellWidth;
+						cr = startLeft + cellWidth - child.getPaddingRight();
 					} else {
 						cr = cl + colWidth;
 					}
@@ -1338,6 +1312,9 @@ public class GridLayout extends ViewGroup {
 				}
 				columnCount++;
 			}
+
+
+			// Centering
 			if (totalCenterWidth > 0) {
 				startLeft = getPaddingLeft();
 				columnCount = 0;
@@ -1381,8 +1358,8 @@ public class GridLayout extends ViewGroup {
 						}
 
 						// We know we're centered horiz
-						if (column.getFixedWidth() != 0) {
-							cr = cl + colWidth;
+						if (column.getFixedWidth() != 0){
+							cr = startLeft + cellWidth - child.getPaddingRight();
 						} else {
 							cr = cl + colWidth;
 						}
@@ -1598,12 +1575,16 @@ public class GridLayout extends ViewGroup {
 	}
 
 	class Column {
+		// These are the sizes without the padding
 		protected int columnWidth;
 		protected int columnHeight;
+		// These are the sizes with padding
 		protected int width;
 		protected int height;
 		protected int fixedWidth;
+		// left & right padding
 		protected int widthPadding;
+		// top & bottom padding
 		protected int heightPadding;
 		protected int x;
 		private View view;

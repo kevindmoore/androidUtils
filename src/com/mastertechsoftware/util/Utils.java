@@ -1,12 +1,13 @@
 package com.mastertechsoftware.util;
 
+import com.mastertechsoftware.util.log.Logger;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.text.Html;
 import android.util.Log;
 import android.view.Display;
-import com.mastertechsoftware.util.log.Logger;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -31,9 +32,8 @@ public class Utils {
 
 	public static boolean isLargeScreen(Context context) {
 		Configuration configuration = context.getResources().getConfiguration();
-		// TODO - Change last size large to XLARGE
 		if (((configuration.screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) == Configuration.SCREENLAYOUT_SIZE_LARGE) ||
-		 ((configuration.screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) == Configuration.SCREENLAYOUT_SIZE_LARGE)) {
+		 ((configuration.screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) == Configuration.SCREENLAYOUT_SIZE_XLARGE)) {
 			return true;
 		}
 		return false;

@@ -38,9 +38,9 @@ public class StackTraceOutput
 		{
 			StackTraceElement element = elements[i];
 			String className = element.getClassName();
-			if (className.indexOf("StackTraceOutput") != -1)
+			if (className.contains("StackTraceOutput"))
 				continue;
-			if (packagePrefix == null || className.indexOf(packagePrefix) != -1)
+			if (packagePrefix == null || className.contains(packagePrefix))
 			{
 				System.out.println(element.toString());
 			}
@@ -62,22 +62,51 @@ public class StackTraceOutput
 	}
 
 	/**
+	 * Get a stack trace with the given level. Create our own exception
+	 * @param level
+	 * @return String representation of the stack trace
+	 */
+	public static String getStackTrace(int level)
+	{
+		return getStackTrace(new Exception(), level);
+
+	}
+
+	/**
+	 * Get a stack trace only level deep
+	 * @param throwable
+	 * @param level
+	 * @return String representation of the stack trace
+	 */
+	public static String getStackTrace(Throwable throwable, int level)
+	{
+		StringWriter stringWriter = new StringWriter();
+		PrintWriter writer = new PrintWriter(stringWriter);
+		StackTraceElement[] stackTrace = throwable.getStackTrace();
+		for (int i=1; i < level && i < stackTrace.length; i++) {
+			writer.println(stackTrace[i].toString());
+		}
+		writer.close();
+		return stringWriter.toString();
+	}
+
+	/**
 	 * Given a Throwable object, return a string representation of the first line in the stack trace
 	 * @param throwable
      * @return String representation of the stack trace
 	 */
 	public static String getFirstLineStackTrace(Throwable throwable)
 	{
-		StringWriter stringWriter = new StringWriter();
-		PrintWriter writer = new PrintWriter(stringWriter);
-		StackTraceElement[] stackTrace = throwable.getStackTrace();
-		// The first line will be us, so we'll take the 2nd line
-		if (stackTrace.length > 1) {
-			writer.write(stackTrace[1].toString());
-		}
-		writer.close();
-		return stringWriter.toString();
+		return getStackTrace(throwable, 1);
 	}
+
+    /**
+     * Get the first stack trace line
+     * @return
+     */
+    public static String getFirstLineStackTrace() {
+        return getFirstLineStackTrace(new Exception());
+    }
 
     /**
      * Get the current stack trace.

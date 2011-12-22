@@ -3,6 +3,7 @@ package com.mastertechsoftware.stream;
 import com.mastertechsoftware.util.log.Logger;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -33,6 +34,7 @@ import java.net.UnknownHostException;
  * @author Kevin Moore
  */
 public class StreamProcessor<Result> {
+	public final static int TEN_SECONDS = 10 * 1000;
 	protected static int defaultBufferSize = 8192;
 	protected static int DEFAULT_BUFFER_LENGTH = 64000;
 	protected HttpURLConnection connection;
@@ -46,6 +48,8 @@ public class StreamProcessor<Result> {
 	protected final int READ_TIMEOUT = 30 * 1000;
 	protected DefaultHttpClient httpClient;
 	protected long contentLength = 0;
+	protected int connectionTimeout = CONNECTION_TIMEOUT;
+	protected int readTimeout = READ_TIMEOUT;
 
 	/**
 	 * Constructor.
@@ -62,6 +66,38 @@ public class StreamProcessor<Result> {
 		this.url = url;
 		urlString = url.toString();
 		this.streamHandler = streamHandler;
+	}
+
+	/**
+	 * If we get a connection timeout error, try increasing the timeout
+	 * @param connectionTimeout
+	 */
+	public void setConnectionTimeout(int connectionTimeout) {
+		this.connectionTimeout = connectionTimeout;
+	}
+
+	/**
+	 * If we get a read timeout error, try increasing the timeout
+	 * @param readTimeout
+	 */
+	public void setReadTimeout(int readTimeout) {
+		this.readTimeout = readTimeout;
+	}
+
+	/**
+	 * Get the connection timeout value
+	 * @return
+	 */
+	public int getConnectionTimeout() {
+		return connectionTimeout;
+	}
+
+	/**
+	 * Get the read timeout value
+	 * @return
+	 */
+	public int getReadTimeout() {
+		return readTimeout;
 	}
 
 	/**
@@ -267,8 +303,8 @@ public class StreamProcessor<Result> {
 			HttpConnectionParams.setStaleCheckingEnabled(params, false);
 
 			// Default connection and socket timeout of 20 seconds.  Tweak to taste.
-			HttpConnectionParams.setConnectionTimeout(params, CONNECTION_TIMEOUT);
-			HttpConnectionParams.setSoTimeout(params, READ_TIMEOUT);
+			HttpConnectionParams.setConnectionTimeout(params, connectionTimeout);
+			HttpConnectionParams.setSoTimeout(params, readTimeout);
 			HttpConnectionParams.setSocketBufferSize(params, bufferLength);
 
 			// Follow redirects as this usually can happen several times
@@ -324,6 +360,10 @@ public class StreamProcessor<Result> {
 		} catch (UnknownHostException e) {
 			exception = new StreamException(e.getMessage(), e);
 			exception.setExceptionType(StreamException.UNKNOWN_HOST_EXCEPTION_TYPE);
+			throw exception;
+		} catch (ClientProtocolException e) {
+			exception = new StreamException(e.getMessage(), e);
+			exception.setExceptionType(StreamException.CLIENT_PROTOCOL_EXCEPTION_TYPE);
 			throw exception;
 		} catch (IOException e) {
 			exception = new StreamException(e.getMessage(), e);

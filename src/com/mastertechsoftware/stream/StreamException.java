@@ -12,6 +12,7 @@ public class StreamException extends Exception {
 	public final static int UNKNOWN_HOST_EXCEPTION_TYPE = 5;
 	public final static int EXCEPTION_TYPE = 6;
 	public final static int SOCKET_TIMEOUT_EXCEPTION_TYPE = 7;
+	public final static int CLIENT_PROTOCOL_EXCEPTION_TYPE = 8;
 
 	protected int exceptionType;
 
