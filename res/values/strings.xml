@@ -8,4 +8,15 @@
     <string name="VideoView_error_text_unknown">Sorry, this video cannot be played.</string>
     <!-- Button to close error alert when a video cannot be played -->
     <string name="VideoView_error_button">OK</string>
+    <string name="select_folder">Select Folder</string>
+    <string name="up">Up</string>
+    <string name="select">Select</string>
+    <string name="currentDirectory">Current Directory</string>
+    <string name="parent">Parent</string>
+    <string name="error_file_does_not_exists">File does not exist.</string>
+    <string name="application_not_available">Application not available</string>
+    <string name="menu_open">Open</string>
+    <string name="menu_select">Select</string>
+    <string name="menu_delete">Delete</string>
+    <string name="quit">Quit</string>
 </resources>

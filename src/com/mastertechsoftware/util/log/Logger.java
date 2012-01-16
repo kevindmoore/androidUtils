@@ -1,7 +1,8 @@
 package com.mastertechsoftware.util.log;
 
-import android.util.Log;
 import com.mastertechsoftware.util.StackTraceOutput;
+
+import android.util.Log;
 
 public class Logger {
 	private static String applicationTag;
@@ -46,6 +47,15 @@ public class Logger {
 		}
 		Log.e(applicationTag, message, exception);
         SDLogger.error(message, exception);
+	}
+
+	public static void error(Throwable exception, int level) {
+		String message = StackTraceOutput.getFirstLineStackTrace(exception);
+		if (message == null || message.length() == 0) {
+			message = "";
+		}
+		Log.e(applicationTag, message, exception);
+        SDLogger.error(message, exception, level);
 	}
 
 	public static void debug(String message) {

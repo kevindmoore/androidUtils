@@ -91,9 +91,15 @@ public class StringUtilities {
 		return artistOrMbid.length() == 36 && MBID_PATTERN.matcher(artistOrMbid).matches();
 	}
 
+	/**
+	 * Make the first character be upper case and the rest lower
+	 * @param string
+	 * @return
+	 */
 	public static String toNameCase(String string) {
-		return string.substring(0,1) + string.substring(1);
+		return string.substring(0,1).toUpperCase() + string.substring(1).toLowerCase();
 	}
+
 	/**
 	 * Creates a Map out of an array with Strings.
 	 *

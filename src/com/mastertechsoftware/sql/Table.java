@@ -6,9 +6,10 @@ import java.util.List;
 /**
  * User: kevin.moore
  */
-public class Table {
+public abstract class Table {
 	protected String tableName;
 	protected List<Column> columns = new ArrayList<Column>();
+	protected String[] projection;
 
 	public Table() {
 	}
@@ -17,35 +18,68 @@ public class Table {
 		this.tableName = tableName;
 	}
 
+	/**
+	 * Create a table with the given columns and table name
+	 * @param columns
+	 * @param tableName
+	 */
 	public Table(List<Column> columns, String tableName) {
 		this.columns = columns;
 		this.tableName = tableName;
 	}
 
+	/**
+	 * Get the list of columns for this table
+	 * @return
+	 */
 	public List<Column> getColumns() {
 		return columns;
 	}
 
+	/**
+	 * Replace the current columns with this list
+	 * @param columns
+	 */
 	public void setColumns(List<Column> columns) {
 		this.columns = columns;
 	}
 
+	/**
+	 * Get table name
+	 * @return name
+	 */
 	public String getTableName() {
 		return tableName;
 	}
 
+	/**
+	 * set the table name
+	 * @param tableName
+	 */
 	public void setTableName(String tableName) {
 		this.tableName = tableName;
 	}
 
+	/**
+	 * Add a new column
+	 * @param column
+	 */
 	public void addColumn(Column column) {
 		columns.add(column);
 	}
 
+	/**
+	 * Remove a column
+	 * @param column
+	 */
 	public void removeColumn(Column column) {
 		columns.remove(column);
 	}
 
+	/**
+	 * Create a string to create a new table.
+	 * @return sql string
+	 */
 	public String getCreateTableString() {
 		StringBuilder builder = new StringBuilder();
 		builder.append("CREATE TABLE ").append(tableName).append(" (");
@@ -61,4 +95,76 @@ public class Table {
 		return builder.toString();
 
 	}
+
+	/**
+	 * Get the projection needed for sql queries
+	 * @return
+	 */
+	public String[] getProjection() {
+		if (projection == null) {
+			projection = new String[columns.size()];
+			int count = 0;
+			for (Column column : columns) {
+				projection[count++] = column.getName();
+			}
+		}
+		return projection;
+	}
+
+	/**
+	 * Generic method to insert a table entry
+	 *
+	 * @param database
+	 * @param data
+	 * @return the object created
+	 */
+	public abstract Object insertEntry(Database database, Object data);
+
+	/**
+	 * Generic method to delete a table entry
+	 *
+	 *
+	 * @param database
+	 * @param data
+	 */
+	public abstract void deleteEntry(Database database, Object data);
+
+	/**
+	 * Delete all table entries.
+	 * @param database
+	 */
+	public abstract void deleteAllEntries(Database database);
+
+	/**
+	 * Generic method to get a table entry
+	 *
+	 * @param database
+	 * @param data
+	 * @return the object created
+	 */
+	public abstract Object getEntry(Database database, Object data);
+
+	/**
+	 * Generic method to update a table entry
+	 *
+	 * @param database
+	 * @param data
+	 * @return the object created
+	 */
+	public abstract Object updateEntry(Database database, Object data);
+
+	/**
+	 * Return the string identifying the id field. Usually _id
+	 * @return field string
+	 */
+	public abstract String getIdField();
+
+	/**
+	 * Generic method to get all table entries
+	 *
+	 * @param database
+	 * @param data
+	 * @return the object created
+	 */
+	public abstract Object getAllEntries(Database database, Object data);
 }

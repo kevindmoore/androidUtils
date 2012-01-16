@@ -68,6 +68,15 @@ public class StreamProcessor<Result> {
 		this.streamHandler = streamHandler;
 	}
 
+	public void setUrlString(String urlString) {
+		this.urlString = urlString;
+	}
+
+	public void setUrl(URL url) {
+		this.url = url;
+		urlString = url.toString();
+	}
+
 	/**
 	 * If we get a connection timeout error, try increasing the timeout
 	 * @param connectionTimeout

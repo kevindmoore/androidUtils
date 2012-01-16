@@ -35,6 +35,21 @@ public abstract class CheckBoxListBaseAdapter extends BaseAdapter implements Com
 	}
 
 
+	/**
+	 * Call this when you remove an item so the corresponding data can bew removed
+	 * @param position
+	 */
+	public void removeItem(int position) {
+		adapterData.remove(position);
+	}
+
+	/**
+	 * Items have changed clear our list
+	 */
+	protected void clearCheckboxes() {
+		adapterData.clear();
+	}
+
 	@Override
 	public int getItemViewType(int position) {
 		return position % numViews;

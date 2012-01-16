@@ -1,7 +1,8 @@
 package com.mastertechsoftware.util.log;
 
-import android.util.Log;
 import com.mastertechsoftware.util.StackTraceOutput;
+
+import android.util.Log;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -30,6 +31,26 @@ public class SDLogger {
                 }
                 if (e != null) {
                     writer.write(StackTraceOutput.getStackTrace(e));
+                }
+                writer.close();
+
+            } catch (IOException e1) {
+                Log.e("SDLogger", "Problems Writting Error Log", e1);
+            }
+        }
+    }
+
+    public static void error(String msg, Throwable e, int level) {
+        initFile();
+        if (sdFile != null ) {
+            try {
+                FileWriter writer = new FileWriter(sdFile, true);
+                writer.write(dateFormat.format(new Date()) + "\n");
+                if (msg != null && msg.length() > 0) {
+                    writer.write(msg + "\n");
+                }
+                if (e != null) {
+                    writer.write(StackTraceOutput.getStackTrace(e, level));
                 }
                 writer.close();
 

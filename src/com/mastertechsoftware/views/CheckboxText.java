@@ -19,7 +19,6 @@ import android.widget.TextView;
  * User: kevin.moore
  */
 public class CheckboxText extends RelativeLayout implements Checkable {
-	protected boolean mChecked;
 	protected boolean checkBoxOnLeft = true;
 	protected TextView textView;
 	protected CheckBox checkBox;
@@ -128,12 +127,12 @@ public class CheckboxText extends RelativeLayout implements Checkable {
 	}
 	
 	public void toggle() {
-		setChecked(!mChecked);
+		checkBox.toggle();
 	}
 
 	@ViewDebug.ExportedProperty
 	public boolean isChecked() {
-		return mChecked;
+		return checkBox.isChecked();
 	}
 
 	public void setOnCheckedListener(CompoundButton.OnCheckedChangeListener checkedChangeListener) {
@@ -150,10 +149,7 @@ public class CheckboxText extends RelativeLayout implements Checkable {
 	 * @param checked true to check the text, false to uncheck it
 	 */
 	public void setChecked(boolean checked) {
-		if (mChecked != checked) {
-			mChecked = checked;
-			checkBox.setChecked(checked);
-		}
+		checkBox.setChecked(checked);
 	}
 
 }
