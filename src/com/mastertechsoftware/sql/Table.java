@@ -1,5 +1,7 @@
 package com.mastertechsoftware.sql;
 
+import android.content.ContentValues;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -130,6 +132,14 @@ public abstract class Table {
 	public abstract void deleteEntry(Database database, Object data);
 
 	/**
+	 * Delete the entry with the given where clause and values
+	 * @param database
+	 * @param whereClause
+	 * @param whereArgs
+	 */
+	public abstract void deleteEntryWhere(Database database, String whereClause, String[] whereArgs);
+
+	/**
 	 * Delete all table entries.
 	 * @param database
 	 */
@@ -154,6 +164,16 @@ public abstract class Table {
 	public abstract Object updateEntry(Database database, Object data);
 
 	/**
+	 * Update the entry with the given where clause and values
+	 * @param database
+	 * @param cv
+	 * @param whereClause
+	 * @param whereArgs
+	 * @return number of items updated
+	 */
+	public abstract int updateEntryWhere(Database database, ContentValues cv, String whereClause, String[] whereArgs);
+
+	/**
 	 * Return the string identifying the id field. Usually _id
 	 * @return field string
 	 */
@@ -167,4 +187,50 @@ public abstract class Table {
 	 * @return the object created
 	 */
 	public abstract Object getAllEntries(Database database, Object data);
+
+
+	/**
+	 * Helper method to create a set of content values. can string together calls.
+	 * @param cv
+	 * @param field
+	 * @param value
+	 * @return ContentValues
+	 */
+	public ContentValues addContentValue(ContentValues cv, String field, String value) {
+		if (cv == null) {
+			cv = new ContentValues();
+		}
+		cv.put(field, value);
+		return cv;
+	}
+
+
+	/**
+	 * Helper method to create a set of content values. can string together calls.
+	 */
+	public static class ContentValueBuilder {
+		ContentValues contentValues;
+
+		/**
+		 * Helper method to create a set of content values. can string together calls.
+		 * @param field
+		 * @param value
+		 * @return ContentValueBuilder
+		 */
+		public ContentValueBuilder addContentValue(String field, String value) {
+			if (contentValues == null) {
+				contentValues = new ContentValues();
+			}
+			contentValues.put(field, value);
+			return this;
+		}
+
+		/**
+		 * Call this last to get the content value list
+		 * @return
+		 */
+		public ContentValues build() {
+			return contentValues;
+		}
+	}
 }

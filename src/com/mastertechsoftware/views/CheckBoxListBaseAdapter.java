@@ -23,6 +23,7 @@ public abstract class CheckBoxListBaseAdapter extends BaseAdapter implements Com
 	protected View.OnClickListener clickListener;
 	protected boolean debugging = false;
 	protected boolean checkBoxOnLeft = true;
+	private boolean loading = false;
 
 
 	protected CheckBoxListBaseAdapter(View.OnClickListener clickListener) {
@@ -71,6 +72,7 @@ public abstract class CheckBoxListBaseAdapter extends BaseAdapter implements Com
 		ViewWrapper wrapper = adapterData.get(position);
 		CheckboxText checkboxText;
 		boolean checked = false;
+		loading = true;
 		if (wrapper == null) {
 			if (debugging)
 				Logger.debug("Creating wrapper for position " + position);
@@ -107,6 +109,7 @@ public abstract class CheckBoxListBaseAdapter extends BaseAdapter implements Com
 
 		setViewData(position, checkboxText, parent);
 
+		loading = false;
 		return convertView;
 	}
 
@@ -116,20 +119,23 @@ public abstract class CheckBoxListBaseAdapter extends BaseAdapter implements Com
 
 	@Override
 	public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+		if (loading) {
+			return;
+		}
+		int position = 0;
+		Object tag = buttonView.getTag();
+		if (tag != null) {
+			position = (Integer)tag;
+		}
 		int size = adapterData.size();
+		if (position >= size) {
+			Logger.error("onCheckedChanged: position " + position + " > size " + size);
+			return;
+		}
 		if (debugging)
 			Logger.debug("onCheckedChanged: looking for wrapper " + buttonView);
-		for (int i=0; i < size; i++) {
-			ViewWrapper wrapper = adapterData.get(i);
-			if (debugging)
-				Logger.debug("onCheckedChanged: wrapper view " + wrapper.getView(VIEW_POSITION) + " for position " + i);
-			if (wrapper.getView(VIEW_POSITION) == buttonView) {
-				if (debugging)
-					Logger.debug("onCheckedChanged: Found wrapper for position " + i);
-				wrapper.setData(CHECKED_DATA_POSITION, isChecked);
-				break;
-			}
-		}
+		ViewWrapper wrapper = adapterData.get(position);
+		wrapper.setData(CHECKED_DATA_POSITION, isChecked);
 	}
 
 	public List<Integer> getCheckedItems() {
@@ -137,11 +143,11 @@ public abstract class CheckBoxListBaseAdapter extends BaseAdapter implements Com
 		int size = adapterData.size();
 		if (debugging)
 			Logger.debug("getCheckedItems: " + size);
-		for (int i=0; i < size; i++) {
-			ViewWrapper wrapper = adapterData.get(i);
+		for (Integer position : adapterData.keySet()) {
+			ViewWrapper wrapper = adapterData.get(position);
 			Object data = wrapper.getData(CHECKED_DATA_POSITION);
 			if (data != null && data instanceof Boolean && (Boolean) data) {
-				checkedItems.add(i);
+				checkedItems.add(position);
 			}
 		}
 		return checkedItems;

@@ -19,7 +19,17 @@ public class SDLogger {
     private static String logFile = "Log.txt";
     private static boolean logFileSet = false;
     protected static SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy hh:mm");
+	protected static int error_file_size = -1; // Unlimited
+	protected static int application_log_lines = -1; // Unlimited
+	protected static int system_log_lines = -1; // Unlimited
+	private static String application_filter = "com\\.mastertechsoftware.*";
+	private static String system_filter = "(com\\.android.*)|(android\\..*)|(org.apache\\..*)";
 
+	/**
+	 * Write the stack trace and msg
+	 * @param msg
+	 * @param e
+	 */
     public static void error(String msg, Throwable e) {
         initFile();
         if (sdFile != null ) {
@@ -30,7 +40,15 @@ public class SDLogger {
                     writer.write(msg + "\n");
                 }
                 if (e != null) {
-                    writer.write(StackTraceOutput.getStackTrace(e));
+					if (application_log_lines != -1) {
+						writer.write(StackTraceOutput.getStackTrace(e, application_filter, application_log_lines));
+						if (system_log_lines != -1) {
+							writer.write(StackTraceOutput.getStackTrace(e, system_filter, system_log_lines));
+						}
+
+					} else {
+                    	writer.write(StackTraceOutput.getStackTrace(e));
+					}
                 }
                 writer.close();
 
@@ -40,6 +58,12 @@ public class SDLogger {
         }
     }
 
+	/**
+	 * Write the stack trace and msg only to the given level
+	 * @param msg
+	 * @param e
+	 * @param level
+	 */
     public static void error(String msg, Throwable e, int level) {
         initFile();
         if (sdFile != null ) {
@@ -60,6 +84,9 @@ public class SDLogger {
         }
     }
 
+	/**
+	 * Initial the sd file
+	 */
     private static void initFile() {
         if (sdFile == null) {
             sdFile = new File(directory + logFile);
@@ -75,13 +102,36 @@ public class SDLogger {
                     }
                 }
                 try {
-                    sdFile.createNewFile();
-                } catch (IOException e) {
+					boolean created = sdFile.createNewFile();
+					if (!created) {
+						Log.e("SDLogger", "Could not create  " + sdFile.getAbsolutePath());
+					}
+				} catch (IOException e) {
                     Log.e("SDLogger", "Could not create file " + sdFile.getAbsolutePath());
                 }
             }
-        }
+        } else if (error_file_size != -1) {
+			if (sdFile.length() > error_file_size) {
+				boolean deleted = sdFile.delete();
+				if (!deleted) {
+					Log.e("SDLogger", "Could not delete  " + sdFile.getAbsolutePath());
+					return;
+				}
+				try {
+					boolean created = sdFile.createNewFile();
+					if (!created) {
+						Log.e("SDLogger", "Could not create  " + sdFile.getAbsolutePath());
+					}
+				} catch (IOException e) {
+					Log.e("SDLogger", "Could not create file " + sdFile.getAbsolutePath());
+				}
+			}
+		}
     }
+
+	public static void setSDFileSize(int file_size) {
+		SDLogger.error_file_size = file_size;
+	}
 
 	public static void setDirectory(String directory) {
 		SDLogger.directory = directory;
@@ -94,5 +144,21 @@ public class SDLogger {
 
 	public static boolean isLogFileSet() {
 		return logFileSet;
+	}
+
+	public static void setApplicationLogLines(int application_log_lines) {
+		SDLogger.application_log_lines = application_log_lines;
+	}
+
+	public static void setSystemLogLines(int system_log_lines) {
+		SDLogger.system_log_lines = system_log_lines;
+	}
+
+	public static void setApplicationFilter(String application_filter) {
+		SDLogger.application_filter = application_filter;
+	}
+
+	public static void setSystemFilter(String system_filter) {
+		SDLogger.system_filter = system_filter;
 	}
 }

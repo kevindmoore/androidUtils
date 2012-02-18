@@ -3,3 +3,6 @@
 .project
 .settings/
 gen/
+AndroidUtils.apk
+backup/
+bin/

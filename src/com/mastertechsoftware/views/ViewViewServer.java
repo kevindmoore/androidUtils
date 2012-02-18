@@ -1,6 +1,7 @@
 package com.mastertechsoftware.views;
 
 import com.mastertechsoftware.AndroidUtil.R;
+import com.mastertechsoftware.util.log.Logger;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -24,9 +25,9 @@ import java.util.Map;
 
 /**
  * User: kevin.moore
- * Copied straight from VideoView
+ * This class is designed to have a service handle the MediaPlayer.
  */
-public class MasterVideoView extends SurfaceView implements MediaController.MediaPlayerControl {
+public class ViewViewServer extends SurfaceView implements MediaController.MediaPlayerControl {
 
 	protected String TAG = "MasterVideoView";
 	// settable by the client
@@ -76,17 +77,17 @@ public class MasterVideoView extends SurfaceView implements MediaController.Medi
 	private boolean videoLoadingNeeded = false;
 	private boolean screenNeedsReloading = false;
 
-	public MasterVideoView(Context context) {
+	public ViewViewServer(Context context) {
 		super(context);
 		initVideoView();
 	}
 
-	public MasterVideoView(Context context, AttributeSet attrs) {
+	public ViewViewServer(Context context, AttributeSet attrs) {
 		super(context, attrs);
 		initVideoView();
 	}
 
-	public MasterVideoView(Context context, AttributeSet attrs, int defStyle) {
+	public ViewViewServer(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
 		initVideoView();
 	}
@@ -187,17 +188,49 @@ public class MasterVideoView extends SurfaceView implements MediaController.Medi
 	public void stopPlayback() {
 		if (mMediaPlayer != null) {
 			mMediaPlayer.stop();
-			mMediaPlayer.release();
-			mMediaPlayer = null;
 			mCurrentState = STATE_IDLE;
 			mTargetState = STATE_IDLE;
 		}
 	}
 
+	public void setMediaPlayer(MediaPlayer mp) {
+		disconnectMediaPlayer();
+		this.mMediaPlayer = mp;
+		mMediaPlayer.setOnPreparedListener(mPreparedListener);
+		mMediaPlayer.setOnVideoSizeChangedListener(mSizeChangedListener);
+		mMediaPlayer.setOnSeekCompleteListener(mOnSeekCompleteListener);
+		mMediaPlayer.setOnCompletionListener(mCompletionListener);
+		mMediaPlayer.setOnErrorListener(mErrorListener);
+		mMediaPlayer.setOnBufferingUpdateListener(mBufferingUpdateListener);
+		mMediaPlayer.setDisplay(mSurfaceHolder);
+		mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+		if (mSurfaceHolder != null) {
+			mMediaPlayer.setDisplay(mSurfaceHolder);
+		}
+	}
+	
+	public void disconnectMediaPlayer() {
+		if (mMediaPlayer != null) {
+			mMediaPlayer.setOnPreparedListener(null);
+			mMediaPlayer.setOnVideoSizeChangedListener(null);
+			mMediaPlayer.setOnSeekCompleteListener(null);
+			mMediaPlayer.setOnCompletionListener(null);
+			mMediaPlayer.setOnErrorListener(null);
+			mMediaPlayer.setOnBufferingUpdateListener(null);
+			mMediaPlayer.setDisplay(null);
+		}
+		mMediaPlayer = null;
+	}
+	
 	protected void openVideo() {
 		if (mUri == null || mSurfaceHolder == null) {
 			videoLoadingNeeded = true;
 			// not ready for playback just yet, will try again later
+			return;
+		}
+		if (mMediaPlayer == null) {
+			videoLoadingNeeded = true;
+			Logger.error("MediaPlayer not set");
 			return;
 		}
 		// Tell the music playback service to pause
@@ -212,20 +245,11 @@ public class MasterVideoView extends SurfaceView implements MediaController.Medi
 		screenNeedsReloading = false;
 
 		try {
-			mMediaPlayer = new MediaPlayer();
-			mMediaPlayer.setOnPreparedListener(mPreparedListener);
-			mMediaPlayer.setOnVideoSizeChangedListener(mSizeChangedListener);
-			mMediaPlayer.setOnSeekCompleteListener(mOnSeekCompleteListener);
 			mDuration = -1;
-			mMediaPlayer.setOnCompletionListener(mCompletionListener);
-			mMediaPlayer.setOnErrorListener(mErrorListener);
-			mMediaPlayer.setOnBufferingUpdateListener(mBufferingUpdateListener);
 			mCurrentBufferPercentage = 0;
 			mMediaPlayer.setDataSource(getContext(), mUri);
 			//			mMediaPlayer.setDataSource(getContext(), mUri, mHeaders);
 			mMediaPlayer.setDisplay(mSurfaceHolder);
-			mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-			mMediaPlayer.setScreenOnWhilePlaying(true);
 			mMediaPlayer.prepareAsync();
 			// we don't set the target state here either, but preserve the
 			// target state that was there before.
@@ -296,7 +320,7 @@ public class MasterVideoView extends SurfaceView implements MediaController.Medi
 			mCanPause = mCanSeekBack = mCanSeekForward = true;
 
 			if (mOnPreparedListener != null) {
-				mOnPreparedListener.onPrepared(mMediaPlayer);
+				mOnPreparedListener.onPrepared(mp);
 			}
 			if (mMediaController != null) {
 				mMediaController.setEnabled(true);
@@ -352,7 +376,7 @@ public class MasterVideoView extends SurfaceView implements MediaController.Medi
 					mMediaController.hide();
 				}
 				if (mOnCompletionListener != null) {
-					mOnCompletionListener.onCompletion(mMediaPlayer);
+					mOnCompletionListener.onCompletion(mp);
 				}
 			}
 		};
@@ -369,7 +393,7 @@ public class MasterVideoView extends SurfaceView implements MediaController.Medi
 
 				/* If an error handler has been supplied, use it and finish. */
 				if (mOnErrorListener != null) {
-					if (mOnErrorListener.onError(mMediaPlayer, framework_err, impl_err)) {
+					if (mOnErrorListener.onError(mp, framework_err, impl_err)) {
 						return true;
 					}
 				}
@@ -515,9 +539,9 @@ public class MasterVideoView extends SurfaceView implements MediaController.Medi
 			}
 			if (mMediaController != null)
 				mMediaController.hide();
-//			if (mCurrentState != STATE_SUSPEND) {
-//				release(true);
-//			}
+			//			if (mCurrentState != STATE_SUSPEND) {
+			//				release(true);
+			//			}
 		}
 	};
 
@@ -527,8 +551,6 @@ public class MasterVideoView extends SurfaceView implements MediaController.Medi
 	protected void release(boolean cleartargetstate) {
 		if (mMediaPlayer != null) {
 			mMediaPlayer.reset();
-			mMediaPlayer.release();
-			mMediaPlayer = null;
 			mCurrentState = STATE_IDLE;
 			if (cleartargetstate) {
 				mTargetState = STATE_IDLE;
@@ -560,7 +582,7 @@ public class MasterVideoView extends SurfaceView implements MediaController.Medi
 			keyCode != KeyEvent.KEYCODE_MENU &&
 			keyCode != KeyEvent.KEYCODE_CALL &&
 			keyCode != KeyEvent.KEYCODE_ENDCALL;
-		if (isInPlaybackState() && isKeyCodeSupported && mMediaController != null) {
+		if (mMediaPlayer != null && isInPlaybackState() && isKeyCodeSupported && mMediaController != null) {
 			if (keyCode == KeyEvent.KEYCODE_HEADSETHOOK ||
 				keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE) {
 				if (mMediaPlayer.isPlaying()) {
@@ -592,7 +614,7 @@ public class MasterVideoView extends SurfaceView implements MediaController.Medi
 	}
 
 	public void start() {
-		if (isInPlaybackState() && mCurrentState != STATE_PLAYING) {
+		if (mMediaPlayer != null && isInPlaybackState() && mCurrentState != STATE_PLAYING) {
 			mMediaPlayer.start();
 			mCurrentState = STATE_PLAYING;
 		}
@@ -601,7 +623,7 @@ public class MasterVideoView extends SurfaceView implements MediaController.Medi
 
 	public void pause() {
 		if (isInPlaybackState()) {
-			if (mMediaPlayer.isPlaying()) {
+			if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
 				mMediaPlayer.pause();
 				mCurrentState = STATE_PAUSED;
 			}
@@ -672,7 +694,7 @@ public class MasterVideoView extends SurfaceView implements MediaController.Medi
 
 	// cache duration as mDuration for faster access
 	public int getDuration() {
-		if (isInPlaybackState()) {
+		if (mMediaPlayer != null && isInPlaybackState()) {
 			if (mDuration > 0) {
 				return mDuration;
 			}
@@ -684,14 +706,14 @@ public class MasterVideoView extends SurfaceView implements MediaController.Medi
 	}
 
 	public int getCurrentPosition() {
-		if (isInPlaybackState()) {
+		if (mMediaPlayer != null && isInPlaybackState()) {
 			return mMediaPlayer.getCurrentPosition();
 		}
 		return 0;
 	}
 
 	public void seekTo(int msec) {
-		if (isInPlaybackState()) {
+		if (mMediaPlayer != null && isInPlaybackState()) {
 			mMediaPlayer.seekTo(msec);
 			mSeekWhenPrepared = 0;
 		} else {
@@ -700,7 +722,7 @@ public class MasterVideoView extends SurfaceView implements MediaController.Medi
 	}
 
 	public boolean isPlaying() {
-		return isInPlaybackState() && mMediaPlayer.isPlaying();
+		return isInPlaybackState() && mMediaPlayer != null && mMediaPlayer.isPlaying();
 	}
 
 	public int getBufferPercentage() {
@@ -728,4 +750,5 @@ public class MasterVideoView extends SurfaceView implements MediaController.Medi
 	public boolean canSeekForward() {
 		return mCanSeekForward;
 	}
+
 }
