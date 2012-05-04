@@ -15,6 +15,8 @@ public class StreamException extends Exception {
 	public final static int CLIENT_PROTOCOL_EXCEPTION_TYPE = 8;
 
 	protected int exceptionType;
+    protected int responseCode;
+    protected String responseMessage;
 
 	public StreamException() {
 	}
@@ -38,4 +40,20 @@ public class StreamException extends Exception {
 	public void setExceptionType(int exceptionType) {
 		this.exceptionType = exceptionType;
 	}
+
+    public int getResponseCode() {
+        return responseCode;
+    }
+
+    public void setResponseCode(int responseCode) {
+        this.responseCode = responseCode;
+    }
+
+    public String getResponseMessage() {
+        return responseMessage;
+    }
+
+    public void setResponseMessage(String responseMessage) {
+        this.responseMessage = responseMessage;
+    }
 }

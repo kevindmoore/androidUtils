@@ -1,15 +1,15 @@
 package com.mastertechsoftware.sql;
 
-import com.mastertechsoftware.util.log.Logger;
-
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
+
+import com.mastertechsoftware.util.log.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * User: kevin.moore
+ * Class used to describe a SQL Database. Holds tables & SQLite Database.
  */
 public class Database {
 	protected List<Table> tables = new ArrayList<Table>();
@@ -31,11 +31,29 @@ public class Database {
 		return tables;
 	}
 
+    /**
+     * Set the list of tables.
+     * @param tables
+     */
 	public void setTables(List<Table> tables) {
 		this.tables = tables;
 	}
 
 	/**
+     * Find a table by it's name.
+     * @param tableName
+     * @return Table
+     */
+    public Table getTableByName(String tableName) {
+        for (Table table : tables) {
+            if (tableName.equalsIgnoreCase(table.getTableName())) {
+                return table;
+            }
+        }
+        return null;
+    }
+
+    /**
 	 * Add a new table.
 	 * @param table
 	 */
@@ -93,6 +111,18 @@ public class Database {
 			Logger.error(e.getMessage());
 		}
 	}
+
+    /**
+     * Execute sql statement. Be careful.
+     * @param sql
+     */
+    public void execSQL(String sql) {
+        try {
+            database.execSQL(sql);
+        } catch (SQLiteException e) {
+            Logger.error(e.getMessage());
+        }
+    }
 
 	/**
 	 * Generic method to insert a table entry

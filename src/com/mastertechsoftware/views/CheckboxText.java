@@ -1,11 +1,15 @@
 package com.mastertechsoftware.views;
 
+import com.mastertechsoftware.AndroidUtil.R;
 import com.mastertechsoftware.layout.GridLayout;
 import com.mastertechsoftware.layout.LayoutIDGenerator;
+import com.mastertechsoftware.util.log.Logger;
 
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.Gravity;
+import android.view.MotionEvent;
+import android.view.View;
 import android.view.ViewDebug;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
@@ -23,11 +27,31 @@ public class CheckboxText extends RelativeLayout implements Checkable {
 	protected TextView textView;
 	protected CheckBox checkBox;
 
-	/**
-	 * Constructors
-	 * @param context
-	 * @param checkBoxOnLeft
-	 */
+    /**
+     * Constructor. Pass in your own layout.
+     * @param context
+     * @param layout
+     */
+    public CheckboxText(Context context, ViewGroup layout) {
+        super(context);
+        int childCount = layout.getChildCount();
+        for (int i=0; i < childCount; i++) {
+            View view = layout.getChildAt(i);
+            if (view instanceof CheckBox) {
+                checkBox = (CheckBox)view;
+            }
+            if (view instanceof TextView) {
+                textView = (TextView)view;
+            }
+        }
+        addView(layout);
+    }
+
+        /**
+       * Constructors
+       * @param context
+       * @param checkBoxOnLeft
+       */
 	public CheckboxText(Context context, boolean checkBoxOnLeft) {
 		super(context);
 		this.checkBoxOnLeft = checkBoxOnLeft;
@@ -106,7 +130,21 @@ public class CheckboxText extends RelativeLayout implements Checkable {
 		addView(checkBox, params);
 	}
 
-	public CheckBox getCheckBox() {
+    @Override
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+        final int action = ev.getAction();
+        final int actionMasked = action & MotionEvent.ACTION_MASK;
+
+        // Handle an initial down.
+        if (actionMasked == MotionEvent.ACTION_DOWN) {
+            Logger.debug(this, "onInterceptTouchEvent: Down");
+        } else if (actionMasked == MotionEvent.ACTION_UP) {
+            Logger.debug(this, "onInterceptTouchEvent: Up");
+        }
+        return super.onInterceptTouchEvent(ev);
+    }
+
+    public CheckBox getCheckBox() {
 		return checkBox;
 	}
 
@@ -151,5 +189,4 @@ public class CheckboxText extends RelativeLayout implements Checkable {
 	public void setChecked(boolean checked) {
 		checkBox.setChecked(checked);
 	}
-
 }

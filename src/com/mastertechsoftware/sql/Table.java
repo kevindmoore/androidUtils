@@ -1,21 +1,32 @@
 package com.mastertechsoftware.sql;
 
 import android.content.ContentValues;
+import android.database.Cursor;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * User: kevin.moore
+ * Class used to describe a SQL Table. Holds the columns, table name & projection.
  */
 public abstract class Table {
+    public static final String ID = "_id";
 	protected String tableName;
+    protected String idField = ID;
 	protected List<Column> columns = new ArrayList<Column>();
 	protected String[] projection;
+    protected int version = 1;
 
+  /**
+   * Constructor
+   */
 	public Table() {
 	}
 
+  /**
+   * Constructor
+   * @param tableName
+   */
 	public Table(String tableName) {
 		this.tableName = tableName;
 	}
@@ -32,7 +43,7 @@ public abstract class Table {
 
 	/**
 	 * Get the list of columns for this table
-	 * @return
+	 * @return list of columns
 	 */
 	public List<Column> getColumns() {
 		return columns;
@@ -100,7 +111,7 @@ public abstract class Table {
 
 	/**
 	 * Get the projection needed for sql queries
-	 * @return
+	 * @return Projection
 	 */
 	public String[] getProjection() {
 		if (projection == null) {
@@ -123,8 +134,23 @@ public abstract class Table {
 	public abstract Object insertEntry(Database database, Object data);
 
 	/**
+     * Generic method to insert a table entry
+     * @param database
+     * @param data
+     * @return the id of the object created
+     */
+    public abstract long insertEntry(Database database, List<String> data);
+
+    /**
+     * Generic method to insert a table entry
+     * @param database
+     * @param data
+     * @return the id of the object created
+     */
+    public abstract long insertEntry(Database database, ContentValues data);
+
+    /**
 	 * Generic method to delete a table entry
-	 *
 	 *
 	 * @param database
 	 * @param data
@@ -150,20 +176,54 @@ public abstract class Table {
 	 *
 	 * @param database
 	 * @param data
-	 * @return the object created
+     * @return the object found
 	 */
 	public abstract Object getEntry(Database database, Object data);
 
 	/**
+     * Generic method to get a table entry
+     *
+     * @param database
+     * @param id
+     * @return the cursor for the object
+     */
+    public abstract Cursor getEntry(Database database, long id);
+
+    /**
+     * Find an entry where the given column matches the given value.
+     * @param database
+     * @param columnName
+     * @param columnValue
+     * @return the cursor for the object
+     */
+    public abstract Cursor getEntry(Database database, String columnName, String columnValue);
+
+    /**
 	 * Generic method to update a table entry
 	 *
 	 * @param database
 	 * @param data
-	 * @return the object created
+     * @return the object updated
 	 */
 	public abstract Object updateEntry(Database database, Object data);
 
 	/**
+     * Generic method to update a table entry
+     * @param database
+     * @param data
+     * @return the number of objects updated
+     */
+    public abstract int updateEntry(Database database, List<String> data);
+
+    /**
+     * Generic method to update a table entry
+     * @param database
+     * @param data
+     * @return the number of objects updated
+     */
+    public abstract int updateEntry(Database database, ContentValues data);
+
+    /**
 	 * Update the entry with the given where clause and values
 	 * @param database
 	 * @param cv
@@ -175,19 +235,36 @@ public abstract class Table {
 
 	/**
 	 * Return the string identifying the id field. Usually _id
+     * 
 	 * @return field string
 	 */
-	public abstract String getIdField();
+    public String getIdField() {
+        return idField;
+    }
+
+    /**
+     * Set the id field for this table. Usually "_id"
+     * @param idField
+     */
+    public void setIdField(String idField) {
+        this.idField = idField;
+    }
 
 	/**
 	 * Generic method to get all table entries
 	 *
 	 * @param database
 	 * @param data
-	 * @return the object created
+     * @return all entries
 	 */
 	public abstract Object getAllEntries(Database database, Object data);
 
+    /**
+     * Return a cursor with all entries
+     * @param database
+     * @return Cursor
+     */
+    public abstract Cursor getAllEntries(Database database);
 
 	/**
 	 * Helper method to create a set of content values. can string together calls.
@@ -204,9 +281,25 @@ public abstract class Table {
 		return cv;
 	}
 
+    /**
+     * Return the version # for this table
+     * 
+     * @return version #
+     */
+    public int getVersion() {
+        return version;
+    }
 
 	/**
-	 * Helper method to create a set of content values. can string together calls.
+     * Set the version # for this table
+     */
+    public void setVersion(int version) {
+        this.version = version;
+    }
+
+    /**
+     * Helper method to create a set of content values. can string together
+     * calls.
 	 */
 	public static class ContentValueBuilder {
 		ContentValues contentValues;

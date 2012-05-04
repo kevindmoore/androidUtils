@@ -24,14 +24,23 @@ public abstract class AbstractActivityListener implements ActivityListener  {
 	protected Bundle params;
 	protected boolean paused = true;
 	protected int requestCode;
+    protected FlipperActivity mainActivity;
 
-	public abstract String getActivityName();
+    public AbstractActivityListener(FlipperActivity mainActivity) {
+        this.mainActivity = mainActivity;
+    }
+
+    public abstract String getActivityName();
 
 	@Override
 	public void startup() {
 	}
 
-	@Override
+    public FlipperActivity getMainActivity() {
+        return mainActivity;
+    }
+
+    @Override
 	public void configurationChanged(Configuration newConfig) {
 	}
 

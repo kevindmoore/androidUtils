@@ -75,6 +75,7 @@ public class MasterVideoView extends SurfaceView implements MediaController.Medi
 	protected int mStateWhenSuspended;  //state before calling suspend()
 	private boolean videoLoadingNeeded = false;
 	private boolean screenNeedsReloading = false;
+	private boolean useAndroidAspectRatio = false;
 
 	public MasterVideoView(Context context) {
 		super(context);
@@ -94,34 +95,47 @@ public class MasterVideoView extends SurfaceView implements MediaController.Medi
 
 	@Override
 	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-		//Log.i("@@@@", "onMeasure");
-		int width = getDefaultSize(mVideoWidth, widthMeasureSpec);
-		int height = getDefaultSize(mVideoHeight, heightMeasureSpec);
 
-		//		DisplayMetrics metrics = getContext().getResources().getDisplayMetrics();
-		width = (width / 16) * 16;
-		height = ((height) / 9) * 9;
-		/*
-		  if (mVideoWidth > 0 && mVideoHeight > 0) {
-			  if ( mVideoWidth * height  > width * mVideoHeight ) {
-				  //Log.i("@@@", "image too tall, correcting");
-				  height = height * mVideoHeight / mVideoWidth;
-			  } else if ( mVideoWidth * height  < width * mVideoHeight ) {
-				  //Log.i("@@@", "image too wide, correcting");
-				  width = width * mVideoWidth / mVideoHeight;
-			  } else {
-				  //Log.i("@@@", "aspect ratio is correct: " +
-						  //width+"/"+height+"="+
-						  //mVideoWidth+"/"+mVideoHeight);
-			  }
-		  }
-  */
+        if (useAndroidAspectRatio) {
+            int width = getDefaultSize(mVideoWidth, widthMeasureSpec);
+            int height = getDefaultSize(mVideoHeight, heightMeasureSpec);
+            if (mVideoWidth > 0 && mVideoHeight > 0) {
+                if ( mVideoWidth * height  > width * mVideoHeight ) {
+                    //Log.i("@@@", "image too tall, correcting");
+                    height = width * mVideoHeight / mVideoWidth;
+                } else if ( mVideoWidth * height  < width * mVideoHeight ) {
+                    //Log.i("@@@", "image too wide, correcting");
+                    width = height * mVideoWidth / mVideoHeight;
+                } else {
+                    //Log.i("@@@", "aspect ratio is correct: " +
+                    //width+"/"+height+"="+
+                    //mVideoWidth+"/"+mVideoHeight);
+                }
+            }
+            //Log.i("@@@@@@@@@@", "setting size: " + width + 'x' + height);
+            setMeasuredDimension(width, height);
 
-		//Log.i("@@@@@@@@@@", "setting size: " + width + 'x' + height);
-		setMeasuredDimension(width, height);
+        } else {
+            int width = getDefaultSize(mVideoWidth, widthMeasureSpec);
+            int height = getDefaultSize(mVideoHeight, heightMeasureSpec);
+
+            width = (width / 16) * 16;
+            height = ((height) / 9) * 9;
+            setMeasuredDimension(width, height);
+        }
 	}
 
-	public int resolveAdjustedSize(int desiredSize, int measureSpec) {
+    /**
+     * Set this flag to use Android's Aspect ratio sizing, not the full screen
+     * @param useAndroidAspectRatio
+     */
+    public void setUseAndroidAspectRatio(boolean useAndroidAspectRatio) {
+        this.useAndroidAspectRatio = useAndroidAspectRatio;
+        invalidate();
+        requestLayout();
+    }
+
+    public int resolveAdjustedSize(int desiredSize, int measureSpec) {
 		int result = desiredSize;
 		int specMode = MeasureSpec.getMode(measureSpec);
 		int specSize = MeasureSpec.getSize(measureSpec);

@@ -1,5 +1,7 @@
 package com.mastertechsoftware.thread;
 
+import android.app.Activity;
+
 import com.mastertechsoftware.util.log.Logger;
 
 /**
@@ -14,16 +16,19 @@ public class BasicQueueProcessor<QueueItem> extends QueueProcessor<BasicQueue<Qu
 		} catch (Exception e) {
 			Logger.error("BasicQueueProcessor:process", e);
 		}
-		queueItem.getQueueTask().getActivity().runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					queueItem.getQueueTask().finished();
-				} catch (Exception e) {
-					Logger.error("BasicQueueProcessor:runOnUiThread", e);
-				}
-			}
-		});
+        Activity activity = queueItem.getQueueTask().getActivity();
+        if (activity != null) {
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        queueItem.getQueueTask().finished();
+                    } catch (Exception e) {
+                        Logger.error("BasicQueueProcessor:runOnUiThread", e);
+                    }
+                }
+            });
+        }
 	}
 
 	@Override

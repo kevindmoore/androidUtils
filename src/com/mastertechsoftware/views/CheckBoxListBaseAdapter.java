@@ -1,12 +1,13 @@
 package com.mastertechsoftware.views;
 
-import com.mastertechsoftware.list.ViewWrapper;
-import com.mastertechsoftware.util.log.Logger;
-
+import android.app.Activity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.CompoundButton;
+
+import com.mastertechsoftware.list.ViewWrapper;
+import com.mastertechsoftware.util.log.Logger;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,21 +17,23 @@ import java.util.List;
  * User: kevin.moore
  */
 public abstract class CheckBoxListBaseAdapter extends BaseAdapter implements CompoundButton.OnCheckedChangeListener {
-	private static final int CHECKED_DATA_POSITION = 0;
-	private static final int VIEW_POSITION = 0;
-	private int numViews = 6;
+    protected static final int CHECKED_DATA_POSITION = 0;
+    protected static final int VIEW_POSITION = 0;
+    protected int numViews = 6;
 	protected HashMap<Integer, ViewWrapper> adapterData = new HashMap<Integer, ViewWrapper>();
 	protected View.OnClickListener clickListener;
 	protected boolean debugging = false;
 	protected boolean checkBoxOnLeft = true;
-	private boolean loading = false;
+    protected boolean loading = false;
+    protected Activity activity;
 
 
-	protected CheckBoxListBaseAdapter(View.OnClickListener clickListener) {
+    public CheckBoxListBaseAdapter(Activity activity, View.OnClickListener clickListener) {
+		this.activity = activity;
 		this.clickListener = clickListener;
 	}
 
-	@Override
+    @Override
 	public long getItemId(int position) {
 		return position;
 	}
@@ -81,12 +84,12 @@ public abstract class CheckBoxListBaseAdapter extends BaseAdapter implements Com
 			adapterData.put(position, wrapper);
 		}
 		if (convertView == null) {
-			checkboxText = new CheckboxText(parent.getContext(), checkBoxOnLeft);
-			if (clickListener != null) {
-				checkboxText.setTextOnClickListener(clickListener);
-			}
-			checkboxText.setOnCheckedListener(this);
-			convertView = checkboxText;
+            checkboxText = createCheckboxView(parent);
+            if (clickListener != null) {
+                checkboxText.setTextOnClickListener(clickListener);
+            }
+            checkboxText.setOnCheckedListener(this);
+            convertView = checkboxText;
 			wrapper.setData(CHECKED_DATA_POSITION, false);
 			if (debugging)
 				Logger.debug("Creating Checkbox text for position " + position);
@@ -113,7 +116,16 @@ public abstract class CheckBoxListBaseAdapter extends BaseAdapter implements Com
 		return convertView;
 	}
 
-	public ViewWrapper getViewWrapper(int position) {
+    /**
+     * Create the Checkbox View. This can be overridden to provide a view other than the default
+     * @param parent
+     * @return CheckboxText
+     */
+    protected CheckboxText createCheckboxView(ViewGroup parent) {
+        return new CheckboxText(parent.getContext(), checkBoxOnLeft);
+    }
+
+    public ViewWrapper getViewWrapper(int position) {
 		return adapterData.get(position);
 	}
 

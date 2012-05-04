@@ -6,9 +6,6 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import com.mastertechsoftware.util.reflect.UtilReflector;
-
-import java.lang.reflect.Method;
 
 /**
  * @author Kevin Moore
@@ -107,14 +104,8 @@ public class NotificationHandler {
 	 * @return
 	 */
 	public static boolean startForeground(Service service, int id, Notification notification) {
-		Method method = UtilReflector.getMethod(service, "startForeground", new Class[]{int.class, Notification.class});
-		if (method != null) {
-			UtilReflector.executeMethod(service, new Object[]{id, notification}, method);
-			return true;
-		} else {
-			service.setForeground(true);
-			return false;
-		}
+        service.startForeground(id, notification);
+        return true;
 	}
 
 	/**
@@ -123,13 +114,7 @@ public class NotificationHandler {
 	 * @return
 	 */
 	public static boolean stopForeground(Service service) {
-		Method method = UtilReflector.getMethod(service, "stopForeground", new Class[]{boolean.class});
-		if (method != null) {
-			UtilReflector.executeMethod(service, new Object[]{true}, method);
-			return true;
-		} else {
-			service.setForeground(false);
-			return false;
-		}
+        service.stopForeground(true);
+        return true;
 	}
 }
