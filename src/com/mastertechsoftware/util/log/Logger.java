@@ -4,14 +4,27 @@ import android.util.Log;
 
 import com.mastertechsoftware.util.StackTraceOutput;
 
+/**
+ * Class used to funnel all error messages so that we can log to sd card.
+ */
 public class Logger {
 
-    private static String applicationTag;
+    private static String applicationTag = "MasterTech";
 
+    /**
+     * Required. Set the tag that will always show. Usually your application name.
+     * @param applicationTag
+     */
     public static void setApplicationTag(String applicationTag) {
         Logger.applicationTag = applicationTag;
     }
 
+    /**
+     * Log an errog with a tag. Application tag will override.
+     * @param tag
+     * @param message
+     * @param exception
+     */
     public static void error(String tag, String message, Throwable exception) {
         if (applicationTag != null) {
             tag = applicationTag;
@@ -22,8 +35,9 @@ public class Logger {
             message = "";
         }
         if (exception != null) {
-            Log.e(tag, buildErrorString(exception) + message, exception);
-            SDLogger.error(buildErrorString(exception) + message, exception);
+            String msg = buildErrorString(exception) + message;
+            Log.e(tag, msg, exception);
+            SDLogger.error(msg, exception);
         } else {
             Log.e(applicationTag, message);
             SDLogger.error(message, null);
@@ -48,8 +62,9 @@ public class Logger {
         if (message == null || message.length() == 0) {
             message = "";
         }
-        Log.e(applicationTag, buildErrorString(exception) + message, exception);
-        SDLogger.error(buildErrorString(exception) + message, exception, level);
+        String msg = buildErrorString(exception) + message;
+        Log.e(applicationTag, msg, exception);
+        SDLogger.error(msg, exception, level);
     }
 
 
@@ -72,7 +87,12 @@ public class Logger {
 
     protected static String buildErrorString(Throwable exception) {
         StringBuilder builder = new StringBuilder();
-        builder.append(exception.toString()).append(": ").append("\nCaused by: ").append(exception.getCause()).append("\n");
+        Throwable cause = exception.getCause();
+        builder.append(exception.toString()).append(": ");
+        if (cause != null) {
+            builder.append("\nCaused by: ").append(cause).append("\n");
+        }
+        builder.append("\n");
         return builder.toString();
     }
 

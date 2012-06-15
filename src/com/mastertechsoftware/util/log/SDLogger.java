@@ -1,8 +1,8 @@
 package com.mastertechsoftware.util.log;
 
-import com.mastertechsoftware.util.StackTraceOutput;
-
 import android.util.Log;
+
+import com.mastertechsoftware.util.StackTraceOutput;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -21,9 +21,9 @@ public class SDLogger {
     protected static SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy hh:mm");
 	protected static int error_file_size = -1; // Unlimited
 	protected static int application_log_lines = -1; // Unlimited
-	protected static int system_log_lines = -1; // Unlimited
+	protected static int max_log_lines = -1; // Unlimited
 	private static String application_filter = "com\\.mastertechsoftware.*";
-	private static String system_filter = "(com\\.android.*)|(android\\..*)|(org.apache\\..*)";
+	private static String system_filter = "(com\\.android.*)|(android\\..*)|(org\\.apache\\..*)|(java\\..*)";
 
 	/**
 	 * Write the stack trace and msg
@@ -40,12 +40,29 @@ public class SDLogger {
                     writer.write(msg + "\n");
                 }
                 if (e != null) {
-					if (application_log_lines != -1) {
-						writer.write(StackTraceOutput.getStackTrace(e, application_filter, application_log_lines));
-						if (system_log_lines != -1) {
-							writer.write(StackTraceOutput.getStackTrace(e, system_filter, system_log_lines));
-						}
-
+                    String localizedMessage = e.getLocalizedMessage();
+                    String name = e.getClass().getName();
+                    if (localizedMessage != null) {
+                        writer.write(localizedMessage + ":" + name + "\n");
+                    } else {
+                        writer.write(name + "\n");
+                    }
+                    if (application_log_lines != -1 || max_log_lines != -1) {
+                        StackTraceElement[] stackTraces = e.getStackTrace();
+                        int appLineCount = 0;
+                        for (int i = 0; i < stackTraces.length; i++) {
+                            String trace = stackTraces[i].toString();
+                            if (trace.startsWith("Caused by")) {
+                                writer.write(trace + "\n");
+                            } else if (application_log_lines != -1 && trace.matches(application_filter) && appLineCount < application_log_lines) {
+                                writer.write("\tat " + trace + "\n");
+                                appLineCount++;
+                            } else if ((max_log_lines != -1 && i >= max_log_lines)) {
+                                break;
+                            } else {
+                                writer.write("\tat " + trace + "\n");
+                            }
+                        }
 					} else {
                     	writer.write(StackTraceOutput.getStackTrace(e));
 					}
@@ -74,6 +91,13 @@ public class SDLogger {
                     writer.write(msg + "\n");
                 }
                 if (e != null) {
+                    String localizedMessage = e.getLocalizedMessage();
+                    String name = e.getClass().getName();
+                    if (localizedMessage != null) {
+                        writer.write(localizedMessage + ":" + name + "\n");
+                    } else {
+                        writer.write(name + "\n");
+                    }
                     writer.write(StackTraceOutput.getStackTrace(e, level));
                 }
                 writer.close();
@@ -150,8 +174,8 @@ public class SDLogger {
 		SDLogger.application_log_lines = application_log_lines;
 	}
 
-	public static void setSystemLogLines(int system_log_lines) {
-		SDLogger.system_log_lines = system_log_lines;
+	public static void setMaxLogLines(int system_log_lines) {
+		SDLogger.max_log_lines = system_log_lines;
 	}
 
 	public static void setApplicationFilter(String application_filter) {

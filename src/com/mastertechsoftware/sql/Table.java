@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Class used to describe a SQL Table. Holds the columns, table name & projection.
  */
-public abstract class Table {
+public abstract class Table<T> {
     public static final String ID = "_id";
 	protected String tableName;
     protected String idField = ID;
@@ -131,7 +131,7 @@ public abstract class Table {
 	 * @param data
 	 * @return the object created
 	 */
-	public abstract Object insertEntry(Database database, Object data);
+	public abstract T insertEntry(Database database, T data);
 
 	/**
      * Generic method to insert a table entry
@@ -153,9 +153,9 @@ public abstract class Table {
 	 * Generic method to delete a table entry
 	 *
 	 * @param database
-	 * @param data
+	 * @param key
 	 */
-	public abstract void deleteEntry(Database database, Object data);
+	public abstract void deleteEntry(Database database, Object key);
 
 	/**
 	 * Delete the entry with the given where clause and values
@@ -175,10 +175,10 @@ public abstract class Table {
 	 * Generic method to get a table entry
 	 *
 	 * @param database
-	 * @param data
+	 * @param key
      * @return the object found
 	 */
-	public abstract Object getEntry(Database database, Object data);
+	public abstract T getEntry(Database database, Object key);
 
 	/**
      * Generic method to get a table entry
@@ -203,25 +203,28 @@ public abstract class Table {
 	 *
 	 * @param database
 	 * @param data
+     * @param key
      * @return the object updated
 	 */
-	public abstract Object updateEntry(Database database, Object data);
+	public abstract T updateEntry(Database database, T data, Object key);
 
 	/**
      * Generic method to update a table entry
      * @param database
      * @param data
+     * @param key
      * @return the number of objects updated
      */
-    public abstract int updateEntry(Database database, List<String> data);
+    public abstract int updateEntry(Database database, List<String> data, Object key);
 
     /**
      * Generic method to update a table entry
      * @param database
      * @param data
+     * @param key
      * @return the number of objects updated
      */
-    public abstract int updateEntry(Database database, ContentValues data);
+    public abstract int updateEntry(Database database, ContentValues data, Object key);
 
     /**
 	 * Update the entry with the given where clause and values
@@ -250,14 +253,6 @@ public abstract class Table {
         this.idField = idField;
     }
 
-	/**
-	 * Generic method to get all table entries
-	 *
-	 * @param database
-	 * @param data
-     * @return all entries
-	 */
-	public abstract Object getAllEntries(Database database, Object data);
 
     /**
      * Return a cursor with all entries
@@ -265,6 +260,13 @@ public abstract class Table {
      * @return Cursor
      */
     public abstract Cursor getAllEntries(Database database);
+
+    /**
+     * Return a cursor with all entries
+     * @param database
+     * @return List<T>
+     */
+    public abstract List<T> getAllEntries(Database database, Class<T> cls);
 
 	/**
 	 * Helper method to create a set of content values. can string together calls.

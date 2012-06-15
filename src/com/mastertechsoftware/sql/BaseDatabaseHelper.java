@@ -22,6 +22,7 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper  {
         NEW,
         CREATED,
         CLOSED,
+        OPENING,
         OPEN
     }
     protected SQLiteDatabase sqLiteDatabase;
@@ -93,7 +94,7 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper  {
      */
     public synchronized void open() {
         // Already open
-        if (state == STATE.OPEN) {
+        if (state == STATE.OPEN || state == STATE.OPENING) {
             return;
         }
         // Lock it!
@@ -103,8 +104,12 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper  {
         // case something throws.
         try {
 //            Logger.debug(this, "Opening DB");
+            STATE oldState = state;
+            state = STATE.OPENING;
+
             sqLiteDatabase = getWritableDatabase();
 
+            state = oldState;
             // Make sure the tables exist
             if (state == STATE.NEW) {
 //                Logger.debug(this, "State is new, creating");
@@ -114,6 +119,10 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper  {
                 createLocalDB();
             }
             state = STATE.OPEN;
+        } catch (SQLiteException e) {
+            Logger.error(this, "Problems opening database " + mainTableName, e);
+        } catch (IllegalStateException e) {
+            Logger.error(this, "Problems opening database " + mainTableName, e);
         } finally {
             mLock.unlock();
         }
@@ -133,6 +142,10 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper  {
      */
     @Override
     public synchronized void close() {
+        // Already closed
+        if (state == STATE.CLOSED) {
+            return;
+        }
         // Lock it!
         mLock.lock();
 
@@ -180,6 +193,43 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper  {
         if (oldVersion != newVersion) {
             dropDatabase();
         }
+    }
+
+    /**
+     * Execute sql statement. Be careful.
+     * @param sql
+     */
+    public void execSQL(String sql) {
+        // Lock it!
+        mLock.lock();
+        try {
+            open();
+            sqLiteDatabase.execSQL(sql);
+        } catch (SQLiteException e) {
+            Logger.error(e.getMessage());
+        } finally {
+            mLock.unlock();
+        }
+    }
+
+    /**
+     * Execute sql statement. Be careful.
+     * @param sql
+     * @param selectionArgs
+     * @return Cursor
+     */
+    public Cursor rawQuery(String sql, String[] selectionArgs) {
+        // Lock it!
+        mLock.lock();
+        try {
+            open();
+            return sqLiteDatabase.rawQuery(sql, selectionArgs);
+        } catch (SQLiteException e) {
+            Logger.error(e.getMessage());
+        } finally {
+            mLock.unlock();
+        }
+        return null;
     }
 
     /**
@@ -322,12 +372,12 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper  {
      * @param data
      * @return result
      */
-    public Object updateEntry(TableEntry table, Object data) {
+    public Object updateEntry(TableEntry table, Object data, Object key) {
         // Lock it!
         mLock.lock();
         try {
             open();
-            return table.getTable().updateEntry(localDatabase, data);
+            return table.getTable().updateEntry(localDatabase, data, key);
         } finally {
             mLock.unlock();
         }
@@ -337,14 +387,15 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper  {
      * Update an row for this table given the key passed in data
      * @param table
      * @param data
+     * @param key
      * @return # of items updated
      */
-    public int updateEntry(TableEntry table, List<String> data) {
+    public int updateEntry(TableEntry table, List<String> data, Object key) {
         // Lock it!
         mLock.lock();
         try {
             open();
-            return table.getTable().updateEntry(localDatabase, data);
+            return table.getTable().updateEntry(localDatabase, data, key);
         } finally {
             mLock.unlock();
         }
@@ -370,22 +421,6 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper  {
         }
     }
 
-    /**
-     * Return all rows for this table
-     * @param table
-     * @param data
-     * @return Generic result. Should be list of items
-     */
-    public Object getAllEntries(TableEntry table, Object data) {
-        // Lock it!
-        mLock.lock();
-        try {
-            open();
-            return table.getTable().getAllEntries(localDatabase, data);
-        } finally {
-            mLock.unlock();
-        }
-    }
 
     /**
      * Return a cursor with all entries

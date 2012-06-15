@@ -150,10 +150,11 @@ public class Database {
 	 *
 	 * @param table
 	 * @param data
+     * @param key
 	 * @return the object created
 	 */
-	public Object updateTableEntry(Table table, Object data) {
-		return table.updateEntry(this, data);
+	public Object updateTableEntry(Table table, Object data, Object key) {
+		return table.updateEntry(this, data, key);
 	}
 
 	/**
@@ -171,10 +172,9 @@ public class Database {
 	 * Generic method to get a table entry
 	 *
 	 * @param table
-	 * @param data
 	 * @return the object created
 	 */
-	public Object getAllTableEntries(Table table, Object data) {
-		return table.getAllEntries(this, data);
+	public Object getAllTableEntries(Table table) {
+		return table.getAllEntries(this);
 	}
 }

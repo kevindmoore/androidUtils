@@ -6,6 +6,7 @@ package com.mastertechsoftware.sql;
 public class Column {
 	public enum COLUMN_TYPE {
 		INTEGER,
+        LONG,
         TEXT,
         FLOAT,
         BOOLEAN,
@@ -108,11 +109,11 @@ public class Column {
 
 	}
 
-	public int getColumn_position() {
+	public int getColumnPosition() {
 		return column_position;
 	}
 
-	public void setColumn_position(int column_position) {
+	public void setColumnPosition(int column_position) {
 		this.column_position = column_position;
 	}
 }

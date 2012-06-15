@@ -92,7 +92,12 @@ public class DBBuilder {
         table.addColumn(column);
     }
 
-    protected TableEntry getTableEntry(String tableName) {
+    /**
+     * Return the Table entry for the given table name.
+     * @param tableName
+     * @return
+     */
+    public TableEntry getTableEntry(String tableName) {
         return tableItems.get(tableName);
     }
 
@@ -199,7 +204,7 @@ public class DBBuilder {
             data.add("data2-2-2");
             data.add("data2-2-3");
             data.add("data2-2-4");
-            buildHelper.updateEntry(builder.getTableEntry(testingTable), data);
+            buildHelper.updateEntry(builder.getTableEntry(testingTable), data, String.valueOf(row2Id));
             cursor = buildHelper.getEntry(builder.getTableEntry(testingTable), row2Id);
             Logger.debug(context, "After updating row " + row2Id);
             if (cursor != null) {
