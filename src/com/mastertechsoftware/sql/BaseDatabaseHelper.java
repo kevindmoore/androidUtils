@@ -153,7 +153,7 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper  {
         // case something throws.
         try {
 //            Logger.debug(this, "Closing DB");
-            if (state == STATE.OPEN && sqLiteDatabase != null) {
+            if ((state != STATE.CLOSED && state != STATE.OPENING) && sqLiteDatabase != null) {
                 super.close();
             }
             state = STATE.CLOSED;

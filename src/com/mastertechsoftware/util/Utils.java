@@ -5,6 +5,7 @@ import com.mastertechsoftware.util.log.Logger;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.Configuration;
+import android.os.Build;
 import android.text.Html;
 import android.util.Log;
 import android.view.Display;
@@ -58,6 +59,10 @@ public class Utils {
 	public static boolean isPortrait(Activity activity) {
 		return !isLandscape(activity);
 	}
+
+    public static boolean isGreaterThanHoneyComb() {
+        return (Build.VERSION.SDK_INT > Build.VERSION_CODES.HONEYCOMB);
+    }
 
     /**
      * This method will remove any bad characters in a url.
