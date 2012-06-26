@@ -749,7 +749,29 @@ public abstract class FlipperActivity extends Activity {
 		InputMethodManager inputMethodService = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 		if (inputMethodService != null && inputMethodService.isActive()) {
 			inputMethodService.hideSoftInputFromWindow(
-				getWindow().getDecorView().getWindowToken(), 0);
+				getWindow().getDecorView().getWindowToken(), InputMethodManager.HIDE_IMPLICIT_ONLY);
+		}
+	}
+
+	public static void hideKeyboard(Activity activity) {
+		InputMethodManager inputMethodService = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+		if (inputMethodService != null && inputMethodService.isActive()) {
+			inputMethodService.hideSoftInputFromWindow(
+                    activity.getWindow().getDecorView().getWindowToken(), InputMethodManager.HIDE_IMPLICIT_ONLY);
+		}
+	}
+
+	public static void hideKeyboard(Activity activity, View view) {
+		InputMethodManager inputMethodService = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+		if (inputMethodService != null && inputMethodService.isActive()) {
+			inputMethodService.hideSoftInputFromWindow(
+                    view.getWindowToken(), 0);
+		}
+	}
+	public static void showKeyboard(Activity activity, View view) {
+		InputMethodManager inputMethodService = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+		if (inputMethodService != null && inputMethodService.isActive()) {
+			inputMethodService.showSoftInput(view, 0);
 		}
 	}
 }

@@ -130,6 +130,7 @@ public class CheckboxText extends RelativeLayout implements Checkable {
 		addView(checkBox, params);
 	}
 
+/*
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
         final int action = ev.getAction();
@@ -143,6 +144,7 @@ public class CheckboxText extends RelativeLayout implements Checkable {
         }
         return super.onInterceptTouchEvent(ev);
     }
+*/
 
     public CheckBox getCheckBox() {
 		return checkBox;

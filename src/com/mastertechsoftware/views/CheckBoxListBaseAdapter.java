@@ -141,8 +141,9 @@ public abstract class CheckBoxListBaseAdapter extends BaseAdapter implements Com
 		}
 		int size = adapterData.size();
 		if (position >= size) {
-			Logger.error("onCheckedChanged: position " + position + " > size " + size);
-			return;
+            ViewWrapper wrapper = new ViewWrapper();
+            wrapper.setPosition(position);
+            adapterData.put(position, wrapper);
 		}
 		if (debugging)
 			Logger.debug("onCheckedChanged: looking for wrapper " + buttonView);
