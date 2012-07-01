@@ -1,14 +1,8 @@
 package com.mastertechsoftware.views;
 
-import com.mastertechsoftware.AndroidUtil.R;
-import com.mastertechsoftware.layout.GridLayout;
-import com.mastertechsoftware.layout.LayoutIDGenerator;
-import com.mastertechsoftware.util.log.Logger;
-
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.Gravity;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewDebug;
 import android.view.ViewGroup;
@@ -18,6 +12,10 @@ import android.widget.Checkable;
 import android.widget.CompoundButton;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import com.mastertechsoftware.layout.GridLayout;
+import com.mastertechsoftware.layout.LayoutIDGenerator;
+import com.mastertechsoftware.util.log.Logger;
 
 /**
  * User: kevin.moore
@@ -34,25 +32,53 @@ public class CheckboxText extends RelativeLayout implements Checkable {
      */
     public CheckboxText(Context context, ViewGroup layout) {
         super(context);
-        int childCount = layout.getChildCount();
-        for (int i=0; i < childCount; i++) {
-            View view = layout.getChildAt(i);
-            if (view instanceof CheckBox) {
-                checkBox = (CheckBox)view;
-            }
-            if (view instanceof TextView) {
-                textView = (TextView)view;
-            }
+        checkBox = findCheckBox(layout);
+        textView = findTextView(layout);
+        if (checkBox == null || textView == null) {
+            Logger.error(this, "Could not find checkbox or text view");
         }
         addView(layout);
     }
 
-        /**
-       * Constructors
-       * @param context
-       * @param checkBoxOnLeft
-       */
-	public CheckboxText(Context context, boolean checkBoxOnLeft) {
+    private CheckBox findCheckBox(ViewGroup layout) {
+        int childCount = layout.getChildCount();
+        for (int i=0; i < childCount; i++) {
+            View view = layout.getChildAt(i);
+            if (view.getClass().equals(CheckBox.class)) {
+                return (CheckBox)view;
+            }
+            if (view instanceof ViewGroup) {
+                CheckBox foundCheckbox = findCheckBox((ViewGroup) view);
+                if (foundCheckbox != null) {
+                    return foundCheckbox;
+                }
+            }
+        }
+        return null;
+    }
+
+    private TextView findTextView(ViewGroup layout) {
+        int childCount = layout.getChildCount();
+        for (int i=0; i < childCount; i++) {
+            View view = layout.getChildAt(i);
+            if (view.getClass().equals(TextView.class)) {
+                return (TextView)view;
+            }
+            if (view instanceof ViewGroup) {
+                TextView foundTextView = findTextView((ViewGroup) view);
+                if (foundTextView != null) {
+                    return foundTextView;
+                }
+            }
+        }
+        return null;
+    }
+    /**
+     * Constructors
+     * @param context
+     * @param checkBoxOnLeft
+     */
+    public CheckboxText(Context context, boolean checkBoxOnLeft) {
 		super(context);
 		this.checkBoxOnLeft = checkBoxOnLeft;
 		init();

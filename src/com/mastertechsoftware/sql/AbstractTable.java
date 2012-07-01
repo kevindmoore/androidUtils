@@ -4,7 +4,6 @@ package com.mastertechsoftware.sql;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
-import android.util.Log;
 
 import com.mastertechsoftware.util.log.Logger;
 
@@ -15,8 +14,6 @@ import java.util.List;
  * Class that implements all methods so subclasses can implement only those methods needed.
  */
 public class AbstractTable<T> extends Table<T> {
-
-    public static final String TAG = "AbstractTable";
 
     public AbstractTable() {
     }
@@ -188,6 +185,47 @@ public class AbstractTable<T> extends Table<T> {
     }
 
     /**
+     * Get a single entry and return the object using a mapper based on the column search.
+     * @param database
+     * @param data
+     * @param columnName
+     * @param columnValue
+     * @param mapper
+     * @return
+     */
+    public T getEntry(Database database, T data, String columnName, String columnValue, DataMapper<T> mapper) {
+        Cursor cursor = null;
+        String[] params = { String.valueOf(columnValue) };
+        try {
+            cursor = database.getDatabase().query(getTableName(), getProjection(), columnName + "=?",
+                    params, null, null, null);
+            if (cursor == null) {
+                return null;
+            }
+            if (!cursor.moveToNext()) {
+                cursor.close();
+                return null;
+            }
+            int columnPosition = 0;
+            for (Column column : columns) {
+                if (column.column_position == 0) {
+                    column.column_position = columnPosition;
+                }
+                mapper.read(cursor, column, data);
+                columnPosition++;
+            }
+            return data;
+        } catch (SQLiteException e) {
+            Logger.error(this, e.getMessage());
+            return null;
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+    }
+
+    /**
      * Generic method to get a table entry
      *
      * @param database
@@ -296,7 +334,34 @@ public class AbstractTable<T> extends Table<T> {
             Logger.error(this, e.getMessage());
             return 0;
         }
+    }
 
+    /**
+     * Update the table with the given key using a mapper.
+     * @param database
+     * @param data
+     * @param columnName
+     * @param columnValue
+     * @param mapper
+     * @return # of items updated
+     */
+    public int updateEntry(Database database, T data, String columnName, String columnValue, DataMapper<T> mapper) {
+        try {
+            String[] whereArgs = {columnValue};
+            int columnPosition = 0;
+            ContentValues cv = new ContentValues();
+            for (Column column : columns) {
+                if (column.column_position == 0) {
+                    column.column_position = columnPosition;
+                }
+                mapper.write(cv, column, data);
+                columnPosition++;
+            }
+            return database.getDatabase().update(getTableName(), cv, columnName + "=?", whereArgs);
+        } catch (SQLiteException e) {
+            Logger.error(this, e.getMessage());
+            return 0;
+        }
     }
 
     /**
@@ -330,6 +395,52 @@ public class AbstractTable<T> extends Table<T> {
         List<T> dataList = new ArrayList<T>();
         try {
             cursor = database.getDatabase().query(getTableName(), getProjection(), null, null, null,
+                    null, null);
+            if (cursor == null) {
+                return dataList;
+            }
+            if (!cursor.moveToFirst()) {
+                cursor.close();
+                return dataList;
+            }
+            do  {
+                int columnPosition = 0;
+                T data = cls.newInstance();
+                for (Column column : columns) {
+                    if (column.column_position == 0) {
+                        column.column_position = columnPosition;
+                    }
+                    mapper.read(cursor, column, data);
+                    columnPosition++;
+                }
+                dataList.add(data);
+            } while (cursor.moveToNext());
+        } catch (SQLiteException e) {
+            Logger.error(this, e.getMessage());
+        } catch (InstantiationException e) {
+            Logger.error(this, e.getMessage());
+        } catch (IllegalAccessException e) {
+            Logger.error(this, e.getMessage());
+        }
+        return dataList;
+    }
+
+    /**
+     * Get all the entries that match the given column value.
+     * @param database
+     * @param cls
+     * @param columnName
+     * @param columnValue
+     * @param mapper
+     * @return List<T>
+     */
+    public List<T> getAllEntriesWhere(Database database, Class<T> cls, String columnName, String columnValue, DataMapper<T> mapper) {
+        Cursor cursor;
+        List<T> dataList = new ArrayList<T>();
+        String[] params = { String.valueOf(columnValue) };
+        try {
+            cursor = database.getDatabase().query(getTableName(), getProjection(), columnName + "=?",
+                    params, null,
                     null, null);
             if (cursor == null) {
                 return dataList;

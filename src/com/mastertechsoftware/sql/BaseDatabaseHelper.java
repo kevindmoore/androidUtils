@@ -206,7 +206,7 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper  {
             open();
             sqLiteDatabase.execSQL(sql);
         } catch (SQLiteException e) {
-            Logger.error(e.getMessage());
+            Logger.error(this, e.getMessage());
         } finally {
             mLock.unlock();
         }
@@ -225,7 +225,7 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper  {
             open();
             return sqLiteDatabase.rawQuery(sql, selectionArgs);
         } catch (SQLiteException e) {
-            Logger.error(e.getMessage());
+            Logger.error(this, e.getMessage());
         } finally {
             mLock.unlock();
         }

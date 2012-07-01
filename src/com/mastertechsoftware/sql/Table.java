@@ -58,6 +58,18 @@ public abstract class Table<T> {
 	}
 
 	/**
+     * Get the column at the given index.
+     * @param index
+     * @return Column
+     */
+    public Column getColumn(int index) {
+        if (index < columns.size()) {
+            return null;
+        }
+        return columns.get(index);
+    }
+
+    /**
 	 * Get table name
 	 * @return name
 	 */

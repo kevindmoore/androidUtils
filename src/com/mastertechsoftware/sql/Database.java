@@ -94,7 +94,7 @@ public class Database {
 			}
 
 		} catch (SQLiteException e) {
-			Logger.error(e.getMessage());
+			Logger.error(this, e.getMessage());
 		}
 	}
 
@@ -108,7 +108,7 @@ public class Database {
 			}
 
 		} catch (SQLiteException e) {
-			Logger.error(e.getMessage());
+			Logger.error(this, e.getMessage());
 		}
 	}
 
@@ -120,7 +120,7 @@ public class Database {
         try {
             database.execSQL(sql);
         } catch (SQLiteException e) {
-            Logger.error(e.getMessage());
+            Logger.error(this, e.getMessage());
         }
     }
 
