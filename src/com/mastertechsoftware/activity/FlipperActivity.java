@@ -172,6 +172,18 @@ public abstract class FlipperActivity extends Activity {
 		}
 	}
 
+    /**
+     * Replace the current Activities's view
+     * @param oldView
+     * @param newView
+     */
+    public void replaceView(View oldView, View newView) {
+        flipper.removeView(oldView);
+        flipper.addView(newView,
+                new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT));
+    }
+
 	/**
 	 * Start activity with given bundle
 	 * @param activityListener

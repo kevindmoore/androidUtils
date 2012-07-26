@@ -41,7 +41,17 @@ public abstract class Table<T> {
 		this.tableName = tableName;
 	}
 
-	/**
+    /**
+     * Dummy method ment to be overridden when upgrading a datasbase.
+     * The Helper class will call this on an earlier version and the table
+     * will set the columns to the previous version
+     * @param version
+     */
+    public void setupVersion(int version) {
+
+    }
+
+    /**
 	 * Get the list of columns for this table
 	 * @return list of columns
 	 */
@@ -99,6 +109,13 @@ public abstract class Table<T> {
 	 */
 	public void removeColumn(Column column) {
 		columns.remove(column);
+	}
+
+    /**
+     * Clear all columns
+     */
+	public void removeColumns() {
+		columns.clear();
 	}
 
 	/**

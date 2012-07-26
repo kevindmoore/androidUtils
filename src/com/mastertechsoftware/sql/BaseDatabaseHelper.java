@@ -179,7 +179,6 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper  {
     public void dropDatabase() {
         open();
         localDatabase.dropDatabase();
-        onCreate(sqLiteDatabase);
     }
 
     /**

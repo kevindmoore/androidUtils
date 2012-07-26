@@ -23,6 +23,19 @@ public class Database {
 		this.database = database;
 	}
 
+    /**
+     * Dummy method ment to be overridden when upgrading a datasbase.
+     * If the tables are the same, you don't have to override this
+     * The Helper class will call this on an earlier version and the db
+     * will set the tables to the previous version
+     * @param version
+     */
+    public void setupVersion(int version) {
+        for (Table table : tables) {
+            table.setupVersion(version);
+        }
+    }
+
 	/**
 	 * get a list of tables
 	 * @return List<Table>
