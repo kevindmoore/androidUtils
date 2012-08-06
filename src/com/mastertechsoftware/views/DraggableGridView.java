@@ -5,6 +5,8 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.widget.GridView;
 import android.widget.ListView;
+
+import com.mastertechsoftware.util.log.Logger;
 /**
  * Override GridView to make it draggable.
  */
@@ -41,6 +43,7 @@ public class DraggableGridView extends GridView implements DraggableInterface {
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
         if (dragableHelper.onInterceptTouchEvent(ev)) {
+            Logger.debug(this, "DraggableGridView:onInterceptTouchEvent. Helper returned true");
             return true;
         }
         return super.onInterceptTouchEvent(ev);
@@ -50,7 +53,11 @@ public class DraggableGridView extends GridView implements DraggableInterface {
 
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
+        if (!isEnabled()) {
+            return super.onTouchEvent(ev);
+        }
         if (dragableHelper.onTouchEvent(ev)) {
+            Logger.debug(this, "DraggableGridView:onTouchEvent. Helper returned true");
             return true;
         }
         return super.onTouchEvent(ev);

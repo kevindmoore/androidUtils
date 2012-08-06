@@ -39,6 +39,7 @@ public class DragableHelper {
 
     public static final int DRAGABLE_ICON_WIDTH = 86;
     private boolean dragging = false;
+    private boolean debugging = true;
 
     private enum REMOVE_MODE {
         NONE,
@@ -108,7 +109,9 @@ public class DragableHelper {
     }
 
     public boolean onInterceptTouchEvent(MotionEvent ev) {
-        Logger.debug(this, "onInterceptTouchEvent");
+        if (debugging) {
+            Logger.debug(this, "onInterceptTouchEvent");
+        }
         if (mDragableListListener != null && mGestureDetector == null) {
             if (mRemoveMode == REMOVE_MODE.FLING) {
                 mGestureDetector = new GestureDetector(context,
@@ -142,7 +145,9 @@ public class DragableHelper {
         if (mDragableListListener != null) {
             switch (ev.getAction()) {
                 case MotionEvent.ACTION_DOWN:
-                    Logger.debug(this, "onInterceptTouchEvent:ACTION_DOWN");
+                    if (debugging) {
+                        Logger.debug(this, "onInterceptTouchEvent:ACTION_DOWN");
+                    }
                     dragging = false;
                     int x = (int) ev.getX();
                     int y = (int) ev.getY();
@@ -150,7 +155,9 @@ public class DragableHelper {
                     // Make sure we're not trying to re-order an invalid item
                     // or a header view.
                     int itemnum = listView.pointToPosition(x, y);
-                    Logger.debug(this, "ACTION_DOWN: x = " + x + " y =  " + y + " itemnum = " + itemnum);
+                    if (debugging) {
+                        Logger.debug(this, "ACTION_DOWN: x = " + x + " y =  " + y + " itemnum = " + itemnum);
+                    }
                     if (itemnum == AdapterView.INVALID_POSITION ||
                             itemnum < draggableInterface.getHeaderViewsCount()) {
                         break;
@@ -173,7 +180,10 @@ public class DragableHelper {
                     // The left side of the item is the grabber for dragging the
                     // item
                     if (x < dragableIconWidth) {
-                        Logger.debug(this, "onInterceptTouchEvent:ACTION_DOWN. X less than draggable width");
+                        if (debugging) {
+                            Logger.debug(this, "onInterceptTouchEvent:ACTION_DOWN. X less than draggable width");
+                        }
+
                         Bitmap bitmap = mDragableListListener.startDragging(x, y, item);
                         if (bitmap != null) {
                             startDragging(bitmap, x, y);
@@ -186,6 +196,8 @@ public class DragableHelper {
                         mUpperBound = Math.min(y - touchSlop, mHeight / 3);
                         mLowerBound = Math.max(y + touchSlop, mHeight * 2 / 3);
                         return false;
+                    } else {
+                        dragging = false;
                     }
                     stopDragging();
                     break;
@@ -236,28 +248,42 @@ public class DragableHelper {
         if (mGestureDetector != null) {
             mGestureDetector.onTouchEvent(ev);
         }
-        Logger.debug(this, "onTouchEvent");
         if (!dragging) {
             return false;
+        }
+        if (debugging) {
+            Logger.debug(this, "onTouchEvent");
         }
         if ((mDragableListListener != null) && mDragView != null) {
             int action = ev.getAction();
             switch (action) {
                 case MotionEvent.ACTION_UP:
                 case MotionEvent.ACTION_CANCEL:
-                    Logger.debug(this, "onTouchEvent:ACTION_UP or ACTION_CANCEL");
+                    if (debugging) {
+                        Logger.debug(this, "onTouchEvent:ACTION_UP or ACTION_CANCEL");
+                    }
                     Rect r = mTempRect;
                     mDragView.getDrawingRect(r);
                     stopDragging();
+                    if (action == MotionEvent.ACTION_CANCEL) {
+                        break;
+                    }
                     if (mRemoveMode == REMOVE_MODE.SLIDE && ev.getX() > r.right * 3 / 4) {
                         mDragableListListener.remove(mSrcDragPos);
                         unExpandViews(true);
                     } else {
                         int numheaders = draggableInterface.getHeaderViewsCount();
-                        Logger.debug(this, "Final Drag Position is " + mDragPos);
+                        int x = (int) ev.getX();
+                        int y = (int) ev.getY();
+                        mDragPos = listView.pointToPosition(x, y);
+                        if (debugging) {
+                            Logger.debug(this, "Final Drag Position is " + mDragPos);
+                        }
                         mDragPos = (mDragPos >= numheaders ? mDragPos : numheaders);
                         mDragPos = (mDragPos < listView.getCount() ? mDragPos : listView.getCount() - 1);
-                        Logger.debug(this, "Final Drag Position is " + mDragPos);
+                        if (debugging) {
+                            Logger.debug(this, "Final Drag Position is " + mDragPos);
+                        }
                         mDragableListListener.drop(mSrcDragPos - numheaders,
                                 mDragPos - numheaders);
                         unExpandViews(false);
@@ -266,13 +292,17 @@ public class DragableHelper {
 
                 case MotionEvent.ACTION_DOWN:
                 case MotionEvent.ACTION_MOVE:
-                    Logger.debug(this, "onTouchEvent:ACTION_DOWN or ACTION_MOVE");
+                    if (debugging) {
+                        Logger.debug(this, "onTouchEvent:ACTION_DOWN or ACTION_MOVE");
+                    }
                     int x = (int) ev.getX();
                     int y = (int) ev.getY();
                     dragView(x, y);
 //                    int itemnum = getItemForPosition(y);
                     int itemnum = listView.pointToPosition(x, y);
-                    Logger.debug(this, "ACTION_MOVE: x= " + x + " y= " + y + " itemnum= " + itemnum);
+                    if (debugging) {
+                        Logger.debug(this, "ACTION_MOVE: x= " + x + " y= " + y + " itemnum= " + itemnum);
+                    }
                     if (itemnum >= 0) {
                         if (action == MotionEvent.ACTION_DOWN || itemnum != mDragPos) {
                             int numheaders = draggableInterface.getHeaderViewsCount();
@@ -283,10 +313,15 @@ public class DragableHelper {
                                         itemnum - numheaders);
                             }
                             mDragPos = itemnum;
-                            Logger.debug(this, "Setting Drag Position to " + mDragPos);
+                            if (debugging) {
+                                Logger.debug(this, "Setting Drag Position to " + mDragPos);
+                            }
                         }
                         int speed = 0;
                         adjustScrollBounds(y);
+                        if (debugging) {
+                            Logger.debug(this, "Y: " + y + " mUpperBound " + mUpperBound + " mLowerBound " + mLowerBound);
+                        }
                         if (y > mLowerBound) {
                             // scroll the list up a bit
                             if (listView.getLastVisiblePosition() < listView.getCount() - 1) {
@@ -306,6 +341,9 @@ public class DragableHelper {
                                 // up our animation
                                 speed = 0;
                             }
+                        }
+                        if (debugging) {
+                            Logger.debug(this, "speed: " + speed);
                         }
 
                         if (speed != 0) {

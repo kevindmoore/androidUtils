@@ -10,6 +10,8 @@ import android.database.sqlite.SQLiteOpenHelper;
 import com.mastertechsoftware.util.log.Logger;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -35,6 +37,9 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper  {
 
     // Lock used to serialize access to this API.
     protected final ReentrantLock mLock = new ReentrantLock();
+    protected static int openCount = 0;
+    // The ExecutorService we use to run requests.
+    protected final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
     /**
      * Create a helper object to create, open, and/or manage a database. This method always returns
@@ -129,14 +134,6 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper  {
     }
 
     /**
-     * Create our database objects with the current SQLite db.
-     * You will override this to create the database object with your own.
-     */
-    protected void createLocalDB() {
-        localDatabase = new Database(sqLiteDatabase);
-    }
-
-    /**
      * Close the database. This call is very important. Need to call after finished using class.
      * Don't keep open.
      */
@@ -162,6 +159,33 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper  {
         } finally {
             mLock.unlock();
         }
+    }
+
+    /**
+     * Start a transaction by incrementing the open count and opening the db if necessary
+     * Make multiple db class by calling this method yourself before other methods
+     */
+    public void startTransaction() {
+        openCount++;
+        open();
+    }
+
+    /**
+     * End a set of transactions be decreasing the open count and closing the db if necessary
+     */
+    public void endTransaction() {
+        openCount--;
+        openCount = Math.max(0, openCount); // Make sure we don't go below 0
+        if (openCount == 0) {
+            close();
+        }
+    }
+    /**
+     * Create our database objects with the current SQLite db.
+     * You will override this to create the database object with your own.
+     */
+    protected void createLocalDB() {
+        localDatabase = new Database(sqLiteDatabase);
     }
 
     /**
@@ -241,9 +265,10 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper  {
         // Lock it!
         mLock.lock();
         try {
-            open();
+            startTransaction();
             return table.getTable().insertEntry(localDatabase, data);
         } finally {
+            endTransaction();
             mLock.unlock();
         }
     }
@@ -258,9 +283,10 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper  {
         // Lock it!
         mLock.lock();
         try {
-            open();
+            startTransaction();
             return table.getTable().insertEntry(localDatabase, data);
         } finally {
+            endTransaction();
             mLock.unlock();
         }
     }
@@ -274,9 +300,10 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper  {
         // Lock it!
         mLock.lock();
         try {
-            open();
+            startTransaction();
             table.getTable().deleteEntry(localDatabase, data);
         } finally {
+            endTransaction();
             mLock.unlock();
         }
     }
@@ -291,9 +318,10 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper  {
         // Lock it!
         mLock.lock();
         try {
-            open();
+            startTransaction();
             table.getTable().deleteEntryWhere(localDatabase, whereClause, whereArgs);
         } finally {
+            endTransaction();
             mLock.unlock();
         }
     }
@@ -306,9 +334,10 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper  {
         // Lock it!
         mLock.lock();
         try {
-            open();
+            startTransaction();
             table.getTable().deleteAllEntries(localDatabase);
         } finally {
+            endTransaction();
             mLock.unlock();
         }
     }
@@ -323,9 +352,10 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper  {
         // Lock it!
         mLock.lock();
         try {
-            open();
+            startTransaction();
             return table.getTable().getEntry(localDatabase, data);
         } finally {
+            endTransaction();
             mLock.unlock();
         }
     }
@@ -340,9 +370,10 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper  {
         // Lock it!
         mLock.lock();
         try {
-            open();
+            startTransaction();
             return table.getTable().getEntry(localDatabase, id);
         } finally {
+            endTransaction();
             mLock.unlock();
         }
     }
@@ -358,9 +389,10 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper  {
         // Lock it!
         mLock.lock();
         try {
-            open();
+            startTransaction();
             return table.getTable().getEntry(localDatabase, columnName, columnValue);
         } finally {
+            endTransaction();
             mLock.unlock();
         }
     }
@@ -375,9 +407,10 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper  {
         // Lock it!
         mLock.lock();
         try {
-            open();
+            startTransaction();
             return table.getTable().updateEntry(localDatabase, data, key);
         } finally {
+            endTransaction();
             mLock.unlock();
         }
     }
@@ -393,9 +426,10 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper  {
         // Lock it!
         mLock.lock();
         try {
-            open();
+            startTransaction();
             return table.getTable().updateEntry(localDatabase, data, key);
         } finally {
+            endTransaction();
             mLock.unlock();
         }
     }
@@ -413,9 +447,10 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper  {
         // Lock it!
         mLock.lock();
         try {
-            open();
+            startTransaction();
             return table.getTable().updateEntryWhere(localDatabase, cv, whereClause, whereArgs);
         } finally {
+            endTransaction();
             mLock.unlock();
         }
     }
@@ -430,10 +465,46 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper  {
         // Lock it!
         mLock.lock();
         try {
-            open();
+            startTransaction();
             return table.getTable().getAllEntries(localDatabase);
         } finally {
+            endTransaction();
             mLock.unlock();
         }
     }
+
+    /**
+     * Execute the runnable in the executor. Will run on another thread
+     *
+     * @param aRunnable
+     * @return true if executed.
+     */
+    protected boolean executeTask(Runnable aRunnable) {
+        // Lock it!
+        mLock.lock();
+
+        // Wrap the whole thing so we can make sure to unlock in
+        // case something throws.
+        try {
+
+            // If we're shutdown or terminated we can't accept any new requests.
+            if (mExecutor.isShutdown() || mExecutor.isTerminated()) {
+                return false;
+            }
+
+            // Push the request onto the queue.
+            // Check to see if our app details is valid
+            if (aRunnable != null) {
+                mExecutor.execute(aRunnable);
+            }
+        } catch (Exception RejectedExecutionException) {
+            return false;
+        } finally {
+            mLock.unlock();
+        }
+
+        // Return the request token so the request can be canceled.
+        return true;
+    }
+
 }

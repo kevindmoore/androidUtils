@@ -60,6 +60,7 @@ public class DragableListView extends ListView implements DraggableInterface {
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
         if (dragableHelper.onInterceptTouchEvent(ev)) {
+            Logger.debug(this, "DragableListView:onInterceptTouchEvent. Helper returned true");
             return true;
         }
         return super.onInterceptTouchEvent(ev);
@@ -69,7 +70,11 @@ public class DragableListView extends ListView implements DraggableInterface {
 
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
+        if (!isEnabled()) {
+            return super.onTouchEvent(ev);
+        }
         if (dragableHelper.onTouchEvent(ev)) {
+            Logger.debug(this, "DragableListView:onTouchEvent. Helper returned true");
             return true;
         }
         return super.onTouchEvent(ev);
