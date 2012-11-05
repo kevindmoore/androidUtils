@@ -4,12 +4,15 @@ import android.util.Log;
 
 import com.mastertechsoftware.util.StackTraceOutput;
 
+import java.util.HashMap;
+
 /**
  * Class used to funnel all error messages so that we can log to sd card.
  */
 public class Logger {
 
     private static String applicationTag = "MasterTech";
+    private static HashMap<String, Boolean> classesDebugStates = new HashMap<String, Boolean>();
 
     /**
      * Required. Set the tag that will always show. Usually your application name.
@@ -71,9 +74,10 @@ public class Logger {
     public static void error(Object caller, String message) {
         error(caller, message, null);
     }
-        /**
-        * Log an error message
-        */
+
+    /**
+     * Log an error message
+     */
     public static void error(Object caller, String message, Throwable exception) {
         if (message == null || message.length() == 0) {
             message = "";
@@ -96,15 +100,32 @@ public class Logger {
         return builder.toString();
     }
 
+    public static void setDebug(String classToDebug, Boolean enabled) {
+        classesDebugStates.put(classToDebug, enabled);
+    }
+
     /**
      * Log a debug message.
      */
     public static void debug(Object caller, String message) {
-        if (message == null || message.length() == 0) {
-            message = "";
-        }
-        Log.d(applicationTag, caller.getClass().getSimpleName() + ": " + message);
+        String simpleName = caller.getClass().getSimpleName();
+		debugLocal(simpleName, message);
     }
+
+	public static void debugLocal(String simpleName, String message) {
+		Boolean debugEnabled = classesDebugStates.get(simpleName);
+		if (debugEnabled != null && !debugEnabled) {
+			return;
+		}
+		if (message == null || message.length() == 0) {
+			message = "";
+		}
+		if (simpleName != null && simpleName.length() > 1) {
+			message = simpleName + ": " + message;
+		}
+
+		Log.d(applicationTag, message);
+	}
 
     public static void debug(String message) {
         debug(applicationTag, message);

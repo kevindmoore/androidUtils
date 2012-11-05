@@ -25,6 +25,7 @@
         <option name="PROGUARD_CFG_PATH" value="/proguard.cfg" />
         <resOverlayFolders />
         <includeSystemProguardFile>false</includeSystemProguardFile>
+        <includeAssetsFromLibraries>true</includeAssetsFromLibraries>
         <additionalNativeLibs />
       </configuration>
     </facet>
@@ -38,7 +39,7 @@
       <excludeFolder url="file://$MODULE_DIR$/backup" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="jdk" jdkName="Android 4.0.3 Platform" jdkType="Android SDK" />
+    <orderEntry type="jdk" jdkName="Android 4.1 Platform" jdkType="Android SDK" />
   </component>
 </module>
 

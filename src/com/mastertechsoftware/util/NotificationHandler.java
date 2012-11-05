@@ -98,10 +98,11 @@ public class NotificationHandler {
 
 	/**
 	 * Start in the foreground
+	 * Now that we're using the newer SDK, we can always call this
 	 * @param service
 	 * @param id
 	 * @param notification
-	 * @return
+	 * @return true - used this
 	 */
 	public static boolean startForeground(Service service, int id, Notification notification) {
         service.startForeground(id, notification);
@@ -110,8 +111,9 @@ public class NotificationHandler {
 
 	/**
 	 * Stop foreground processing
+	 * Now that we're using the newer SDK, we can always call this
 	 * @param service
-	 * @return
+	 * @return true - used this
 	 */
 	public static boolean stopForeground(Service service) {
         service.stopForeground(true);

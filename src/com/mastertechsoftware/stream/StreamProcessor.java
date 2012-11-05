@@ -4,6 +4,7 @@ import com.mastertechsoftware.util.log.Logger;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.ProtocolVersion;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CookieStore;
@@ -11,6 +12,7 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.AbstractHttpMessage;
@@ -58,6 +60,7 @@ public class StreamProcessor<Result> {
 	protected int readTimeout = READ_TIMEOUT;
     protected Map<String, String> requestHeaders = new HashMap<String, String>();
     protected CookieStore cookieStore;
+    protected boolean useParams = true;
 
 	/**
 	 * Constructor.
@@ -89,6 +92,10 @@ public class StreamProcessor<Result> {
 		this.url = url;
 		urlString = url.toString();
 	}
+
+    public void setUseParams(boolean useParams) {
+        this.useParams = useParams;
+    }
 
 	/**
      * Set a map of request headers. Will be <name,value> pairs
@@ -187,9 +194,13 @@ public class StreamProcessor<Result> {
 	public Result processInputStream(String url, HttpEntity data) throws StreamException {
 		StreamException exception = null;
 
+        if (useParams) {
         HttpParams params = createHttpParams();
 
 		httpClient = new DefaultHttpClient(params);
+        } else {
+            httpClient = new DefaultHttpClient();
+        }
         setClientCookieStore();
 		HttpResponse response = null;
 		try {
@@ -313,7 +324,8 @@ public class StreamProcessor<Result> {
         // Default connection and socket timeout of 20 seconds. Tweak to taste.
         HttpConnectionParams.setConnectionTimeout(params, CONNECTION_TIMEOUT);
         HttpConnectionParams.setSoTimeout(params, READ_TIMEOUT);
-        HttpConnectionParams.setSocketBufferSize(params, bufferLength);
+        // This seems to cause a problem with puts
+//        HttpConnectionParams.setSocketBufferSize(params, bufferLength);
 
         // Follow redirects as this usually can happen several times
         HttpClientParams.setRedirecting(params, true);
@@ -486,6 +498,18 @@ public class StreamProcessor<Result> {
         }
     }
 
+    public void debugMsg(AbstractHttpMessage message) {
+        ProtocolVersion protocolVersion = message.getProtocolVersion();
+        if (message instanceof HttpRequestBase) {
+            Logger.debug("Message: " + ((HttpRequestBase)message).getURI());
+        }
+        Logger.debug("Protocol: " + protocolVersion.getProtocol() + " ");
+        for (String name : requestHeaders.keySet()) {
+            Logger.debug("Header: Name: " + name + " value: " + requestHeaders.get(name));
+        }
+        HttpParams param = message.getParams();
+    }
+
     public long getContentLength() {
         if (connection != null) {
             return connection.getContentLength();
@@ -557,11 +581,23 @@ public class StreamProcessor<Result> {
         if (response == null) {
             return null;
         }
+		StringBuilder builder = new StringBuilder();
+		HttpEntity entity = response.getEntity();
+		if (entity != null) {
+			InputStream content = null;
+			try {
+				content = entity.getContent();
+				builder.append(parseResponse(content));
+				return builder.toString();
+			} catch (IOException e) {
+				Logger.error(this, "Problems parsing Response entity");
+			}
+		}
         StatusLine statusLine = response.getStatusLine();
         if (statusLine != null) {
-            return statusLine.getReasonPhrase();
+			builder.append(statusLine.getReasonPhrase());
         }
-        return null;
+        return builder.toString();
     }
 
     /**

@@ -87,6 +87,7 @@ public abstract class CheckBoxListBaseAdapter extends BaseAdapter implements Com
             checkboxText = createCheckboxView(parent);
             if (clickListener != null) {
                 checkboxText.setTextOnClickListener(clickListener);
+                checkboxText.setOnClickListener(clickListener);
             }
             checkboxText.setOnCheckedListener(this);
             convertView = checkboxText;

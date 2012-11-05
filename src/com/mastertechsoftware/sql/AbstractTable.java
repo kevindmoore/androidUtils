@@ -329,6 +329,7 @@ public class AbstractTable<T> extends Table<T> {
                 mapper.write(cv, column, data);
                 columnPosition++;
             }
+			Logger.debug(this, "updateEntry for table " + getTableName() + " id: " + getIdField() + " with where args: " + whereArgs[0]);
             return database.getDatabase().update(getTableName(), cv, getIdField() + "=?", whereArgs);
         } catch (SQLiteException e) {
             Logger.error(this, e.getMessage());
