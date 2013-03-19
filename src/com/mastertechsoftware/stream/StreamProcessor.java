@@ -42,6 +42,7 @@ import java.util.Map;
  * Class for handling Http streams
  */
 public class StreamProcessor<Result> {
+
 	public final static int TEN_SECONDS = 10 * 1000;
 	protected static int defaultBufferSize = 8192;
 	protected static int DEFAULT_BUFFER_LENGTH = 64000;
@@ -58,67 +59,80 @@ public class StreamProcessor<Result> {
 	protected long contentLength = 0;
 	protected int connectionTimeout = CONNECTION_TIMEOUT;
 	protected int readTimeout = READ_TIMEOUT;
-    protected Map<String, String> requestHeaders = new HashMap<String, String>();
-    protected CookieStore cookieStore;
-    protected boolean useParams = true;
+	protected Map<String, String> requestHeaders = new HashMap<String, String>();
+	protected Map<String, String> requestParams = new HashMap<String, String>();
+	protected CookieStore cookieStore;
+	protected boolean useParams = true;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param url
 	 * @param streamHandler - stream handle that expects Result to be returned
 	 */
 	public StreamProcessor(String url, StreamHandler<Result> streamHandler) {
 		this.urlString = url;
-        try {
-            this.url = new URL(url);
-        } catch (MalformedURLException e) {
-            Logger.error(this, "Problems with url " + url, e);
-        }
+		try {
+			this.url = new URL(url);
+		} catch (MalformedURLException e) {
+			Logger.error(this, "Problems with url " + url, e);
+		}
 		this.streamHandler = streamHandler;
 	}
 
+	/**
+	 * Constructor.
+	 */
 	public StreamProcessor(URL url, StreamHandler<Result> streamHandler) {
 		this.url = url;
 		urlString = url.toString();
 		this.streamHandler = streamHandler;
 	}
 
+	/**
+	 * Set the current URL
+	 */
 	public void setUrlString(String urlString) {
 		this.urlString = urlString;
 	}
 
+	/**
+	 * Set the current URL
+	 */
 	public void setUrl(URL url) {
 		this.url = url;
 		urlString = url.toString();
 	}
 
-    public void setUseParams(boolean useParams) {
-        this.useParams = useParams;
-    }
+	/**
+	 * Set whether we should use our own parameters for http call
+	 */
+	public void setUseParams(boolean useParams) {
+		this.useParams = useParams;
+	}
 
 	/**
-     * Set a map of request headers. Will be <name,value> pairs
-     * 
-     * @param headers
-     */
-    public void setRequestHeaders(Map<String, String> headers) {
-        this.requestHeaders = headers;
-    }
+	 * Set a map of request headers. Will be <name,value> pairs
+	 */
+	public void setRequestHeaders(Map<String, String> headers) {
+		this.requestHeaders = headers;
+	}
 
-    /**
-     * Add a new request header
-     * 
-     * @param name
-     * @param value
-     */
-    public void addRequestHeader(String name, String value) {
-        this.requestHeaders.put(name, value);
-    }
+	/**
+	 * Add a new request header
+	 */
+	public void addRequestHeader(String name, String value) {
+		this.requestHeaders.put(name, value);
+	}
 
-    /**
+	/**
+	 * Add a request Parameter
+	 */
+	public void addRequestParam(String name, String value) {
+		this.requestParams.put(name, value);
+	}
+
+	/**
 	 * If we get a connection timeout error, try increasing the timeout
-	 * @param connectionTimeout
 	 */
 	public void setConnectionTimeout(int connectionTimeout) {
 		this.connectionTimeout = connectionTimeout;
@@ -126,7 +140,6 @@ public class StreamProcessor<Result> {
 
 	/**
 	 * If we get a read timeout error, try increasing the timeout
-	 * @param readTimeout
 	 */
 	public void setReadTimeout(int readTimeout) {
 		this.readTimeout = readTimeout;
@@ -134,8 +147,8 @@ public class StreamProcessor<Result> {
 
 	/**
 	 * Get the connection timeout value
-     * 
-     * @return connection timeout
+	 *
+	 * @return connection timeout
 	 */
 	public int getConnectionTimeout() {
 		return connectionTimeout;
@@ -143,41 +156,35 @@ public class StreamProcessor<Result> {
 
 	/**
 	 * Get the read timeout value
-     * 
-     * @return read timeout
+	 *
+	 * @return read timeout
 	 */
 	public int getReadTimeout() {
 		return readTimeout;
 	}
 
 	/**
-     * Default process method. Take the given URL and start processing
+	 * Default process method. Take the given URL and start processing
 	 *
 	 * @return Result
-	 * @throws StreamException
 	 */
-    public Result processInputStream() throws StreamException {
-        return processInputStream(url.toString(), null);
-			}
+	public Result processInputStream() throws StreamException {
+		return processInputStream(url.toString(), null);
+	}
 
-    /**
-     * Process the input stream with the given HttpEntity
-     * 
-     * @param data
-     * @return Result
-     * @throws StreamException
-     */
-    public Result processInputStream(HttpEntity data) throws StreamException {
-        return processInputStream(url.toString(), data);
+	/**
+	 * Process the input stream with the given HttpEntity
+	 *
+	 * @return Result
+	 */
+	public Result processInputStream(HttpEntity data) throws StreamException {
+		return processInputStream(url.toString(), data);
 	}
 
 	/**
 	 * Use HttpClient to get a InputStream and process it
 	 *
-	 * @param url
-	 * @param data
 	 * @return Result
-	 * @throws StreamException
 	 */
 	public Result processInputStream(URL url, HttpEntity data) throws StreamException {
 		return processInputStream(url.toString(), data);
@@ -186,56 +193,56 @@ public class StreamProcessor<Result> {
 	/**
 	 * Use HttpClient to get a InputStream and process it
 	 *
-	 * @param url
-	 * @param data
 	 * @return Result
-	 * @throws StreamException
 	 */
 	public Result processInputStream(String url, HttpEntity data) throws StreamException {
 		StreamException exception = null;
 
-        if (useParams) {
-        HttpParams params = createHttpParams();
+		if (useParams) {
+			//            HttpParams params = createHttpParams();
 
-		httpClient = new DefaultHttpClient(params);
-        } else {
-            httpClient = new DefaultHttpClient();
-        }
-        setClientCookieStore();
+			httpClient = new DefaultHttpClient();
+			HttpParams httpParams = httpClient.getParams();
+			copyHttpParams(httpParams);
+			httpClient = new DefaultHttpClient(httpParams);
+		} else {
+			httpClient = new DefaultHttpClient();
+		}
+		setClientCookieStore();
 		HttpResponse response = null;
 		try {
 			switch (streamHandler.getType()) {
-                case GET_TYPE:
-                    HttpGet request = new HttpGet(url);
-                    addRequestHeaders(request);
-                    response = httpClient.execute(request);
+				case GET_TYPE:
+					HttpGet request = new HttpGet(url);
+					addRequestHeaders(request);
+					response = httpClient.execute(request);
 					break;
 
-                case PUT_TYPE:
+				case PUT_TYPE:
 					HttpPut httpPut = new HttpPut(url);
 					httpPut.setEntity(data);
-                    addRequestHeaders(httpPut);
+					addRequestHeaders(httpPut);
 					response = httpClient.execute(httpPut);
 					break;
 
-                case POST_TYPE:
+				case POST_TYPE:
 					HttpPost httpPost = new HttpPost(url);
 					httpPost.setEntity(data);
-                    addRequestHeaders(httpPost);
+					addRequestHeaders(httpPost);
 					response = httpClient.execute(httpPost);
 					break;
 
-                case DELETE_TYPE:
-                    HttpDelete httpDelete = new HttpDelete(url);
-                    addRequestHeaders(httpDelete);
-                    response = httpClient.execute(httpDelete);
+				case DELETE_TYPE:
+					HttpDelete httpDelete = new HttpDelete(url);
+					addRequestHeaders(httpDelete);
+					response = httpClient.execute(httpDelete);
 					break;
 
 				default:
 					throw new StreamException("StreamProcessor.processInputStream. Invalid type");
 			}
 			if (response != null) {
-                if (isValidResponseCode(response.getStatusLine().getStatusCode())) {
+				if (isValidResponseCode(response.getStatusLine().getStatusCode())) {
 					HttpEntity entity = response.getEntity();
 					if (entity != null) {
 						contentLength = entity.getContentLength();
@@ -245,61 +252,46 @@ public class StreamProcessor<Result> {
 						}
 					}
 				} else {
-                    Logger.error(this, "StreamProcessor.processInputStream. Response: "
-                            + response.getStatusLine().getStatusCode());
-                    exception = new StreamException(
-                            "StreamProcessor.processInputStream. Response: "
-                                    + response.getStatusLine().getStatusCode());
-                    exception.setResponseCode(getResponseCode(response));
-                    exception.setResponseMessage(getResponseMessage(response));
-                    exception.setExceptionType(StreamException.STREAM_EXCEPTION_TYPE);
+					Logger.error(this,
+						"StreamProcessor.processInputStream. Response: " + response.getStatusLine().getStatusCode() + " for url " + url);
+					exception = new StreamException(
+						"StreamProcessor.processInputStream. Response: " + response.getStatusLine().getStatusCode() + " for url " + url);
+					exception.setResponseCode(getResponseCode(response));
+					exception.setResponseMessage(getResponseMessage(response));
+					exception.setExceptionType(StreamException.STREAM_EXCEPTION_TYPE);
 					throw exception;
 				}
 			}
 		} catch (MalformedURLException e) {
-			exception = new StreamException(e);
-			exception.setExceptionType(StreamException.MALFORMED_URL_TYPE);
-            exception.setResponseCode(getResponseCode(response));
-            exception.setResponseMessage(getResponseMessage(response));
+			Logger.error(this, "StreamProcessor.processInputStream. Problems Processing " + url);
+			exception = createMalformedURLException(response, e);
 			throw exception;
 		} catch (FileNotFoundException e) {
-			exception = new StreamException(e);
-			exception.setExceptionType(StreamException.FILE_NOT_FOUND_TYPE);
-            exception.setResponseCode(getResponseCode(response));
-            exception.setResponseMessage(getResponseMessage(response));
+			Logger.error(this, "StreamProcessor.processInputStream. Problems Processing " + url);
+			exception = createFileNotFoundException(response, e);
 			throw exception;
 			// Both of these next errors could be a disconnect from the internet
 		} catch (SocketException e) {
-			exception = new StreamException(e);
-			exception.setExceptionType(StreamException.SOCKET_EXCEPTION_TYPE);
-            exception.setResponseCode(getResponseCode(response));
-            exception.setResponseMessage(getResponseMessage(response));
+			Logger.error(this, "StreamProcessor.processInputStream. Problems Processing " + url);
+			exception = createStreamException(response, e);
 			throw exception;
 		} catch (SocketTimeoutException e) {
-			exception = new StreamException(e);
-			exception.setExceptionType(StreamException.SOCKET_TIMEOUT_EXCEPTION_TYPE);
-            exception.setResponseCode(getResponseCode(response));
-            exception.setResponseMessage(getResponseMessage(response));
+			Logger.error(this, "StreamProcessor.processInputStream. Problems Processing " + url);
+			exception = createSocketTimeoutException(response, e);
 			throw exception;
 		} catch (UnknownHostException e) {
-			exception = new StreamException(e);
-			exception.setExceptionType(StreamException.UNKNOWN_HOST_EXCEPTION_TYPE);
-            exception.setResponseCode(getResponseCode(response));
-            exception.setResponseMessage(getResponseMessage(response));
+			Logger.error(this, "StreamProcessor.processInputStream. Problems Processing " + url);
+			exception = createUnknownHostException(response, e);
 			throw exception;
 		} catch (IOException e) {
-			exception = new StreamException(e);
-			exception.setExceptionType(StreamException.IO_EXCEPTION_TYPE);
-            exception.setResponseCode(getResponseCode(response));
-            exception.setResponseMessage(getResponseMessage(response));
+			Logger.error(this, "StreamProcessor.processInputStream. Problems Processing " + url);
+			exception = createIOException(response, e);
 			throw exception;
-        } catch (StreamException e) {
-            throw e;
+		} catch (StreamException e) {
+			throw e;
 		} catch (Exception e) {
-			exception = new StreamException(e);
-			exception.setExceptionType(StreamException.EXCEPTION_TYPE);
-            exception.setResponseCode(getResponseCode(response));
-            exception.setResponseMessage(getResponseMessage(response));
+			Logger.error(this, "StreamProcessor.processInputStream. Problems Processing " + url);
+			exception = createStreamException(response, e);
 			throw exception;
 		} finally {
 			if (httpClient != null) {
@@ -309,64 +301,198 @@ public class StreamProcessor<Result> {
 		return null;
 	}
 
-    /**
-     * Create common HTTP Params with our settings
-     * 
-     * @return HttpParams
-     */
-    private HttpParams createHttpParams() {
-        HttpParams params = new BasicHttpParams();
+	public StreamException createStreamException(HttpResponse response, Exception e) {
+		StreamException exception;
+		exception = new StreamException(e);
+		exception.setExceptionType(StreamException.EXCEPTION_TYPE);
+		exception.setResponseCode(getResponseCode(response));
+		exception.setResponseMessage(getResponseMessage(response));
+		if (exception.getResponseMessage() == null) {
+			exception.setResponseMessage(e.getMessage());
+		}
+		return exception;
+	}
 
-        // Turn off stale checking. Our connections break all the time anyway,
-        // and it's not worth it to pay the penalty of checking every time.
-        HttpConnectionParams.setStaleCheckingEnabled(params, false);
+	public StreamException createStreamException(HttpResponse response, OutOfMemoryError e) {
+		StreamException exception;
+		exception = new StreamException(e);
+		exception.setExceptionType(StreamException.EXCEPTION_TYPE);
+		exception.setResponseCode(getResponseCode(response));
+		exception.setResponseMessage(getResponseMessage(response));
+		if (exception.getResponseMessage() == null) {
+			exception.setResponseMessage(e.getMessage());
+		}
+		return exception;
+	}
 
-        // Default connection and socket timeout of 20 seconds. Tweak to taste.
-        HttpConnectionParams.setConnectionTimeout(params, CONNECTION_TIMEOUT);
-        HttpConnectionParams.setSoTimeout(params, READ_TIMEOUT);
-        // This seems to cause a problem with puts
-//        HttpConnectionParams.setSocketBufferSize(params, bufferLength);
+	public StreamException createMalformedURLException(HttpResponse response, MalformedURLException e) {
+		StreamException exception;
+		exception = new StreamException(e);
+		exception.setExceptionType(StreamException.MALFORMED_URL_TYPE);
+		exception.setResponseCode(getResponseCode(response));
+		exception.setResponseMessage(getResponseMessage(response));
+		if (exception.getResponseMessage() == null) {
+			exception.setResponseMessage(e.getMessage());
+		}
+		return exception;
+	}
 
-        // Follow redirects as this usually can happen several times
-        HttpClientParams.setRedirecting(params, true);
-        return params;
-    }
+	public StreamException createFileNotFoundException(HttpResponse response, FileNotFoundException e) {
+		StreamException exception;
+		exception = new StreamException(e);
+		exception.setExceptionType(StreamException.FILE_NOT_FOUND_TYPE);
+		exception.setResponseCode(getResponseCode(response));
+		exception.setResponseMessage(getResponseMessage(response));
+		if (exception.getResponseMessage() == null) {
+			exception.setResponseMessage(e.getMessage());
+		}
+		return exception;
+	}
 
-    /**
-     * Return the current Cookie store. Note that this will not be available
-     * until the request has been completed.
-     * 
-     * @return CookieStore
-     */
-    public CookieStore getCookieStore() {
-        if (httpClient == null) {
-            return null;
-        }
-        return httpClient.getCookieStore();
-    }
+	public StreamException createStreamException(HttpResponse response, SocketException e) {
+		StreamException exception;
+		exception = new StreamException(e);
+		exception.setExceptionType(StreamException.SOCKET_EXCEPTION_TYPE);
+		exception.setResponseCode(getResponseCode(response));
+		exception.setResponseMessage(getResponseMessage(response));
+		if (exception.getResponseMessage() == null) {
+			exception.setResponseMessage(e.getMessage());
+		}
+		return exception;
+	}
 
-    /**
-     * Set the cookie store to be set before the input stream is processed
-     * 
-     * @param cookieStore
-     */
-    public void setCookieStore(CookieStore cookieStore) {
-        this.cookieStore = cookieStore;
-    }
+	public StreamException createSocketTimeoutException(HttpResponse response, SocketTimeoutException e) {
+		StreamException exception;
+		exception = new StreamException(e);
+		exception.setExceptionType(StreamException.SOCKET_TIMEOUT_EXCEPTION_TYPE);
+		exception.setResponseCode(getResponseCode(response));
+		exception.setResponseMessage(getResponseMessage(response));
+		if (exception.getResponseMessage() == null) {
+			exception.setResponseMessage(e.getMessage());
+		}
+		return exception;
+	}
 
-    /**
-     * If the user has set a cookie store, set the client's store.
-     */
-    protected void setClientCookieStore() {
-        if (cookieStore != null && httpClient != null) {
-            httpClient.setCookieStore(cookieStore);
+	public StreamException createUnknownHostException(HttpResponse response, UnknownHostException e) {
+		StreamException exception;
+		exception = new StreamException(e);
+		exception.setExceptionType(StreamException.UNKNOWN_HOST_EXCEPTION_TYPE);
+		exception.setResponseCode(getResponseCode(response));
+		exception.setResponseMessage(getResponseMessage(response));
+		if (exception.getResponseMessage() == null) {
+			exception.setResponseMessage(e.getMessage());
+		}
+		return exception;
+	}
+
+	public StreamException createIOException(HttpResponse response, IOException e) {
+		StreamException exception;
+		exception = new StreamException(e);
+		exception.setExceptionType(StreamException.IO_EXCEPTION_TYPE);
+		exception.setResponseCode(getResponseCode(response));
+		exception.setResponseMessage(getResponseMessage(response));
+		if (exception.getResponseMessage() == null) {
+			exception.setResponseMessage(e.getMessage());
+		}
+		return exception;
+	}
+
+	public StreamException createClientProtocolException(HttpResponse response, ClientProtocolException e) {
+		StreamException exception;
+		exception = new StreamException(e.getMessage(), e);
+		exception.setExceptionType(StreamException.CLIENT_PROTOCOL_EXCEPTION_TYPE);
+		exception.setResponseCode(getResponseCode(response));
+		exception.setResponseMessage(getResponseMessage(response));
+		return exception;
+	}
+
+	/**
+	 * Create common HTTP Params with our settings
+	 *
+	 * @return HttpParams
+	 */
+	private HttpParams createHttpParams() {
+		HttpParams params = new BasicHttpParams();
+
+		// Turn off stale checking. Our connections break all the time anyway,
+		// and it's not worth it to pay the penalty of checking every time.
+		HttpConnectionParams.setStaleCheckingEnabled(params, false);
+
+		// Default connection and socket timeout of 20 seconds. Tweak to taste.
+		HttpConnectionParams.setConnectionTimeout(params, CONNECTION_TIMEOUT);
+		HttpConnectionParams.setSoTimeout(params, READ_TIMEOUT);
+		// This seems to cause a problem with puts
+		//        HttpConnectionParams.setSocketBufferSize(params, bufferLength);
+
+		// Follow redirects as this usually can happen several times
+		HttpClientParams.setRedirecting(params, true);
+
+		// Add any raw parameters like User-Agent
+		if (requestParams.size() > 0) {
+			for (String key : requestParams.keySet()) {
+				params.setParameter(key, requestParams.get(key));
+			}
+		}
+		return params;
+	}
+
+	/**
+	 * Copy parameters to existing
+	 */
+	private void copyHttpParams(HttpParams params) {
+
+		// Turn off stale checking. Our connections break all the time anyway,
+		// and it's not worth it to pay the penalty of checking every time.
+		HttpConnectionParams.setStaleCheckingEnabled(params, false);
+
+		// Default connection and socket timeout of 20 seconds. Tweak to taste.
+		HttpConnectionParams.setConnectionTimeout(params, CONNECTION_TIMEOUT);
+		HttpConnectionParams.setSoTimeout(params, READ_TIMEOUT);
+		// This seems to cause a problem with puts
+		//        HttpConnectionParams.setSocketBufferSize(params, bufferLength);
+
+		// Follow redirects as this usually can happen several times
+		HttpClientParams.setRedirecting(params, true);
+
+		// Add any raw parameters like User-Agent
+		if (requestParams.size() > 0) {
+			for (String key : requestParams.keySet()) {
+				params.setParameter(key, requestParams.get(key));
+			}
 		}
 	}
 
 	/**
-   	 * Copy from inputstream to outputstream
+	 * Return the current Cookie store. Note that this will not be available until the request has been completed.
 	 *
-	 * @param stream
+	 * @return CookieStore
+	 */
+	public CookieStore getCookieStore() {
+		if (httpClient == null) {
+			return null;
+		}
+		return httpClient.getCookieStore();
+	}
+
+	/**
+	 * Set the cookie store to be set before the input stream is processed
+	 */
+	public void setCookieStore(CookieStore cookieStore) {
+		this.cookieStore = cookieStore;
+	}
+
+	/**
+	 * If the user has set a cookie store, set the client's store.
+	 */
+	protected void setClientCookieStore() {
+		if (cookieStore != null && httpClient != null) {
+			httpClient.setCookieStore(cookieStore);
+		}
+	}
+
+	/**
+	 * Copy from inputstream to outputstream
+	 *
 	 * @throws StreamException generic exception
 	 */
 	public void copyStream(OutputStream stream) throws StreamException {
@@ -374,16 +500,16 @@ public class StreamProcessor<Result> {
 		BufferedOutputStream outputStream = null;
 		streamHandler.setStreamProcessor(this);
 		StreamException exception = null;
-        HttpResponse response = null;
+		HttpResponse response = null;
 		try {
-            HttpParams params = createHttpParams();
+			HttpParams params = createHttpParams();
 
 			httpClient = new DefaultHttpClient(params);
-            setClientCookieStore();
+			setClientCookieStore();
 
-            HttpGet request = new HttpGet(urlString);
-            addRequestHeaders(request);
-            response = httpClient.execute(request);
+			HttpGet request = new HttpGet(urlString);
+			addRequestHeaders(request);
+			response = httpClient.execute(request);
 			if (response != null) {
 				if (response.getStatusLine().getStatusCode() == 200) {
 					HttpEntity entity = response.getEntity();
@@ -403,68 +529,49 @@ public class StreamProcessor<Result> {
 						}
 					}
 				} else {
-                    Logger.error(this, "StreamProcessor.processInputStream. Response: "
-                            + response.getStatusLine().getStatusCode());
-                    exception = new StreamException(
-                            "StreamProcessor.processInputStream. Response: "
-                                    + response.getStatusLine().getStatusCode());
-                    exception.setResponseCode(getResponseCode(response));
-                    exception.setResponseMessage(getResponseMessage(response));
-                    exception.setExceptionType(StreamException.STREAM_EXCEPTION_TYPE);
+					Logger.error(this, "StreamProcessor.processInputStream. Response: " + response.getStatusLine().getStatusCode());
+					exception = new StreamException(
+						"StreamProcessor.processInputStream. Response: " + response.getStatusLine().getStatusCode());
+					exception.setResponseCode(getResponseCode(response));
+					exception.setResponseMessage(getResponseMessage(response));
+					exception.setExceptionType(StreamException.STREAM_EXCEPTION_TYPE);
 					throw exception;
 				}
 			}
 
 		} catch (MalformedURLException e) {
-			exception = new StreamException(e.getMessage(), e);
-			exception.setExceptionType(StreamException.MALFORMED_URL_TYPE);
-            exception.setResponseCode(getResponseCode(response));
-            exception.setResponseMessage(getResponseMessage(response));
+			Logger.error(this, "StreamProcessor.processInputStream. Problems Processing " + urlString);
+			exception = createMalformedURLException(response, e);
 			throw exception;
 		} catch (FileNotFoundException e) {
-			exception = new StreamException(e.getMessage(), e);
-			exception.setExceptionType(StreamException.FILE_NOT_FOUND_TYPE);
-            exception.setResponseCode(getResponseCode(response));
-            exception.setResponseMessage(getResponseMessage(response));
+			Logger.error(this, "StreamProcessor.processInputStream. Problems Processing " + urlString);
+			exception = createFileNotFoundException(response, e);
 			throw exception;
 			// Both of these next errors could be a disconnect from the internet
 		} catch (SocketException e) {
-			exception = new StreamException(e.getMessage(), e);
-			exception.setExceptionType(StreamException.SOCKET_EXCEPTION_TYPE);
-            exception.setResponseCode(getResponseCode(response));
-            exception.setResponseMessage(getResponseMessage(response));
+			Logger.error(this, "StreamProcessor.processInputStream. Problems Processing " + urlString);
+			exception = createStreamException(response, e);
 			throw exception;
 		} catch (SocketTimeoutException e) {
-			exception = new StreamException(e.getMessage(), e);
-			exception.setExceptionType(StreamException.SOCKET_TIMEOUT_EXCEPTION_TYPE);
-            exception.setResponseCode(getResponseCode(response));
-            exception.setResponseMessage(getResponseMessage(response));
+			Logger.error(this, "StreamProcessor.processInputStream. Problems Processing " + urlString);
+			exception = createSocketTimeoutException(response, e);
 			throw exception;
 		} catch (UnknownHostException e) {
-			exception = new StreamException(e.getMessage(), e);
-			exception.setExceptionType(StreamException.UNKNOWN_HOST_EXCEPTION_TYPE);
-            exception.setResponseCode(getResponseCode(response));
-            exception.setResponseMessage(getResponseMessage(response));
+			Logger.error(this, "StreamProcessor.processInputStream. Problems Processing " + urlString);
+			exception = createUnknownHostException(response, e);
 			throw exception;
 		} catch (ClientProtocolException e) {
-			exception = new StreamException(e.getMessage(), e);
-			exception.setExceptionType(StreamException.CLIENT_PROTOCOL_EXCEPTION_TYPE);
-            exception.setResponseCode(getResponseCode(response));
-            exception.setResponseMessage(getResponseMessage(response));
+			exception = createClientProtocolException(response, e);
 			throw exception;
 		} catch (IOException e) {
-			exception = new StreamException(e.getMessage(), e);
-			exception.setExceptionType(StreamException.IO_EXCEPTION_TYPE);
-            exception.setResponseCode(getResponseCode(response));
-            exception.setResponseMessage(getResponseMessage(response));
+			Logger.error(this, "StreamProcessor.processInputStream. Problems Processing " + urlString);
+			exception = createIOException(response, e);
 			throw exception;
-        } catch (StreamException e) {
-            throw e;
+		} catch (StreamException e) {
+			throw e;
 		} catch (Exception e) {
-			exception = new StreamException(e.getMessage(), e);
-			exception.setExceptionType(StreamException.EXCEPTION_TYPE);
-            exception.setResponseCode(getResponseCode(response));
-            exception.setResponseMessage(getResponseMessage(response));
+			Logger.error(this, "StreamProcessor.processInputStream. Problems Processing " + urlString);
+			exception = createStreamException(response, e);
 			throw exception;
 		} finally {
 			if (inputStream != null) {
@@ -488,41 +595,37 @@ public class StreamProcessor<Result> {
 	}
 
 	/**
-     * Add any request Headers
-     * 
-     * @param message
-     */
-    protected void addRequestHeaders(AbstractHttpMessage message) {
-        for (String name : requestHeaders.keySet()) {
-            message.addHeader(name, requestHeaders.get(name));
-        }
-    }
+	 * Add any request Headers
+	 */
+	protected void addRequestHeaders(AbstractHttpMessage message) {
+		for (String name : requestHeaders.keySet()) {
+			message.addHeader(name, requestHeaders.get(name));
+		}
+	}
 
-    public void debugMsg(AbstractHttpMessage message) {
-        ProtocolVersion protocolVersion = message.getProtocolVersion();
-        if (message instanceof HttpRequestBase) {
-            Logger.debug("Message: " + ((HttpRequestBase)message).getURI());
-        }
-        Logger.debug("Protocol: " + protocolVersion.getProtocol() + " ");
-        for (String name : requestHeaders.keySet()) {
-            Logger.debug("Header: Name: " + name + " value: " + requestHeaders.get(name));
-        }
-        HttpParams param = message.getParams();
-    }
+	public void debugMsg(AbstractHttpMessage message) {
+		ProtocolVersion protocolVersion = message.getProtocolVersion();
+		if (message instanceof HttpRequestBase) {
+			Logger.debug("Message: " + ((HttpRequestBase) message).getURI());
+		}
+		Logger.debug("Protocol: " + protocolVersion.getProtocol() + " ");
+		for (String name : requestHeaders.keySet()) {
+			Logger.debug("Header: Name: " + name + " value: " + requestHeaders.get(name));
+		}
+		HttpParams param = message.getParams();
+	}
 
-    public long getContentLength() {
-        if (connection != null) {
-            return connection.getContentLength();
-        } else if (httpClient != null) {
-            return contentLength;
-        }
-        return 0;
-    }
+	public long getContentLength() {
+		if (connection != null) {
+			return connection.getContentLength();
+		} else if (httpClient != null) {
+			return contentLength;
+		}
+		return 0;
+	}
 
-    /**
+	/**
 	 * Set the buffer length for copying a stream
-	 *
-	 * @param bufferLength
 	 */
 	public void setBufferLength(int bufferLength) {
 		this.bufferLength = bufferLength;
@@ -541,7 +644,6 @@ public class StreamProcessor<Result> {
 	 * Get the response code
 	 *
 	 * @return -1 for an error, otherwise what the connection returns
-	 * @throws StreamException
 	 */
 	public int getResponseCode() throws StreamException {
 		if (connection == null) {
@@ -555,32 +657,30 @@ public class StreamProcessor<Result> {
 	}
 
 	/**
-     * Get the response Message
-     * @return String
-     * @throws StreamException
-     */
-    public String getResponseMessage() throws StreamException {
-        if (connection == null) {
-            return null;
-        }
-        try {
-            return connection.getResponseMessage();
-        } catch (IOException e) {
-            throw new StreamException("StreamProcessor.getResponseMessage.", e);
-        }
-    }
+	 * Get the response Message
+	 *
+	 * @return String
+	 */
+	public String getResponseMessage() throws StreamException {
+		if (connection == null) {
+			return null;
+		}
+		try {
+			return connection.getResponseMessage();
+		} catch (IOException e) {
+			throw new StreamException("StreamProcessor.getResponseMessage.", e);
+		}
+	}
 
-
-    /**
-     * Get the response Message
-     * @param response
-     * @return String
-     * @throws StreamException
-     */
-    public String getResponseMessage(HttpResponse response) throws StreamException {
-        if (response == null) {
-            return null;
-        }
+	/**
+	 * Get the response Message
+	 *
+	 * @return String
+	 */
+	public static String getResponseMessage(HttpResponse response) {
+		if (response == null) {
+			return null;
+		}
 		StringBuilder builder = new StringBuilder();
 		HttpEntity entity = response.getEntity();
 		if (entity != null) {
@@ -590,37 +690,38 @@ public class StreamProcessor<Result> {
 				builder.append(parseResponse(content));
 				return builder.toString();
 			} catch (IOException e) {
-				Logger.error(this, "Problems parsing Response entity");
+				Logger.error(StreamProcessor.class.getSimpleName(), "Problems parsing Response entity");
+			} catch (Exception e) {
+				// Can sometimes get IllegalStateException when content has been consumed already
+				Logger.error(StreamProcessor.class.getSimpleName(), "Problems parsing Response entity");
 			}
 		}
-        StatusLine statusLine = response.getStatusLine();
-        if (statusLine != null) {
+		StatusLine statusLine = response.getStatusLine();
+		if (statusLine != null) {
 			builder.append(statusLine.getReasonPhrase());
-        }
-        return builder.toString();
-    }
+		}
+		return builder.toString();
+	}
 
-    /**
-    * Safely return a response code
-    *
-    * @param response
-    * @return response code
-    */
-    public int getResponseCode(HttpResponse response) {
-        if (response == null) {
-            return -1;
-        }
-        StatusLine statusLine = response.getStatusLine();
-        if (statusLine != null) {
-            return statusLine.getStatusCode();
-        }
-        return -1;
-    }
+	/**
+	 * Safely return a response code
+	 *
+	 * @return response code
+	 */
+	public int getResponseCode(HttpResponse response) {
+		if (response == null) {
+			return -1;
+		}
+		StatusLine statusLine = response.getStatusLine();
+		if (statusLine != null) {
+			return statusLine.getStatusCode();
+		}
+		return -1;
+	}
 
-    /**
+	/**
 	 * Check for valid response code
 	 *
-	 * @param code
 	 * @return true if valid
 	 */
 	public boolean isValidResponseCode(int code) {
@@ -632,32 +733,29 @@ public class StreamProcessor<Result> {
 
 	/**
 	 * Depending on the connection type, setup the input/output settings. Let the handler do some setup
-	 *
-	 * @param connection
-	 * @throws StreamException
 	 */
 	private void setupConnection(HttpURLConnection connection) throws StreamException {
 		try {
 			switch (streamHandler.getType()) {
-                case GET_TYPE:
+				case GET_TYPE:
 					connection.setRequestMethod("GET");
 					connection.setDoInput(true);
 					connection.setDoOutput(false);
 					break;
 
-                case PUT_TYPE:
+				case PUT_TYPE:
 					connection.setRequestMethod("PUT");
 					connection.setDoInput(true);
 					connection.setDoOutput(true);
 					break;
 
-                case POST_TYPE:
+				case POST_TYPE:
 					connection.setRequestMethod("POST");
 					connection.setDoInput(true);
 					connection.setDoOutput(true);
 					break;
 
-                case DELETE_TYPE:
+				case DELETE_TYPE:
 					connection.setRequestMethod("DELETE");
 					connection.setDoInput(true);
 					connection.setDoOutput(false);
@@ -675,7 +773,6 @@ public class StreamProcessor<Result> {
 	/**
 	 * Read the error string from the error input stream.
 	 *
-	 * @param is
 	 * @return error string
 	 */
 	public static String parseResponse(InputStream is) {
@@ -688,8 +785,9 @@ public class StreamProcessor<Result> {
 			String line;
 			StringBuilder builder = new StringBuilder();
 			try {
-				while ((line = bufferedReader.readLine()) != null)
+				while ((line = bufferedReader.readLine()) != null) {
 					builder.append(line);
+				}
 			} catch (IOException e) {
 				Logger.error("cannot log response", e);
 			}

@@ -84,7 +84,7 @@ public class XMLReader {
             rootXMLNode = parser.parse(xmlStream);
        }
 		long end = System.currentTimeMillis();
-		Logger.debug("Total Build Time took " + ((end - start)) + " milliseconds");
+//		Logger.debug("Total Build Time took " + ((end - start)) + " milliseconds");
 		return rootXMLNode;
     }
 

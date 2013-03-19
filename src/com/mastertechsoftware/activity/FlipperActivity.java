@@ -70,7 +70,7 @@ public abstract class FlipperActivity extends Activity {
 	public void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
-		Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler(this));
+//		Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler(this));
 
 		DisplayMetrics dm = getResources().getDisplayMetrics();
 		REL_SWIPE_MIN_DISTANCE = SWIPE_MIN_DISTANCE * dm.densityDpi / 160;

@@ -121,6 +121,22 @@ public class AbstractTable<T> extends Table<T> {
         }
     }
 
+	/**
+	 * Delete the entry with the given where column and value
+	 * @param database
+	 * @param columnName
+	 * @param columnValue
+	 */
+    public void deleteEntryWhere(Database database, String columnName, String columnValue) {
+		String[] whereArgs = new String[1];
+		whereArgs[0] = columnValue;
+        try {
+            database.getDatabase().delete(getTableName(), columnName + "=?" , whereArgs);
+        } catch (SQLiteException e) {
+            Logger.error(this, e.getMessage());
+        }
+    }
+
     /**
      * Delete all entries in this table.
      * @param database
@@ -191,7 +207,7 @@ public class AbstractTable<T> extends Table<T> {
      * @param columnName
      * @param columnValue
      * @param mapper
-     * @return
+     * @return T
      */
     public T getEntry(Database database, T data, String columnName, String columnValue, DataMapper<T> mapper) {
         Cursor cursor = null;
@@ -392,7 +408,7 @@ public class AbstractTable<T> extends Table<T> {
      * @return List<T>
      */
     public List<T> getAllEntries(Database database, Class<T> cls, DataMapper<T> mapper) {
-        Cursor cursor;
+        Cursor cursor = null;
         List<T> dataList = new ArrayList<T>();
         try {
             cursor = database.getDatabase().query(getTableName(), getProjection(), null, null, null,
@@ -422,6 +438,10 @@ public class AbstractTable<T> extends Table<T> {
             Logger.error(this, e.getMessage());
         } catch (IllegalAccessException e) {
             Logger.error(this, e.getMessage());
+		} finally {
+			if (cursor != null) {
+				cursor.close();
+			}
         }
         return dataList;
     }
@@ -436,7 +456,7 @@ public class AbstractTable<T> extends Table<T> {
      * @return List<T>
      */
     public List<T> getAllEntriesWhere(Database database, Class<T> cls, String columnName, String columnValue, DataMapper<T> mapper) {
-        Cursor cursor;
+        Cursor cursor = null;
         List<T> dataList = new ArrayList<T>();
         String[] params = { String.valueOf(columnValue) };
         try {
@@ -468,6 +488,10 @@ public class AbstractTable<T> extends Table<T> {
             Logger.error(this, e.getMessage());
         } catch (IllegalAccessException e) {
             Logger.error(this, e.getMessage());
+		} finally {
+			if (cursor != null) {
+				cursor.close();
+			}
         }
         return dataList;
     }

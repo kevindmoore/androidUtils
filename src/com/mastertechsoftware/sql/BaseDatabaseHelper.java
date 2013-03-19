@@ -201,8 +201,17 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper  {
      * Delete the database.
      */
     public void dropDatabase() {
+		// Lock it!
+		mLock.lock();
+		try {
+			startTransaction();
         open();
         localDatabase.dropDatabase();
+		} finally {
+			endTransaction();
+			mLock.unlock();
+		}
+		state = STATE.NEW;
     }
 
     /**

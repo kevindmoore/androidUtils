@@ -14,6 +14,7 @@ public class LockManager {
 	private static LockManager instance;
 	private static boolean wifiLockCreated = false;
 	private static boolean lockCreated = false;
+	private static boolean debugging = false;
 
 	public static LockManager getInstance() {
 		if (instance == null) {
@@ -23,6 +24,7 @@ public class LockManager {
 	}
 
 	private LockManager() {
+		Logger.setDebug(this.getClass().getSimpleName(), debugging);
 	}
 
 	public static void setContext(Context context) {
@@ -40,8 +42,7 @@ public class LockManager {
 
 	public static void createWakeLock() {
 		if (!lockCreated) {
-//			Logger.error("Creating lock");
-			Logger.debug("Creating lock");
+//			Logger.debugLocal(LockManager.class.getSimpleName(), "Creating lock");
 			PowerLock.getWakeLock(context);
 			lockCreated = true;
 		}
@@ -49,8 +50,7 @@ public class LockManager {
 
 	public static void createWifiLock() {
 		if (NetworkManager.wifiIsActive() && !wifiLockCreated) {
-//			Logger.error("Running on wifi - Creating wifi lock");
-			Logger.debug("Running on wifi - Creating wifi lock");
+//			Logger.debugLocal(LockManager.class.getSimpleName(), "Running on wifi - Creating wifi lock");
 			wifiLock = NetworkManager.getWifiLock();
 			wifiLockCreated = true;
 		}
@@ -64,16 +64,14 @@ public class LockManager {
 	public static void releaseWakeLock() {
 		if (lockCreated) {
 			PowerLock.releaseWakeLock();
-//			Logger.error("Releasing lock");
-			Logger.debug("Releasing lock");
+//			Logger.debugLocal(LockManager.class.getSimpleName(), "Releasing lock");
 		}
 		lockCreated = false;
 	}
 
 	public static void releaseWifiLock() {
 		if (wifiLock != null) {
-//			Logger.error("Releasing wifi lock");
-			Logger.debug("Releasing wifi lock");
+//			Logger.debugLocal(LockManager.class.getSimpleName(), "Releasing wifi lock");
 			NetworkManager.releaseWifiLock(wifiLock);
 		}
 		wifiLockCreated = false;

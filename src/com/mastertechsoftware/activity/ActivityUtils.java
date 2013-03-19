@@ -13,7 +13,8 @@ public class ActivityUtils {
      */
     public static void hideKeyboard(Activity activity) {
         InputMethodManager inputMethodService = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
-        if (inputMethodService != null && inputMethodService.isActive()) {
+//        if (inputMethodService != null && inputMethodService.isActive()) {
+        if (inputMethodService != null) {
             inputMethodService.hideSoftInputFromWindow(
                     activity.getWindow().getDecorView().getWindowToken(), 0);
         }

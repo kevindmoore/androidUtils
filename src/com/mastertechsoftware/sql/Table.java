@@ -195,9 +195,18 @@ public abstract class Table<T> {
 	public abstract void deleteEntryWhere(Database database, String whereClause, String[] whereArgs);
 
 	/**
-	 * Delete all table entries.
+	 * Delete the entry with the given where column and value
 	 * @param database
+	 * @param columnName
+	 * @param columnValue
 	 */
+	public abstract void deleteEntryWhere(Database database, String columnName, String columnValue);
+
+
+		/**
+		 * Delete all table entries.
+		 * @param database
+		 */
 	public abstract void deleteAllEntries(Database database);
 
 	/**

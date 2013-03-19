@@ -52,7 +52,7 @@ public class XMLParser {
             throw new XMLException("XMLParser: Problems reading stream", e);
 		}
 		long end = System.currentTimeMillis();
-		Logger.debug("Reading took " + ((end - start)) + " milliseconds");
+//		Logger.debug("Reading took " + ((end - start)) + " milliseconds");
 
         if (inputString.length() == 0 ) {
             return null;

@@ -298,6 +298,19 @@ public class XMLNode {
         return null;
     }
 
+	/**
+	 * Return the value for the given node.
+	 * @param name
+	 * @return String
+	 */
+	public String getChildValue(String name) {
+		XMLNode node = getChildNode(name);
+		if (node == null) {
+			return null;
+		}
+		return node.value;
+	}
+
     /**
      * Find a child node with the given name at the current level (don't recurse)
      *

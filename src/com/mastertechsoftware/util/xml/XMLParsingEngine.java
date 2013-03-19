@@ -80,7 +80,7 @@ public class XMLParsingEngine {
 			}
 		}	
 		long end = System.currentTimeMillis();
-		Logger.debug("Parsing/Creating nodes took " + ((end - start)) + " milliseconds");
+//		Logger.debug("Parsing/Creating nodes took " + ((end - start)) + " milliseconds");
 		return parsed;
 	}
 
