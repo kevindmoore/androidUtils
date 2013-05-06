@@ -10,6 +10,7 @@ import org.apache.http.impl.cookie.BasicClientCookie2;
  */
 public class DatabaseCookie extends BasicClientCookie2 {
     protected long id;
+    protected long lastAccessed;
 
     /**
      * Default Constructor taking a name and a value. The value may be null.
@@ -29,7 +30,15 @@ public class DatabaseCookie extends BasicClientCookie2 {
         this.id = id;
     }
 
-    public void fillCookie(Cookie cookie) {
+	public long getLastAccessed() {
+		return lastAccessed;
+	}
+
+	public void setLastAccessed(long lastAccessed) {
+		this.lastAccessed = lastAccessed;
+	}
+
+	public void fillCookie(Cookie cookie) {
         if (cookie instanceof BasicClientCookie) {
             BasicClientCookie basicClientCookie = (BasicClientCookie) cookie;
             setComment(basicClientCookie.getComment());

@@ -131,6 +131,25 @@ public class Logger {
         debug(applicationTag, message);
     }
 
+    public static void debugNow(String message) {
+        if (message == null || message.length() == 0) {
+            message = "";
+        }
+        Log.d(applicationTag, message);
+    }
+
+	/**
+	 * Another debugNow call so we can just replace debug with debugNow(this
+	 * @param caller
+	 * @param message
+	 */
+    public static void debugNow(Object caller, String message) {
+        if (message == null || message.length() == 0) {
+            message = "";
+        }
+        Log.d(applicationTag, message);
+    }
+
     public static void debug(String tag, String message) {
         if (applicationTag != null) {
             tag = applicationTag;

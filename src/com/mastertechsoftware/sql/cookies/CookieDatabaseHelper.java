@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import com.mastertechsoftware.sql.BaseDatabaseHelper;
+import com.mastertechsoftware.sql.DBException;
 import com.mastertechsoftware.sql.Database;
 import com.mastertechsoftware.util.log.Logger;
 
@@ -59,7 +60,11 @@ public class CookieDatabaseHelper extends BaseDatabaseHelper {
         localDatabase = new CookieDatabase(db);
         // For now, just delete
         if (oldVersion != newVersion) {
-            dropDatabase();
+			try {
+				dropDatabase();
+			} catch (DBException e) {
+				Logger.error(this, "Problems dropping database during upgrade");
+			}
         }
     }
 
@@ -74,7 +79,9 @@ public class CookieDatabaseHelper extends BaseDatabaseHelper {
         try {
 			startTransaction();
             cookieTable.deleteAllEntries(localDatabase);
-        } finally {
+        } catch (DBException e) {
+			Logger.error(this, "Problems deleting cookies");
+		} finally {
 			endTransaction();
             mLock.unlock();
         }
@@ -94,6 +101,8 @@ public class CookieDatabaseHelper extends BaseDatabaseHelper {
 			startTransaction();
             deleteAllCookies();
             cookieTable.addCookieStore(localDatabase, cookieStore);
+		} catch (DBException e) {
+			Logger.error(this, "Problems adding cookies");
         } finally {
 			endTransaction();
             mLock.unlock();
@@ -113,9 +122,12 @@ public class CookieDatabaseHelper extends BaseDatabaseHelper {
         try {
 			startTransaction();
             return cookieTable.getCookieStore(localDatabase);
+		} catch (DBException e) {
+			Logger.error(this, "Problems getting cookie store");
         } finally {
 			endTransaction();
             mLock.unlock();
         }
+		return null;
     }
 }

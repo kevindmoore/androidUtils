@@ -1,6 +1,8 @@
 
 package com.mastertechsoftware.stream;
 
+import com.mastertechsoftware.util.StringUtilities;
+
 import java.util.List;
 
 /**
@@ -28,7 +30,7 @@ public class StreamUtils {
         }
         if (params != null) {
             for (String param : params) {
-                builder.append(param);
+                builder.append(StringUtilities.encode(param));
                 builder.append("/");
             }
         }
@@ -46,7 +48,7 @@ public class StreamUtils {
 				int substitueIndex = path.indexOf("$");
 				if (substitueIndex != -1) {
 					builder.append(path.substring(0, substitueIndex));
-					builder.append(param);
+					builder.append(StringUtilities.encode(param));
 					path = path.substring(substitueIndex+1);
 				}
             }

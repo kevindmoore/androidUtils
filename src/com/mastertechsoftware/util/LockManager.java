@@ -31,6 +31,10 @@ public class LockManager {
 		LockManager.context = context;
 	}
 
+	/**
+	 * NOTE: This has to not be called on the UI Thread
+	 * Create locks
+	 */
 	public static void startLocks() {
 		createWifiLock();
 

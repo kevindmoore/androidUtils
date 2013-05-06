@@ -20,9 +20,16 @@ public class DialogUtils {
 			message).show();
 	}
 
-	public static void showViewDialog(Context context, String title, String message, View view) {
+	public static void showThreeButtonDialog(Context context, String title, String message, DialogInterface.OnClickListener clickListener, String[] items) {
+		AlertDialog.Builder builder = new AlertDialog.Builder(context);
+		builder.setTitle(title).setMessage(message).setPositiveButton(items[0], clickListener).setNegativeButton(items[1], clickListener).
+			setNeutralButton(items[2], clickListener).show();
+	}
+
+	public static AlertDialog createViewDialog(Context context, String title, String message, View view) {
 		AlertDialog.Builder builder = new AlertDialog.Builder(context);
 		builder.setTitle(title).setView(view).setMessage(
-			message).show();
+			message);
+		return builder.create();
 	}
 }

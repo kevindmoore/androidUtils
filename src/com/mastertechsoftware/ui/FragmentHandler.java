@@ -10,18 +10,22 @@ import android.widget.ViewFlipper;
 import com.mastertechsoftware.util.log.Logger;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 import java.util.UUID;
 /**
  * Handler for Fragments and a ViewPager
  */
 public class FragmentHandler {
-	protected Stack<FragmentEntry> fragmentEntries = new Stack<FragmentEntry>();
-	//	protected ViewPager viewPager;
-	protected ViewFlipper viewFlipper;
-	protected int currentFragmentPosition = -1;
-//	protected FragmentAdapter adapter;
+	public enum StackName {
+		KIDS,
+		RULES,
+		REWARDS,
+		MORE
+	}
+	protected Map<StackName, Stack<FragmentEntry>> fragmentStacks = new HashMap<StackName, Stack<FragmentEntry>>();
 	protected FragmentListener fragmentListener;
 	protected FragmentManager mFragmentManager;
 	protected int contentId;
@@ -29,60 +33,112 @@ public class FragmentHandler {
 	/**
 	 * Constructor.
 	 * @param fragmentManager
-	 * @param viewFlipper
 	 * @param listener
 	 */
-//	public FragmentHandler(FragmentAdapter adapter, ViewPager viewPager, FragmentListener listener) {
-	public FragmentHandler(int id, FragmentManager fragmentManager, ViewFlipper viewFlipper, FragmentListener listener) {
+	public FragmentHandler(int id, FragmentManager fragmentManager,  FragmentListener listener) {
 		contentId = id;
 		this.mFragmentManager = fragmentManager;
-//		this.adapter = adapter;
-		this.viewFlipper = viewFlipper;
-//		this.viewPager = viewPager;
 		this.fragmentListener = listener;
-//		viewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-//			@Override
-//			public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-//			}
-//
-//			@Override
-//			public void onPageSelected(int position) {
-//				Logger.debug(this, "onPageSelected position " + position + " currentFragmentPosition " + currentFragmentPosition);
-//				currentFragmentPosition = position;
-//				if (fragmentListener != null) {
-//					fragmentListener.pageChanged(position, getFragment(position));
-//				}
-//			}
-//
-//			@Override
-//			public void onPageScrollStateChanged(int state) {
-//			}
-//		});
 	}
 	/**
 	 * Select the given fragment
+	 * @param stackName
 	 * @param fragmentName
 	 */
-	public void selectFragment(String fragmentName) {
-		FragmentEntry fragmentEntry = getFragmentEntry(fragmentName);
+	public void selectFragment(StackName stackName, String fragmentName) {
+		Stack<FragmentEntry> fragmentEntries = fragmentStacks.get(stackName);
+		Logger.debug(this, "selectFragment: " + fragmentName + " has " + fragmentEntries.size() + " fragmentEntries items");
+		FragmentEntry fragmentEntry = getFragmentEntry(stackName, fragmentName);
 		if (fragmentEntry != null) {
-			Logger.debug(this, "addFragment Found fragment at " + fragmentEntry.getFragmentPosition());
+			Logger.debug(this, "selectFragment Found fragment at " + fragmentEntry.getFragmentPosition());
 			FragmentTransaction transaction = mFragmentManager.beginTransaction();
-			clearFragmentStack(transaction);
-			addFragment(fragmentEntry.getName(), fragmentEntry.fragment);
+			replaceFragment(fragmentEntry, transaction);
+			transaction.commitAllowingStateLoss();
+//			FragmentTransaction transaction = mFragmentManager.beginTransaction();
+//			replaceFragment(fragmentEntry, transaction);
+//			clearFragmentStack(transaction);
+//			addFragment(stackName, fragmentEntry.getName(), fragmentEntry.fragment);
 //			viewFlipper.setDisplayedChild(fragmentEntry.getFragmentPosition());
 //			viewPager.setCurrentItem(fragmentEntry.getFragmentPosition());
 		}
 	}
 
-	public Fragment getFragment(int position) {
+	public void selectTopFragment(StackName stackName) {
+		Stack<FragmentEntry> fragmentEntries = fragmentStacks.get(stackName);
+		if (fragmentEntries == null) {
+			Logger.error(this, "selectTopFragment no entries for " + stackName);
+			return;
+		}
+		if (!fragmentEntries.empty()) {
+			FragmentTransaction transaction = mFragmentManager.beginTransaction();
+			replaceFragment(fragmentEntries.peek(), transaction);
+			transaction.commitAllowingStateLoss();
+		}
+	}
+
+	public Fragment getNextAvailableFragment() {
+		for (StackName stackName : fragmentStacks.keySet()) {
+			Stack<FragmentEntry> fragmentEntries = fragmentStacks.get(stackName);
+			if (fragmentEntries == null) {
+				continue;
+			}
+			if (!fragmentEntries.empty()) {
+				return fragmentEntries.peek().fragment;
+			}
+		}
+		return null;
+	}
+
+	public String getFragmentName(Fragment fragment) {
+		for (StackName stackName : fragmentStacks.keySet()) {
+			Stack<FragmentEntry> fragmentEntries = fragmentStacks.get(stackName);
+			if (fragmentEntries == null) {
+				continue;
+			}
+			if (!fragmentEntries.empty()) {
+				for (FragmentEntry fragmentEntry : fragmentEntries) {
+					if (fragmentEntry.fragment == fragment) {
+						return fragmentEntry.getName();
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	public StackName getFragmentStackName(Fragment fragment) {
+		for (StackName stackName : fragmentStacks.keySet()) {
+			Stack<FragmentEntry> fragmentEntries = fragmentStacks.get(stackName);
+			if (fragmentEntries == null) {
+				continue;
+			}
+			if (!fragmentEntries.empty()) {
+				for (FragmentEntry fragmentEntry : fragmentEntries) {
+					if (fragmentEntry.fragment == fragment) {
+						return stackName;
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	public Fragment getFragment(StackName stackName, int position) {
+		Stack<FragmentEntry> fragmentEntries = fragmentStacks.get(stackName);
+		if (fragmentEntries == null) {
+			return null;
+		}
 		if (position < fragmentEntries.size()) {
 			return fragmentEntries.get(position).getFragment();
 		}
 		return null;
 	}
 
-	protected Fragment getFragment(String fragmentName) {
+	public Fragment getFragment(StackName stackName, String fragmentName) {
+		Stack<FragmentEntry> fragmentEntries = fragmentStacks.get(stackName);
+		if (fragmentEntries == null) {
+			return null;
+		}
 		for (FragmentEntry fragmentEntry : fragmentEntries) {
 			if (fragmentName.equalsIgnoreCase(fragmentEntry.getName())) {
 				return fragmentEntry.getFragment();
@@ -91,7 +147,11 @@ public class FragmentHandler {
 		return null;
 	}
 
-	protected FragmentEntry getFragmentEntry(String fragmentName) {
+	protected FragmentEntry getFragmentEntry(StackName stackName, String fragmentName) {
+		Stack<FragmentEntry> fragmentEntries = fragmentStacks.get(stackName);
+		if (fragmentEntries == null) {
+			return null;
+		}
 		for (FragmentEntry fragmentEntry : fragmentEntries) {
 			if (fragmentName.equalsIgnoreCase(fragmentEntry.getName())) {
 				return fragmentEntry;
@@ -100,79 +160,19 @@ public class FragmentHandler {
 		return null;
 	}
 
-	public void removeFragment(Fragment fragment) {
+	public void removeFragment(StackName stackName, Fragment fragment) {
+		Stack<FragmentEntry> fragmentEntries = fragmentStacks.get(stackName);
+		if (fragmentEntries == null) {
+			return;
+		}
 		for (FragmentEntry fragmentEntry : fragmentEntries) {
 			if (fragment == fragmentEntry.getFragment()) {
 				fragmentEntries.remove(fragmentEntry);
-//				adapter.destroyItem(viewPager, fragmentEntry.getFragmentPosition(), fragmentEntry.getFragment());
-//				adapter.removeFragment(fragmentEntry.getFragmentPosition());
-//				adapter.finishUpdate(viewPager);
 				return;
 			}
 		}
 	}
 
-/*
-	*/
-/**
-	 * Add a new fragment for this tab type
-	 * @param fragmentName
-	 * @param fragment
-	 *//*
-
-	public void addFragment(String fragmentName, Fragment fragment) {
-		currentFragmentPosition++;
-		Logger.debug(this, "addFragment " + fragmentName + " currentFragmentPosition " + currentFragmentPosition);
-		FragmentEntry fragmentEntry = getFragmentEntry(fragmentName);
-*/
-/*
-		int count = adapter.getCount();
-		if (count > currentFragmentPosition) {
-			Logger.debug(this, "addFragment count " + count + " > currentFragmentPosition " + currentFragmentPosition + " destroying");
-			for (int i = count-1; i > currentFragmentPosition; i--) {
-				Logger.debug(this, "addFragment deleting fragment " + i);
-//				Fragment currentFragment = adapter.getItem(i);
-//				adapter.destroyItem(viewPager, i, currentFragment);
-				adapter.removeFragment(i);
-			}
-//			adapter.finishUpdate(viewPager);
-		}
-*//*
-
-		if (fragmentEntry == null) {
-			fragmentEntry = new FragmentEntry(fragment, currentFragmentPosition, fragmentName);
-			fragmentEntries.add(fragmentEntry);
-		}
-*/
-/*
-		if (fragmentEntry != null) {
-			Logger.debug(this, "addFragment Found fragment at " + fragmentEntry.getFragmentPosition());
-			if (viewFlipper.getChildCount() > fragmentEntry.getFragmentPosition()) {
-				viewFlipper.setDisplayedChild(fragmentEntry.getFragmentPosition());
-				return;
-			}
-//			if (viewPager.getChildCount() > fragmentEntry.getFragmentPosition()) {
-//				viewPager.setCurrentItem(fragmentEntry.getFragmentPosition());
-//				return;
-//			}
-			Logger.debug(this, "addFragment Couldn't set current item for  " + fragmentName);
-			return;
-		}
-*//*
-
-//		adapter.addFragment(fragment, currentFragmentPosition);
-		FragmentTransaction ft = mFragmentManager.beginTransaction();
-		//		ft.add(R.id.content, fragment, stackName);
-		ft.replace(contentId, fragment, fragmentName);
-		ft.addToBackStack(fragmentName);
-		ft.commit();
-//		adapter.instantiateItem(viewPager, currentFragmentPosition);
-//		adapter.finishUpdate(viewPager);
-//		viewPager.setCurrentItem(currentFragmentPosition);
-//		viewFlipper.setDisplayedChild(currentFragmentPosition);
-		viewFlipper.setDisplayedChild(viewFlipper.getChildCount()-1);
-	}
-*/
 
 	/**
 	 * Go back a page
@@ -180,66 +180,64 @@ public class FragmentHandler {
 	 */
 	public boolean goBack() {
 		if (mFragmentManager.getBackStackEntryCount() > 0) {
-			--currentFragmentPosition;
 			mFragmentManager.popBackStackImmediate();
 			return true;
 		}
-		//		if (viewFlipper.getDisplayedChild() > 0) {
-		//			--currentFragmentPosition;
-		//			Logger.debug(this, "goBack currentFragmentPosition " + currentFragmentPosition + " viewPage current item " + viewFlipper.getDisplayedChild());
-		//			viewFlipper.setDisplayedChild(viewFlipper.getDisplayedChild() - 1);
-		//			return true;
-		//
-		//		}
-		//		if (viewPager.getCurrentItem() > 0) {
-		//			--currentFragmentPosition;
-		//			Logger.debug(this, "goBack currentFragmentPosition " + currentFragmentPosition + " viewPage current item " + viewPager.getCurrentItem());
-		//			viewPager.setCurrentItem(viewPager.getCurrentItem()-1);
-		//			return true;
-		//		}
 		return false;
 	}
 
-	public int stackSize() {
+	public int stackSize(StackName stackName) {
+		Stack<FragmentEntry> fragmentEntries = fragmentStacks.get(stackName);
+		if (fragmentEntries == null) {
+			return 0;
+		}
 		return fragmentEntries.size();
 	}
 
 	/**
 	 * Add a new fragment for this tab type
+	 * @param stackName
 	 * @param fragmentName
 	 * @param fragment
 	 */
-	public void addFragment(String fragmentName, Fragment fragment) {
-		Logger.debug(this, "addFragment:  " + fragmentName + " Fragment " + fragment.getClass().getSimpleName());
+	public void addFragment(StackName stackName, String fragmentName, Fragment fragment) {
+		Stack<FragmentEntry> fragmentEntries = fragmentStacks.get(stackName);
+		if (fragmentEntries == null) {
+			fragmentEntries = new Stack<FragmentEntry>();
+			fragmentStacks.put(stackName, fragmentEntries);
+		}
+		//		Logger.debug(this, "addFragment:  " + fragmentName + " Fragment " + fragment.getClass().getSimpleName());
 
-		currentFragmentPosition++;
 //		String randomTag = UUID.randomUUID().toString();
-		FragmentEntry stackEntry = new FragmentEntry(fragment, currentFragmentPosition, fragmentName);
+		FragmentEntry stackEntry = new FragmentEntry(fragment, fragmentEntries.size(), fragmentName);
 		fragmentEntries.push(stackEntry);
 		Logger.debug(this, "addFragment: " + fragmentName + " has " + fragmentEntries.size() + " fragmentEntries items");
 		FragmentTransaction ft = mFragmentManager.beginTransaction();
 		ft.replace(contentId, fragment, fragmentName);
 //		ft.add(contentId, fragment, fragmentName);
-		ft.commit();
+		ft.commitAllowingStateLoss();
 //		Logger.debug(this, "addFragment: Tag is " + randomTag);
 	}
 
 	/**
 	 * Pop the top Fragment for this tab type
+	 * @param stackName
 	 * @return Fragment
 	 */
-	public Fragment popTopFragmentStack() {
+	public Fragment popTopFragmentStack(StackName stackName) {
+		Stack<FragmentEntry> fragmentEntries = fragmentStacks.get(stackName);
 		if (fragmentEntries != null && fragmentEntries.size() > 0) {
-			Logger.debug(this, "popTopFragmentStack: Found fragmentEntries of size " + fragmentEntries.size() + " top fragmentEntries item is " + fragmentEntries.peek().getName());
+			Logger.debug(this, "popTopFragmentStack: fragmentEntries of size " + fragmentEntries.size() + " top fragmentEntries item is " + fragmentEntries.peek().getName());
 			FragmentEntry stackEntry = fragmentEntries.pop();
 			Logger.debug(this,
 				"popTopFragmentStack: popping " + stackEntry.getName() + " of type " + stackEntry.fragment.getClass().getSimpleName());
 			FragmentTransaction transaction = mFragmentManager.beginTransaction();
-			transaction.remove(stackEntry.fragment);
 			if (!fragmentEntries.empty()) {
 				replaceFragment(fragmentEntries.peek(), transaction);
+			} else {
+				transaction.remove(stackEntry.fragment);
 			}
-			transaction.commit();
+			transaction.commitAllowingStateLoss();
 			return stackEntry.fragment;
 		}
 		return null;
@@ -256,18 +254,27 @@ public class FragmentHandler {
 	public void showFragment(Fragment fragment) {
 		Logger.debug(this, "showFragment: fragment " + fragment.getClass().getSimpleName());
 		FragmentTransaction transaction = mFragmentManager.beginTransaction();
-		transaction.show(fragment);
-		transaction.commit();
+		transaction.replace(contentId, fragment, getFragmentName(fragment));
+//		transaction.show(fragment);
+		transaction.commitAllowingStateLoss();
+	}
+
+	public void clearFragmentStack(StackName stackName) {
+		FragmentTransaction transaction = mFragmentManager.beginTransaction();
+		clearFragmentStack(stackName, transaction);
+		transaction.commitAllowingStateLoss();
 	}
 
 	/**
 	 * Clear the stack for this tab type
+	 * @param stackName
 	 * @param transaction
 	 */
-	public void clearFragmentStack(FragmentTransaction transaction) {
+	public void clearFragmentStack(StackName stackName, FragmentTransaction transaction) {
 		if (transaction == null) {
 			return;
 		}
+		Stack<FragmentEntry> fragmentEntries = fragmentStacks.get(stackName);
 		if (fragmentEntries != null) {
 			Logger.debug(this, "clearFragmentStack: Found stack of size " + fragmentEntries.size());
 			while (!fragmentEntries.empty()) {
@@ -280,11 +287,12 @@ public class FragmentHandler {
 		}
 	}
 
-	public Fragment getCurrentFragment() {
+	public Fragment getCurrentFragment(StackName stackName) {
+		Stack<FragmentEntry> fragmentEntries = fragmentStacks.get(stackName);
 		if (fragmentEntries.empty()) {
 			return null;
 		}
-		FragmentEntry stackEntry = fragmentEntries.pop();
+		FragmentEntry stackEntry = fragmentEntries.peek();
 		return stackEntry.getFragment();
 	}
 }

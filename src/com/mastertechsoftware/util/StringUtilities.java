@@ -65,7 +65,7 @@ public class StringUtilities {
 	public static String encode(String s) {
 		try {
             if (s == null) {
-                return null;
+                return "";
             }
 			return URLEncoder.encode(s, "UTF-8");
 		} catch (UnsupportedEncodingException e) {

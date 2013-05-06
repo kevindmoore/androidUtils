@@ -173,6 +173,7 @@ public class NetworkManager {
 
 	/**
 	 * Make a call to the internet. Should decrease the chance of an UnknownHostException
+	 * NOTE: This has to not be called on the UI Thread
 	 */
 	public static void primeInternet() {
 		try {

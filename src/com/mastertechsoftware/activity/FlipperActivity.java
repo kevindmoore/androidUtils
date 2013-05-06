@@ -438,7 +438,8 @@ public abstract class FlipperActivity extends Activity {
 
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
-		menu.removeGroup(0);
+		menu.clear();
+//		menu.removeGroup(0);
 		if (currentActivityListener != null) {
 			currentActivityListener.createOptionsMenu(menu);
 		}

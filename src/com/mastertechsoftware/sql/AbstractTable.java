@@ -96,14 +96,15 @@ public class AbstractTable<T> extends Table<T> {
      * @param key - id to delete
      */
     @Override
-    public void deleteEntry(Database database, Object key) {
+    public int deleteEntry(Database database, Object key) {
         String[] whereArgs = new String[1];
         whereArgs[0] = String.valueOf(key);
         try {
-            database.getDatabase().delete(getTableName(), getIdField() + "=?", whereArgs);
+            return database.getDatabase().delete(getTableName(), getIdField() + "=?", whereArgs);
         } catch (SQLiteException e) {
             Logger.error(this, e.getMessage());
         }
+		return 0;
     }
 
     /**
@@ -113,12 +114,13 @@ public class AbstractTable<T> extends Table<T> {
      * @param whereArgs
      */
     @Override
-    public void deleteEntryWhere(Database database, String whereClause, String[] whereArgs) {
+    public int deleteEntryWhere(Database database, String whereClause, String[] whereArgs) {
         try {
-            database.getDatabase().delete(getTableName(), whereClause, whereArgs);
+            return database.getDatabase().delete(getTableName(), whereClause, whereArgs);
         } catch (SQLiteException e) {
             Logger.error(this, e.getMessage());
         }
+		return 0;
     }
 
 	/**
@@ -127,14 +129,15 @@ public class AbstractTable<T> extends Table<T> {
 	 * @param columnName
 	 * @param columnValue
 	 */
-    public void deleteEntryWhere(Database database, String columnName, String columnValue) {
+    public int deleteEntryWhere(Database database, String columnName, String columnValue) {
 		String[] whereArgs = new String[1];
 		whereArgs[0] = columnValue;
         try {
-            database.getDatabase().delete(getTableName(), columnName + "=?" , whereArgs);
+            return database.getDatabase().delete(getTableName(), columnName + "=?" , whereArgs);
         } catch (SQLiteException e) {
             Logger.error(this, e.getMessage());
         }
+		return 0;
     }
 
     /**

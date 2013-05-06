@@ -3,9 +3,12 @@ package com.mastertechsoftware.stream;
 import com.mastertechsoftware.util.log.Logger;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.StatusLine;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.methods.HttpDelete;
@@ -14,11 +17,13 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.params.HttpClientParams;
+import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.AbstractHttpMessage;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.BasicHttpContext;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -63,6 +68,8 @@ public class StreamProcessor<Result> {
 	protected Map<String, String> requestParams = new HashMap<String, String>();
 	protected CookieStore cookieStore;
 	protected boolean useParams = true;
+	protected BasicHttpContext localContext;
+	protected String userName, password;
 
 	/**
 	 * Constructor.
@@ -163,6 +170,22 @@ public class StreamProcessor<Result> {
 		return readTimeout;
 	}
 
+	public String getUserName() {
+		return userName;
+	}
+
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
 	/**
 	 * Default process method. Take the given URL and start processing
 	 *
@@ -208,6 +231,7 @@ public class StreamProcessor<Result> {
 		} else {
 			httpClient = new DefaultHttpClient();
 		}
+		setLoginInfo(url, httpClient);
 		setClientCookieStore();
 		HttpResponse response = null;
 		try {
@@ -299,6 +323,28 @@ public class StreamProcessor<Result> {
 			}
 		}
 		return null;
+	}
+
+	private void setLoginInfo(String urlString, DefaultHttpClient httpclient) {
+		if (userName != null && password != null) {
+			try {
+				URL url = new URL(urlString);
+				HttpHost targetHost = new HttpHost(url.getHost(), url.getPort(), url.getProtocol());
+
+				httpclient.getCredentialsProvider().setCredentials(
+					new AuthScope(targetHost.getHostName(), targetHost.getPort()),
+					new UsernamePasswordCredentials(userName, password));
+
+	//			// Create AuthCache instance
+	//			// Generate BASIC scheme object and add it to the local auth cache
+	//			BasicScheme basicAuth = new BasicScheme();
+	//
+	//			// Add AuthCache to the execution context
+	//			localContext = new BasicHttpContext();
+			} catch (MalformedURLException e) {
+				Logger.error(this, "Problems settings username/password", e);
+			}
+		}
 	}
 
 	public StreamException createStreamException(HttpResponse response, Exception e) {

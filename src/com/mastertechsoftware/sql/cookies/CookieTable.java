@@ -5,6 +5,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
 
+import com.mastertechsoftware.sql.AbstractDataMapper;
 import com.mastertechsoftware.sql.AbstractTable;
 import com.mastertechsoftware.sql.Column;
 import com.mastertechsoftware.sql.Database;
@@ -23,7 +24,7 @@ import java.util.List;
 /**
  * Table to hold web cookie Information.
  */
-public class CookieTable extends AbstractTable {
+public class CookieTable extends AbstractTable<DatabaseCookie> {
     public static final String TABLE_NAME = "cookies";
 
     public static final String ID = "_id";
@@ -36,6 +37,7 @@ public class CookieTable extends AbstractTable {
     public static final String COOKIE_PATH = "cookiePath";
     public static final String IS_SECURE = "isSecure";
     public static final String COOKIE_VERSION = "cookieVersion";
+    public static final String LAST_ACCESSED = "last_accessed";
 
     private static final int ID_COLUMN = 0;
     private static final int NAME_COLUMN = 1;
@@ -47,8 +49,10 @@ public class CookieTable extends AbstractTable {
     private static final int COOKIE_PATH_COLUMN = 7;
     private static final int IS_SECURE_COLUMN = 8;
     private static final int COOKIE_VERSION_COLUMN = 9;
+    private static final int LAST_ACCESSED_COLUMN = 10;
     private static final int version = 1;
     private SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd-yy");
+	private CookieMapper mapper;
 
     public CookieTable() {
         super(TABLE_NAME);
@@ -62,12 +66,17 @@ public class CookieTable extends AbstractTable {
         addColumn(new Column(COOKIE_PATH, Column.COLUMN_TYPE.TEXT));
         addColumn(new Column(IS_SECURE, Column.COLUMN_TYPE.INTEGER));
         addColumn(new Column(COOKIE_VERSION, Column.COLUMN_TYPE.INTEGER));
+        addColumn(new Column(LAST_ACCESSED, Column.COLUMN_TYPE.INTEGER));
         setVersion(version);
-    }
+		mapper = new CookieMapper();
+	}
 
-    @Override
-    public Object insertEntry(Database database, Object data) {
-        DatabaseCookie cookie = (DatabaseCookie) data;
+	public CookieMapper getMapper() {
+		return mapper;
+	}
+
+	@Override
+    public DatabaseCookie insertEntry(Database database, DatabaseCookie cookie) {
         ContentValues cv = new ContentValues();
         cv.put(NAME, cookie.getName());
         cv.put(VALUE, cookie.getValue());
@@ -81,6 +90,7 @@ public class CookieTable extends AbstractTable {
         cv.put(COOKIE_PATH, cookie.getPath());
         cv.put(IS_SECURE, cookie.isSecure() ? 1 : 0);
         cv.put(COOKIE_VERSION, cookie.getVersion());
+		cv.put(LAST_ACCESSED, cookie.getLastAccessed());
         long id = 0;
         try {
             id = database.getDatabase().insert(TABLE_NAME, NAME, cv);
@@ -93,16 +103,16 @@ public class CookieTable extends AbstractTable {
     }
 
     @Override
-    public void deleteEntry(Database database, Object data) {
+    public int deleteEntry(Database database, Object data) {
         DatabaseCookie cookie = (DatabaseCookie) data;
         String[] whereArgs = new String[1];
         whereArgs[0] = String.valueOf(cookie.getId());
         try {
-            database.getDatabase().delete(TABLE_NAME, ID + "=?", whereArgs);
+            return database.getDatabase().delete(TABLE_NAME, ID + "=?", whereArgs);
         } catch (SQLiteException e) {
             Logger.error(this, e.getMessage());
         }
-
+		return 0;
     }
 
     @Override
@@ -112,11 +122,10 @@ public class CookieTable extends AbstractTable {
         } catch (SQLiteException e) {
             Logger.error(this, e.getMessage());
         }
-
     }
 
     @Override
-    public Object getEntry(Database database, Object data) {
+    public DatabaseCookie getEntry(Database database, Object data) {
         String id = (String) data;
         Cursor result;
         String[] params = {
@@ -139,26 +148,26 @@ public class CookieTable extends AbstractTable {
     }
 
     public List<DatabaseCookie> getAllCookies(Database database) {
-        List<DatabaseCookie> soundboardCookies = new ArrayList<DatabaseCookie>();
+        List<DatabaseCookie> databaseCookies = new ArrayList<DatabaseCookie>();
         Cursor result;
         try {
             result = database.getDatabase().query(TABLE_NAME, projection, null, null, null, null,
                     null);
         } catch (SQLiteException e) {
             Logger.error(this, e.getMessage());
-            return soundboardCookies;
+            return databaseCookies;
         }
         if (!result.moveToFirst()) {
             result.close();
-            return soundboardCookies;
+            return databaseCookies;
         }
         while (!result.isAfterLast()) {
             DatabaseCookie cookie = fillCookie(result);
-            soundboardCookies.add(cookie);
+            databaseCookies.add(cookie);
             result.moveToNext();
         }
         result.close();
-        return soundboardCookies;
+        return databaseCookies;
     }
 
     /**
@@ -171,6 +180,7 @@ public class CookieTable extends AbstractTable {
         String name = result.getString(NAME_COLUMN);
         String value = result.getString(VALUE_COLUMN);
         DatabaseCookie cookie = new DatabaseCookie(name, value);
+		cookie.setLastAccessed(result.getLong(LAST_ACCESSED_COLUMN));
         cookie.setId(result.getLong(ID_COLUMN));
         cookie.setComment(result.getString(COOKIE_COMMENT_COLUMN));
         cookie.setCommentURL(result.getString(COOKIE_COMMENT_URL_COLUMN));
@@ -200,10 +210,11 @@ public class CookieTable extends AbstractTable {
         List<Cookie> cookies = cookieStore.getCookies();
         for (Cookie cookie : cookies) {
             if (cookie.getValue() != null) {
-                DatabaseCookie soundboardCookie = new DatabaseCookie(cookie.getName(),
+                DatabaseCookie databaseCookie = new DatabaseCookie(cookie.getName(),
                         cookie.getValue());
-                soundboardCookie.fillCookie(cookie);
-                insertEntry(cookieDatabase, soundboardCookie);
+                databaseCookie.fillCookie(cookie);
+				databaseCookie.setLastAccessed(System.currentTimeMillis());
+                insertEntry(cookieDatabase, databaseCookie);
             } else {
                 Logger.error(this, "addCookieStore. Not adding cookie " + cookie.getName()
                         + " because of null value");
@@ -215,7 +226,7 @@ public class CookieTable extends AbstractTable {
      * Get a cookie store from our database.
      * 
      * @param cookieDatabase
-     * @return
+     * @return CookieStore
      */
     public CookieStore getCookieStore(Database cookieDatabase) {
         CookieStore store = new BasicCookieStore();
@@ -226,4 +237,87 @@ public class CookieTable extends AbstractTable {
         return store;
     }
 
+	/**
+	 * This probably won't work since name is private and has to be added to the constructor
+	 */
+	public class CookieMapper extends AbstractDataMapper<DatabaseCookie> {
+
+		@Override
+		public void write(ContentValues cv, Column column, DatabaseCookie databaseCookie) {
+			switch (column.getColumnPosition()) {
+				case NAME_COLUMN:
+					if (databaseCookie.getName() != null) {
+						cv.put(NAME, databaseCookie.getName());
+					}
+					break;
+				case VALUE_COLUMN:
+					cv.put(VALUE, databaseCookie.getValue());
+					break;
+				case COOKIE_COMMENT_COLUMN:
+					cv.put(COOKIE_COMMENT, databaseCookie.getComment());
+					break;
+				case COOKIE_COMMENT_URL_COLUMN:
+					cv.put(COOKIE_COMMENT_URL, databaseCookie.getCommentURL());
+					break;
+				case COOKIE_DOMAIN_COLUMN:
+					cv.put(COOKIE_DOMAIN, databaseCookie.getDomain());
+					break;
+				case COOKIE_EXPIRY_DATE_COLUMN:
+					cv.put(COOKIE_EXPIRY_DATE, databaseCookie.getExpiryDate().getTime());
+					break;
+				case COOKIE_PATH_COLUMN:
+					cv.put(COOKIE_PATH, databaseCookie.getPath());
+					break;
+				case IS_SECURE_COLUMN:
+					cv.put(IS_SECURE, databaseCookie.isSecure() ? 1 : 0);
+					break;
+				case COOKIE_VERSION_COLUMN:
+					cv.put(COOKIE_VERSION, databaseCookie.getVersion());
+					break;
+				case LAST_ACCESSED_COLUMN:
+					cv.put(LAST_ACCESSED, databaseCookie.getLastAccessed());
+					break;
+			}
+		}
+
+		@Override
+		public void read(Cursor cursor, Column column, DatabaseCookie databaseCookie) {
+			int columnIndex = getColumnIndex(cursor, column.getName());
+			if (columnIndex == -1) {
+				Logger.error(this, "CookieMapper.read: Column " + column.getName() + " does not exist in cursor");
+				return;
+			}
+			switch (column.getColumnPosition()) {
+				case ID_COLUMN:
+					databaseCookie.setId(cursor.getLong(columnIndex));
+					break;
+				case NAME_COLUMN:
+					break;
+				case VALUE_COLUMN:
+					databaseCookie.setValue(cursor.getString(columnIndex));
+					break;
+				case COOKIE_COMMENT_COLUMN:
+					databaseCookie.setComment(cursor.getString(columnIndex));
+					break;
+				case COOKIE_COMMENT_URL_COLUMN:
+					databaseCookie.setCommentURL(cursor.getString(columnIndex));
+					break;
+				case COOKIE_DOMAIN_COLUMN:
+					databaseCookie.setDomain(cursor.getString(columnIndex));
+					break;
+				case COOKIE_PATH_COLUMN:
+					databaseCookie.setPath(cursor.getString(columnIndex));
+					break;
+				case IS_SECURE_COLUMN:
+					databaseCookie.setSecure(cursor.getInt(columnIndex) == 1);
+					break;
+				case COOKIE_VERSION_COLUMN:
+					databaseCookie.setVersion(cursor.getInt(columnIndex));
+					break;
+				case LAST_ACCESSED_COLUMN:
+					databaseCookie.setLastAccessed(cursor.getLong(columnIndex));
+					break;
+			}
+		}
+	}
 }

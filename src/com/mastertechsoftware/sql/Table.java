@@ -42,13 +42,11 @@ public abstract class Table<T> {
 	}
 
     /**
-     * Dummy method ment to be overridden when upgrading a datasbase.
-     * The Helper class will call this on an earlier version and the table
-     * will set the columns to the previous version
+	 * Set the version for this table
      * @param version
      */
     public void setupVersion(int version) {
-
+		this.version = version;
     }
 
     /**
@@ -184,7 +182,7 @@ public abstract class Table<T> {
 	 * @param database
 	 * @param key
 	 */
-	public abstract void deleteEntry(Database database, Object key);
+	public abstract int deleteEntry(Database database, Object key);
 
 	/**
 	 * Delete the entry with the given where clause and values
@@ -192,7 +190,7 @@ public abstract class Table<T> {
 	 * @param whereClause
 	 * @param whereArgs
 	 */
-	public abstract void deleteEntryWhere(Database database, String whereClause, String[] whereArgs);
+	public abstract int deleteEntryWhere(Database database, String whereClause, String[] whereArgs);
 
 	/**
 	 * Delete the entry with the given where column and value
@@ -200,7 +198,7 @@ public abstract class Table<T> {
 	 * @param columnName
 	 * @param columnValue
 	 */
-	public abstract void deleteEntryWhere(Database database, String columnName, String columnValue);
+	public abstract int deleteEntryWhere(Database database, String columnName, String columnValue);
 
 
 		/**

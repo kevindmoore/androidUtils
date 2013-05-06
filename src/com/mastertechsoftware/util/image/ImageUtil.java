@@ -2,21 +2,31 @@ package com.mastertechsoftware.util.image;
 
 import com.mastertechsoftware.util.log.Logger;
 
+import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 
 import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 
 public class ImageUtil {
+	public static final int JPG_QUALITY = 92;
 	protected static int defaultBufferSize = 8192;
+	private static final SimpleDateFormat sDateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+	private static final String CACHE_DIR = "fileCache";
 	public static String ALBUM_CACHE = "albumCache";
     public static final BitmapFactory.Options sBitmapOptions = new BitmapFactory.Options();
 	private static HashMap<String, Drawable> cache = new HashMap<String, Drawable>();
@@ -143,5 +153,91 @@ public class ImageUtil {
 		caches.remove(cache);
     }
 
+	/**
+	 * Save a bitmap to a file
+	 */
+	protected void saveBitmapToFile(final File dest, final Bitmap bitmapToSave) {
+		if (bitmapToSave == null || dest == null) {
+			Logger.error(this, "saveBitmapToFile one of these is missing: bitmap " + bitmapToSave + " File " + dest);
+			return;
+		}
+		try {
+			FileOutputStream out = new FileOutputStream(dest);
+			bitmapToSave.compress(Bitmap.CompressFormat.JPEG, JPG_QUALITY, out);
+			out.flush();
+			out.close();
+		} catch (OutOfMemoryError e) {
+			Logger.error("saveBitmapToFile:Out of memory error", e);
+			//			((ViaMeApplication) getApplicationContext()).handleOutOfMemory(e);
+		} catch (Exception e) {
+			Logger.error("Error saving bitmap to file " + e.getMessage(), e);
+		}
+	}
 
+	/**
+	 * Create a cached File name given an optional prefix and/or suffix
+	 * @param context
+	 * @param prefix
+	 * @param suffix
+	 * @return filename
+	 * @throws IOException
+	 */
+	public static String getCachedFileName(Context context, String prefix, String suffix) throws IOException {
+		File mCacheDir = new File(context.getCacheDir(), CACHE_DIR);
+		if (!mCacheDir.exists()) {
+			if(!mCacheDir.mkdirs()){
+				throw new IOException("Cannot create cache directory: " + mCacheDir.getAbsolutePath());
+			}
+		}
+		StringBuilder fileName = new StringBuilder();
+		if (prefix != null) {
+			fileName.append(prefix);
+		}
+		fileName.append(sDateFormat.format(new Date()));
+		if (suffix != null) {
+			fileName.append(suffix);
+		}
+		File tempFile = new File(mCacheDir, fileName.toString());
+		return tempFile.getAbsolutePath();
+	}
+
+	/**
+	 * Delete all cache files
+	 * @param context
+	 */
+	public static void deleteCachedFiles(Context context) {
+		File mCacheDir = new File(context.getCacheDir(), CACHE_DIR);
+		if (mCacheDir.exists()) {
+			deleteFiles(mCacheDir);
+		}
+
+	}
+	/**
+	 * Recursively Delete a directory.
+	 * @param dir
+	 */
+	public static void deleteFiles(File dir) {
+		if (dir != null) {
+			File[] files = dir.listFiles();
+			for (File file : files) {
+				if (file.isFile()) {
+					if (!file.delete()) {
+						Logger.error("Problems deleting cache file " + file.getAbsolutePath());
+					}
+				} else {
+					deleteFiles(file);
+				}
+			}
+		}
+	}
+
+	public static void saveBitmap(String filename, Bitmap bitmap) {
+		FileOutputStream fos = null;
+		try {
+			fos = new FileOutputStream(filename);
+			bitmap.compress(Bitmap.CompressFormat.JPEG, JPG_QUALITY, fos);
+		} catch (FileNotFoundException e) {
+			Logger.error("saveOutput", e);
+		}
+	}
 }
