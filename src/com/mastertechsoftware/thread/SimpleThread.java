@@ -1,12 +1,12 @@
 package com.mastertechsoftware.thread;
 
-import android.util.Log;
+
+import com.mastertechsoftware.util.log.Logger;
 
 /**
  * User: kevin.moore
  */
 public abstract class SimpleThread extends Thread {
-	protected String TAG = "SimpleThread";
 	protected boolean running = true;
 
 	public boolean isRunning() {
@@ -26,7 +26,7 @@ public abstract class SimpleThread extends Thread {
 			}
 
 		} catch (Exception e) {
-			Log.e(TAG, e.getMessage(), e);
+			Logger.error(this, e.getMessage(), e);
 		}
 		finish();
 	}

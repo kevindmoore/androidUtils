@@ -58,7 +58,7 @@ public class XMLParser {
             return null;
         }
         // This should start with <?xml
-        while (inputString.charAt(0) != '<') {
+        while (inputString.length() > 0 && inputString.charAt(0) != '<') {
             inputString.deleteCharAt(0);
         }
         XMLParsingEngine engine = new XMLParsingEngine(inputString, xmlNodeFilters);

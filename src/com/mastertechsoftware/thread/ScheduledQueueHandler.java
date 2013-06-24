@@ -2,6 +2,8 @@ package com.mastertechsoftware.thread;
 
 import android.util.Log;
 
+import com.mastertechsoftware.util.log.Logger;
+
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -28,12 +30,12 @@ public class ScheduledQueueHandler<Item> {
             executor.shutdown();
             try {
                 if (!executor.awaitTermination(EXECUTOR_TIMEOUT, TimeUnit.MILLISECONDS)) {
-                    Log.e(TAG,
+                    Logger.error(this,
                           "ScheduledQueueHandler:shutdown Timed out, didn't finish all tasks");
                     executor.shutdownNow();
                 }
             } catch (InterruptedException e) {
-                Log.e(TAG, "ScheduledQueueHandler:shutdown " + e.getMessage(), e);
+                Logger.error(this, "ScheduledQueueHandler:shutdown " + e.getMessage(), e);
                 executor.shutdownNow();
             }
             executor = null;

@@ -6,6 +6,7 @@ package com.mastertechsoftware.util.xml;
 
 
 import com.mastertechsoftware.list.MapList;
+import com.mastertechsoftware.util.log.Logger;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -528,6 +529,49 @@ public class XMLNode {
     public String getValue() {
         return value;
     }
+
+	public int getIntValue() {
+		if (value == null) {
+			return -1;
+		}
+		try {
+			return Integer.parseInt(value);
+		} catch (NumberFormatException e) {
+			Logger.error(this, "Problems parsing " + value);
+		}
+		return -1;
+	}
+
+	public boolean getBooleanValue() {
+		if (value == null) {
+			return false;
+		}
+		return Boolean.parseBoolean(value);
+	}
+
+	public long getLongValue() {
+		if (value == null) {
+			return -1;
+		}
+		try {
+			return Long.parseLong(value);
+		} catch (NumberFormatException e) {
+			Logger.error(this, "Problems parsing " + value);
+		}
+		return -1;
+	}
+
+	public double getDoubleValue() {
+		if (value == null) {
+			return -1;
+		}
+		try {
+			return Double.parseDouble(value);
+		} catch (NumberFormatException e) {
+			Logger.error(this, "Problems parsing " + value);
+		}
+		return -1;
+	}
 
     /**
      * Return the string representation of this node

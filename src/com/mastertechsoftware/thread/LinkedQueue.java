@@ -1,7 +1,8 @@
 package com.mastertechsoftware.thread;
 
 
-import android.util.Log;
+
+import com.mastertechsoftware.util.log.Logger;
 
 import java.util.Iterator;
 import java.util.concurrent.BlockingQueue;
@@ -13,7 +14,6 @@ import java.util.concurrent.TimeUnit;
  * Since the LinkedBlockingDeque is in 2.3, Make a wrapper class that works in 2.2
  */
 public class LinkedQueue<QueueItem> {
-	protected String TAG = "LinkedQueue";
 	protected BlockingQueue<QueueItem> queue;
     private static final int POLL_TIMEOUT = 1000; // Milliseconds
 
@@ -60,7 +60,7 @@ public class LinkedQueue<QueueItem> {
 		try {
 			return queue.poll(POLL_TIMEOUT, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
-			Log.e(TAG, "LinkedQueue:InterruptedException. Problems calling take. " + e.getMessage());
+			Logger.error(this, "LinkedQueue:InterruptedException. Problems calling take. " + e.getMessage());
 		}
 		return null;
 	}

@@ -1,6 +1,7 @@
 package com.mastertechsoftware.thread;
 
-import android.util.Log;
+
+import com.mastertechsoftware.util.log.Logger;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -16,7 +17,6 @@ public class QueueHandler<QueueItem> {
 
     private static final int EXECUTOR_TIMEOUT = 15000; // Milliseconds
     private static final int EXECUTOR_SHUTDOWN_TIMEOUT = 30 * 1000; // 30 Milliseconds
-    protected String TAG = "QueueHandler";
     protected ExecutorService executor;
     protected QueueProcessor<QueueItem> queueProcessor;
     protected CountDownLatch commandSignal;
@@ -33,20 +33,17 @@ public class QueueHandler<QueueItem> {
     public void stop() {
         if (queueProcessor != null) {
             queueProcessor.setShutdown(true);
+			queueProcessor.setRunning(false);
         }
         if (executor != null) {
             executor.shutdown();
-            if (queueProcessor != null) {
-                queueProcessor.setRunning(false);
-            }
             try {
                 if (!executor.awaitTermination(EXECUTOR_TIMEOUT, TimeUnit.MILLISECONDS)) {
-                    Log.e(TAG,
-                            "QueueHandler:shutdown Timed out, didn't finish all tasks");
+                    Logger.error(this, "QueueHandler:shutdown Timed out, didn't finish all tasks");
                     executor.shutdownNow();
                 }
             } catch (InterruptedException e) {
-                Log.e(TAG, "QueueHandler:shutdown " + e.getMessage(), e);
+                Logger.error(this, "QueueHandler:shutdown " + e.getMessage(), e);
                 executor.shutdownNow();
             }
             executor = null;
@@ -61,12 +58,11 @@ public class QueueHandler<QueueItem> {
             executor.shutdown();
             try {
                 if (!executor.awaitTermination(EXECUTOR_SHUTDOWN_TIMEOUT, TimeUnit.MILLISECONDS)) {
-                    Log.e(TAG,
-                            "QueueHandler:shutdown Timed out, didn't finish all tasks");
+                    Logger.error(this, "QueueHandler:shutdown Timed out, didn't finish all tasks");
                     executor.shutdownNow();
                 }
             } catch (InterruptedException e) {
-                Log.e(TAG, "QueueHandler:shutdown " + e.getMessage(), e);
+                Logger.error(this, "QueueHandler:shutdown " + e.getMessage(), e);
                 executor.shutdownNow();
             }
             executor = null;
@@ -113,10 +109,10 @@ public class QueueHandler<QueueItem> {
      */
     public void sendSignal() {
         if (commandSignal != null) {
-            Log.d(TAG, "commandSignal: countdown");
+            Logger.debug(this, "commandSignal: countdown");
             commandSignal.countDown();
         } else {
-            Log.e(TAG, "commandSignal is null");
+            Logger.error(this, "commandSignal is null");
         }
     }
 
@@ -125,14 +121,14 @@ public class QueueHandler<QueueItem> {
      */
     public void clearSignal() {
         if (commandSignal != null) {
-            Log.d(TAG, "clearSignal");
+            Logger.debug(this, "clearSignal");
             long count = commandSignal.getCount();
             for (int i = 0; i < count; i++) {
                 commandSignal.countDown();
             }
             commandSignal = null;
         } else {
-            Log.e(TAG, "clearSignal:commandSignal is null");
+            Logger.error(this, "clearSignal:commandSignal is null");
         }
 
     }
@@ -143,16 +139,15 @@ public class QueueHandler<QueueItem> {
      */
     public void createSignal(int signalCount) {
         if (commandSignal != null && commandSignal.getCount() > 0) {
-            Log.e(TAG, "createSignal: Current Signal still has "
-                    + commandSignal.getCount() + " count");
+            Logger.error(this, "createSignal: Current Signal still has " + commandSignal.getCount() + " count");
             clearSignal();
         }
-        Log.d(TAG, "createSignal: creating signal with count " + signalCount);
+        Logger.debug(this, "createSignal: creating signal with count " + signalCount);
         commandSignal = new CountDownLatch(signalCount);
         try {
             commandSignal.await();
         } catch (InterruptedException e) {
-            Log.e(TAG, "createSignal:InterruptedException " + e.getMessage());
+            Logger.error(this , "createSignal:InterruptedException " + e.getMessage());
         }
 
     }

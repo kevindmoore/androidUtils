@@ -21,8 +21,6 @@ import java.util.List;
 
 /**
  * @author Kevin Moore
- *         Copyright (c) 1996-2010 by Cisco Systems, Inc.
- *         All rights reserved. Cisco confidential
  */
 public class NetworkManager {
 	public enum State {

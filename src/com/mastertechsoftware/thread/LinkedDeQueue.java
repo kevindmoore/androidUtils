@@ -7,7 +7,6 @@ import java.util.concurrent.LinkedBlockingDeque;
  * Since the LinkedBlockingDeque is in 2.3, Make a wrapper class that works in 2.2
  */
 public class LinkedDeQueue<QueueItem> extends LinkedQueue<QueueItem> {
-	protected String TAG = "LinkedDeQueue";
 
 	/**
 	 * Create a LinkedBlocking Queue
