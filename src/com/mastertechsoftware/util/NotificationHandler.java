@@ -6,6 +6,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.support.v4.app.NotificationCompat;
 
 /**
  * @author Kevin Moore
@@ -39,18 +40,36 @@ public class NotificationHandler {
 	 */
 	public static void addNotification(String notificationTitle, String msg, Intent intent, int id, int notificationNum, boolean autoCancel) {
 		NotificationManager mgr = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
-		Notification notification = new Notification(notificationIcon,
-				notificationTitle,
-				System.currentTimeMillis());
+		NotificationCompat.Builder builder = new NotificationCompat.Builder(context);
+//		Notification notification = new Notification(notificationIcon,
+//				notificationTitle,
+//				System.currentTimeMillis());
 		PendingIntent pendingIntent = PendingIntent.getActivity(context, 0,
 				intent, 0);
 
+		builder.setSmallIcon(notificationIcon).setContentText(msg).setNumber(notificationNum).setContentTitle(notificationTitle).
+			setContentIntent(pendingIntent);
+		Notification notification = builder.build();
 		if (autoCancel) {
 			notification.flags |= Notification.FLAG_AUTO_CANCEL;
 		}
-		notification.number = notificationNum;
-		notification.setLatestEventInfo(context, appName, msg, pendingIntent);
+//		notification.number = notificationNum;
+//		notification.setLatestEventInfo(context, appName, msg, pendingIntent);
 		mgr.notify(id, notification);
+	}
+
+	/**
+	 * Create a notification given a title & msg.
+	 * @param notificationTitle
+	 * @param msg
+	 * @return Notification
+	 */
+	public static Notification createNotification(String notificationTitle, String msg) {
+		NotificationCompat.Builder builder = new NotificationCompat.Builder(context);
+
+		builder.setSmallIcon(notificationIcon).setContentText(msg).setContentTitle(notificationTitle);
+		Notification notification = builder.build();
+		return notification;
 	}
 
 	/**

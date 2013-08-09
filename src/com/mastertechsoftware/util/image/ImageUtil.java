@@ -23,135 +23,152 @@ import java.util.Date;
 import java.util.HashMap;
 
 public class ImageUtil {
+
 	public static final int JPG_QUALITY = 92;
 	protected static int defaultBufferSize = 8192;
 	private static final SimpleDateFormat sDateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 	private static final String CACHE_DIR = "fileCache";
 	public static String ALBUM_CACHE = "albumCache";
-    public static final BitmapFactory.Options sBitmapOptions = new BitmapFactory.Options();
+	public static final BitmapFactory.Options sBitmapOptions = new BitmapFactory.Options();
 	private static HashMap<String, Drawable> cache = new HashMap<String, Drawable>();
 	private static HashMap<String, Bitmap> bitmapCache = new HashMap<String, Bitmap>();
 	private static HashMap<String, HashMap<String, Bitmap>> caches = new HashMap<String, HashMap<String, Bitmap>>();
 
-    static {
-        // for the cache,
-        // 565 is faster to decode and display
-        // and we don't want to dither here because the image will be scaled down later
+	static {
+		// for the cache,
+		// 565 is faster to decode and display
+		// and we don't want to dither here because the image will be scaled down later
 
-        sBitmapOptions.inPreferredConfig = Bitmap.Config.RGB_565;
-        sBitmapOptions.inDither = false;
-    }
+		sBitmapOptions.inPreferredConfig = Bitmap.Config.RGB_565;
+		sBitmapOptions.inDither = false;
+	}
 
 	public static Bitmap getRemoteImage(final URL aURL) {
-         try {
-              final URLConnection conn = aURL.openConnection();
-              conn.connect();
-              final BufferedInputStream bis = new BufferedInputStream(conn.getInputStream(), defaultBufferSize);
-              final Bitmap bm = BitmapFactory.decodeStream(bis);
-              bis.close();
-              return bm;
-         } catch (IOException e) {
-              Log.d("DEBUGTAG", "Problems loading Bitmap " + e.getMessage());
-         }
-         return null;
-    }
-
-    public static Bitmap loadBitmap(InputStream input) {
 		try {
-        	return BitmapFactory.decodeStream(input, null, sBitmapOptions);
+			final URLConnection conn = aURL.openConnection();
+			conn.connect();
+			final BufferedInputStream bis = new BufferedInputStream(conn.getInputStream(), defaultBufferSize);
+			final Bitmap bm = BitmapFactory.decodeStream(bis);
+			bis.close();
+			return bm;
+		} catch (IOException e) {
+			Log.d("ImageUtil", "Problems loading Bitmap " + e.getMessage());
+		}
+		return null;
+	}
+
+	public static Bitmap getRemoteImageWithCookie(final String url, String cookie) {
+		try {
+			URL aURL = new URL(url);
+			final URLConnection conn = aURL.openConnection();
+			conn.addRequestProperty("Cookie", cookie);
+			conn.connect();
+			final BufferedInputStream bis = new BufferedInputStream(conn.getInputStream(), defaultBufferSize);
+			final Bitmap bm = BitmapFactory.decodeStream(bis);
+			bis.close();
+			return bm;
+		} catch (IOException e) {
+			Log.d("ImageUtil", "Problems loading Bitmap " + e.getMessage());
+		}
+		return null;
+	}
+
+	public static Bitmap loadBitmap(InputStream input) {
+		try {
+			return BitmapFactory.decodeStream(input, null, sBitmapOptions);
 		} catch (OutOfMemoryError error) {
 			Logger.error("ImageUtil", "loadBitmap Failed", error);
 		}
 		return null;
-    }
+	}
 
-    public static void setBitmapCache(String path, Bitmap bitmap) {
-        bitmapCache.put(path, bitmap);
-    }
-	
-    public static Bitmap getBitmapCache(String path) {
-        return bitmapCache.get(path);
-    }
+	public static void setBitmapCache(String path, Bitmap bitmap) {
+		bitmapCache.put(path, bitmap);
+	}
 
-    public static boolean hasBitmapCacheEntry(String path) {
-        return bitmapCache.containsKey(path);
-    }
+	public static Bitmap getBitmapCache(String path) {
+		return bitmapCache.get(path);
+	}
 
-    public static void clearBitmapCache() {
-//		for (Bitmap bitmap : bitmapCache.values()) {
-//			if (bitmap != null) {
-//				bitmap.recycle();
-//			}
-//		}
-        bitmapCache.clear();
-    }
+	public static boolean hasBitmapCacheEntry(String path) {
+		return bitmapCache.containsKey(path);
+	}
+
+	public static void clearBitmapCache() {
+		//		for (Bitmap bitmap : bitmapCache.values()) {
+		//			if (bitmap != null) {
+		//				bitmap.recycle();
+		//			}
+		//		}
+		bitmapCache.clear();
+	}
 
 	public static Drawable ImageOperations(String url) {
-		try {			
+		try {
 			if (cache.get(url) != null) {
 				return cache.get(url);
 			}
 			InputStream is = (InputStream) fetch(url);
-			Drawable d = Drawable.createFromStream(is, "src");	
+			Drawable d = Drawable.createFromStream(is, "src");
 			cache.put(url, d);
 			return d;
-		} catch (MalformedURLException e) {			
+		} catch (MalformedURLException e) {
 			e.printStackTrace();
 			return null;
 		} catch (IOException e) {
 			e.printStackTrace();
 			return null;
-		} 
+		}
 	}
-	
+
 	public static void clearCache() {
 		cache.clear();
 	}
-	
-	private static Object fetch(String address) throws MalformedURLException,IOException {
+
+	private static Object fetch(String address) throws MalformedURLException, IOException {
 		URL url = new URL(address);
 		Object content = url.getContent();
 		return content;
-	}	
+	}
 
-    public static void setBitmapCache(String cache, String path, Bitmap bitmap) {
-        HashMap<String, Bitmap> map = caches.get(cache);
-        if (map == null) {
-            map = new HashMap<String, Bitmap>();
-            caches.put(cache, map);
-        }
-        map.put(path, bitmap);
-    }
+	public static void setBitmapCache(String cache, String path, Bitmap bitmap) {
+		HashMap<String, Bitmap> map = caches.get(cache);
+		if (map == null) {
+			map = new HashMap<String, Bitmap>();
+			caches.put(cache, map);
+		}
+		map.put(path, bitmap);
+	}
 
-    public static Bitmap getBitmapCache(String cache, String path) {
-        HashMap<String, Bitmap> map = caches.get(cache);
-        if (map == null) {
-            return null;
-        }
-        return map.get(path);
-    }
+	public static Bitmap getBitmapCache(String cache, String path) {
+		HashMap<String, Bitmap> map = caches.get(cache);
+		if (map == null) {
+			return null;
+		}
+		return map.get(path);
+	}
 
-    public static boolean hasBitmapCacheEntry(String cache, String path) {
-        HashMap<String, Bitmap> map = caches.get(cache);
-        if (map == null) {
-            return false;
-        }
-        return map.containsKey(path);
-    }
+	public static boolean hasBitmapCacheEntry(String cache, String path) {
+		HashMap<String, Bitmap> map = caches.get(cache);
+		if (map == null) {
+			return false;
+		}
+		return map.containsKey(path);
+	}
 
-    public static void clearBitmapCache(String cache) {
-        HashMap<String, Bitmap> map = caches.get(cache);
-        if (map == null) {
-            return;
-        }
-//		for (Bitmap bitmap : map.values()) {
-//			if (bitmap != null) {
-//				bitmap.recycle();
-//			}
-//		}
+	public static void clearBitmapCache(String cache) {
+		HashMap<String, Bitmap> map = caches.get(cache);
+		if (map == null) {
+			return;
+		}
+		//		for (Bitmap bitmap : map.values()) {
+		//			if (bitmap != null) {
+		//				bitmap.recycle();
+		//			}
+		//		}
 		map.clear();
 		caches.remove(cache);
-    }
+	}
 
 	/**
 	 * Save a bitmap to a file
@@ -176,16 +193,13 @@ public class ImageUtil {
 
 	/**
 	 * Create a cached File name given an optional prefix and/or suffix
-	 * @param context
-	 * @param prefix
-	 * @param suffix
+	 *
 	 * @return filename
-	 * @throws IOException
 	 */
 	public static String getCachedFileName(Context context, String prefix, String suffix) throws IOException {
 		File mCacheDir = new File(context.getCacheDir(), CACHE_DIR);
 		if (!mCacheDir.exists()) {
-			if(!mCacheDir.mkdirs()){
+			if (!mCacheDir.mkdirs()) {
 				throw new IOException("Cannot create cache directory: " + mCacheDir.getAbsolutePath());
 			}
 		}
@@ -203,7 +217,6 @@ public class ImageUtil {
 
 	/**
 	 * Delete all cache files
-	 * @param context
 	 */
 	public static void deleteCachedFiles(Context context) {
 		File mCacheDir = new File(context.getCacheDir(), CACHE_DIR);
@@ -212,9 +225,9 @@ public class ImageUtil {
 		}
 
 	}
+
 	/**
 	 * Recursively Delete a directory.
-	 * @param dir
 	 */
 	public static void deleteFiles(File dir) {
 		if (dir != null) {

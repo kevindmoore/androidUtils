@@ -30,7 +30,8 @@ public class ActivityUtils {
 
 	public static void showKeyboard(Activity activity, View view) {
 		InputMethodManager inputMethodService = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
-		if (inputMethodService != null && inputMethodService.isActive()) {
+//		if (inputMethodService != null && inputMethodService.isActive()) {
+		if (inputMethodService != null) {
 			inputMethodService.showSoftInput(view, 0);
 		}
 	}

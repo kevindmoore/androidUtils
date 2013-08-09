@@ -19,6 +19,10 @@ public class StreamUtils {
      * @return url string
      */
     public static String buildURLString(String server, String path, List<String> params) {
+        return buildURLString(server, path, params, true);
+    }
+
+    public static String buildURLString(String server, String path, List<String> params, boolean encode) {
         StringBuilder builder = new StringBuilder();
         builder.append(server);
         if (!server.endsWith("/")) {
@@ -30,7 +34,11 @@ public class StreamUtils {
         }
         if (params != null) {
             for (String param : params) {
-                builder.append(StringUtilities.encode(param));
+				if (encode) {
+					builder.append(StringUtilities.encode(param));
+				} else {
+					builder.append(param);
+				}
                 builder.append("/");
             }
         }
@@ -41,6 +49,10 @@ public class StreamUtils {
     }
 
     public static String buildQueryString(String server, String path, List<String> params) {
+        return buildQueryString(server, path, params, true);
+    }
+
+    public static String buildQueryString(String server, String path, List<String> params, boolean encode) {
         StringBuilder builder = new StringBuilder();
         builder.append(server);
         if (params != null) {
@@ -48,7 +60,11 @@ public class StreamUtils {
 				int substitueIndex = path.indexOf("$");
 				if (substitueIndex != -1) {
 					builder.append(path.substring(0, substitueIndex));
-					builder.append(StringUtilities.encode(param));
+					if (encode) {
+						builder.append(StringUtilities.encode(param));
+					} else {
+						builder.append(param);
+					}
 					path = path.substring(substitueIndex+1);
 				}
             }

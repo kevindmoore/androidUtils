@@ -103,7 +103,28 @@ public class SDLogger {
                 writer.close();
 
             } catch (IOException e1) {
-                Log.e("SDLogger", "Problems Writting Error Log", e1);
+                Log.e("SDLogger", "Problems Writing Error Log", e1);
+            }
+        }
+    }
+
+	/**
+	 * Log a message to the file
+	 * @param msg
+	 */
+    public static void log(String msg) {
+        initFile();
+        if (sdFile != null ) {
+            try {
+                FileWriter writer = new FileWriter(sdFile, true);
+                writer.write(dateFormat.format(new Date()) + "\n");
+                if (msg != null && msg.length() > 0) {
+                    writer.write(msg + "\n");
+                }
+                 writer.close();
+
+            } catch (IOException e1) {
+                Log.e("SDLogger", "Problems Writing Error Log", e1);
             }
         }
     }

@@ -17,7 +17,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.params.HttpClientParams;
-import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.AbstractHttpMessage;
 import org.apache.http.params.BasicHttpParams;
@@ -236,27 +235,27 @@ public class StreamProcessor<Result> {
 		HttpResponse response = null;
 		try {
 			switch (streamHandler.getType()) {
-				case GET_TYPE:
+				case GET:
 					HttpGet request = new HttpGet(url);
 					addRequestHeaders(request);
 					response = httpClient.execute(request);
 					break;
 
-				case PUT_TYPE:
+				case PUT:
 					HttpPut httpPut = new HttpPut(url);
 					httpPut.setEntity(data);
 					addRequestHeaders(httpPut);
 					response = httpClient.execute(httpPut);
 					break;
 
-				case POST_TYPE:
+				case POST:
 					HttpPost httpPost = new HttpPost(url);
 					httpPost.setEntity(data);
 					addRequestHeaders(httpPost);
 					response = httpClient.execute(httpPost);
 					break;
 
-				case DELETE_TYPE:
+				case DELETE:
 					HttpDelete httpDelete = new HttpDelete(url);
 					addRequestHeaders(httpDelete);
 					response = httpClient.execute(httpDelete);
@@ -783,25 +782,25 @@ public class StreamProcessor<Result> {
 	private void setupConnection(HttpURLConnection connection) throws StreamException {
 		try {
 			switch (streamHandler.getType()) {
-				case GET_TYPE:
+				case GET:
 					connection.setRequestMethod("GET");
 					connection.setDoInput(true);
 					connection.setDoOutput(false);
 					break;
 
-				case PUT_TYPE:
+				case PUT:
 					connection.setRequestMethod("PUT");
 					connection.setDoInput(true);
 					connection.setDoOutput(true);
 					break;
 
-				case POST_TYPE:
+				case POST:
 					connection.setRequestMethod("POST");
 					connection.setDoInput(true);
 					connection.setDoOutput(true);
 					break;
 
-				case DELETE_TYPE:
+				case DELETE:
 					connection.setRequestMethod("DELETE");
 					connection.setDoInput(true);
 					connection.setDoOutput(false);

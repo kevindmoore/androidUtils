@@ -14,7 +14,7 @@ public class AbstractStreamHandler<Result> implements StreamHandler<Result> {
     protected int BUFFER_SIZE = 512;
 
     public StreamType getType() {
-        return StreamType.GET_TYPE;
+        return StreamType.GET;
 	}
 
 	public Result processInputStream(InputStream stream, long contentLength) throws StreamException {

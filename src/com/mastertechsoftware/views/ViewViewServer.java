@@ -751,4 +751,12 @@ public class ViewViewServer extends SurfaceView implements MediaController.Media
 		return mCanSeekForward;
 	}
 
+	@Override
+	public int getAudioSessionId() {
+		if (mMediaPlayer != null) {
+			return mMediaPlayer.getAudioSessionId();
+		}
+		return 0;
+	}
+
 }
