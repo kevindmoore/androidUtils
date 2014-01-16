@@ -17,6 +17,12 @@ public class Database {
 	protected int version = 1;
 
 	/**
+	 * Default Constructor. Set tables & database later
+	 */
+	public Database() {
+	}
+
+	/**
 	 * Create a database with the given sql database
 	 * @param database
 	 */
@@ -24,7 +30,15 @@ public class Database {
 		this.database = database;
 	}
 
-    /**
+	/**
+	 * Set the SQLiteDatabase
+	 * @param database
+	 */
+	public void setDatabase(SQLiteDatabase database) {
+		this.database = database;
+	}
+
+	/**
 	 * Set the versions for all tables
      * @param version
      */
@@ -41,6 +55,14 @@ public class Database {
 	 */
 	public int getVersion() {
 		return version;
+	}
+
+	/**
+	 * Set the version
+	 * @param version
+	 */
+	public void setVersion(int version) {
+		this.version = version;
 	}
 
 	/**

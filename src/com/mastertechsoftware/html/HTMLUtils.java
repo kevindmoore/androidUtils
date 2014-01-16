@@ -1,7 +1,7 @@
 package com.mastertechsoftware.html;
 
-import com.mastertechsoftware.list.KeyValue;
-import com.mastertechsoftware.list.ListMap;
+import com.mastertechsoftware.util.list.KeyValue;
+import com.mastertechsoftware.util.list.ListMap;
 
 import java.util.ArrayList;
 import java.util.Iterator;

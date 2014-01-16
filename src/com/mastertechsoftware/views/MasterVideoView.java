@@ -743,7 +743,6 @@ public class MasterVideoView extends SurfaceView implements MediaController.Medi
 		return mCanSeekForward;
 	}
 
-	@Override
 	public int getAudioSessionId() {
 		if (mMediaPlayer != null) {
 			return mMediaPlayer.getAudioSessionId();

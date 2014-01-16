@@ -1,4 +1,4 @@
-package com.mastertechsoftware.list;
+package com.mastertechsoftware.util.list;
 
 import java.util.*;
 

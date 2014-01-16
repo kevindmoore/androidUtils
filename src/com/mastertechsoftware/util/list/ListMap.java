@@ -1,4 +1,6 @@
-package com.mastertechsoftware.list;
+package com.mastertechsoftware.util.list;
+
+import com.mastertechsoftware.util.list.KeyValue;
 
 import java.util.ArrayList;
 

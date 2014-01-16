@@ -8,7 +8,9 @@ import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import com.mastertechsoftware.util.log.Logger;
+import com.mastertechsoftware.util.reflect.UtilReflector;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -48,12 +50,13 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper {
 	 *
 	 * @param context to use to open or create the database
 	 */
-	protected BaseDatabaseHelper(Context context, String databaseName, String mainTableName, int version) {
+	public BaseDatabaseHelper(Context context, String databaseName, String mainTableName, int version) {
 		super(context, databaseName, null, version);
 		this.context = context;
 		this.mainTableName = mainTableName;
 		this.version = version;
 	}
+
 
 	/**
 	 * Check to see if the table exists. If not, create the database.
@@ -155,7 +158,6 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper {
 		} finally {
 			state = STATE.CLOSED;
 			sqLiteDatabase = null;
-			localDatabase = null;
 			mLock.unlock();
 		}
 	}
@@ -184,7 +186,19 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper {
 	 * Create our database objects with the current SQLite db. You will override this to create the database object with your own.
 	 */
 	protected void createLocalDB() {
-		localDatabase = new Database(sqLiteDatabase);
+		if (localDatabase == null) {
+			localDatabase = new Database(sqLiteDatabase);
+		} else {
+			localDatabase.setDatabase(sqLiteDatabase);
+		}
+	}
+
+	/**
+	 * If we already have a database, set it here
+	 * @param localDatabase
+	 */
+	public void setLocalDatabase(Database localDatabase) {
+		this.localDatabase = localDatabase;
 	}
 
 	/**

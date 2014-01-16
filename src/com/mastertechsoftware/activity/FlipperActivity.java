@@ -170,6 +170,7 @@ public abstract class FlipperActivity extends Activity {
 			}
 			currentActivityListener.resume();
 		}
+		invalidateOptionsMenu();
 	}
 
     /**
@@ -243,7 +244,7 @@ public abstract class FlipperActivity extends Activity {
 				currentActivityListener.resume();
 			}
 		}
-
+		invalidateOptionsMenu();
 	}
 
 	/**
@@ -266,6 +267,7 @@ public abstract class FlipperActivity extends Activity {
 				currentActivityListener.resume();
 			}
 		}
+		invalidateOptionsMenu();
 	}
 
 	/**
@@ -436,6 +438,7 @@ public abstract class FlipperActivity extends Activity {
 		return currentActivityListener.createDialog(id);
 	}
 
+/*
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
 		menu.clear();
@@ -445,12 +448,21 @@ public abstract class FlipperActivity extends Activity {
 		}
 		return super.onPrepareOptionsMenu(menu);
 	}
+*/
 
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
 		if (currentActivityListener != null) {
 			currentActivityListener.createContextMenu(menu, v, menuInfo);
 		}
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		if (currentActivityListener != null) {
+			return currentActivityListener.createOptionsMenu(menu);
+		}
+		return super.onCreateOptionsMenu(menu);
 	}
 
 	@Override

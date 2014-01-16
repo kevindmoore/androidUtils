@@ -1,6 +1,8 @@
 package com.mastertechsoftware.util.reflect;
 
 
+import com.mastertechsoftware.util.log.Logger;
+
 import java.lang.reflect.*;
 import java.util.ArrayList;
 
@@ -64,14 +66,14 @@ public class UtilReflector
 	{
 		if (mainClass == null)
 		{
-	    	System.out.println("Object is null for field " + fieldName);
+	    	Logger.error("Object is null for field " + fieldName);
 	    	return null;
 	    }
 
 		Class mainClassObject = mainClass.getClass();
 		if (mainClassObject == null)
 		{
-	    	System.out.println("Class object is null for field " + fieldName);
+	    	Logger.error("Class object is null for field " + fieldName);
 	    	return null;
 	    }
 		boolean found = false;
@@ -89,19 +91,19 @@ public class UtilReflector
 	    		mainClassObject = mainClassObject.getSuperclass();
 	    		if (mainClassObject == null)
 				{
-		    		System.out.println("No Such Field Exception: " + nsf.getMessage() + " for field " + fieldName);
+		    		Logger.error("No Such Field Exception: " + nsf.getMessage() + " for field " + fieldName);
 	    			return null;
 	    		}
 	    	}
 	    	catch (SecurityException security)
 	    	{
-	    		System.out.println("Security Exception: " + security.getMessage() + " for class " + mainClassObject.getName() + " & field " + fieldName);
+	    		Logger.error("Security Exception: " + security.getMessage() + " for class " + mainClassObject.getName() + " & field " + fieldName);
 	    		return null;
 	    	}
 	    	catch (Exception e)
 	    	{
-				System.out.println("Error in getting field " + fieldName + " for Class " + mainClassObject.getName());
-	    		e.printStackTrace();
+				Logger.error("Error in getting field " + fieldName + " for Class " + mainClassObject.getName());
+	    		Logger.error("Unknown Error", e);
 	    		return null;
 	    	}
 	    }
@@ -137,12 +139,12 @@ public class UtilReflector
         }
 	    catch (SecurityException security)
 	    {
-	    	System.out.println("Security Exception: " + security.getMessage() + " for class " + mainClass.getName());
+	    	Logger.error("Security Exception: " + security.getMessage() + " for class " + mainClass.getName());
 	    	return null;
 	    }
 	    catch (Exception e)
 	    {
-	    	e.printStackTrace();
+	    	Logger.error("Unknown Error", e);
 	    	return null;
 	    }
 	}
@@ -152,9 +154,9 @@ public class UtilReflector
 	* @param mainClass class to check for field
 	* @return array of fields
 	*/
-	public static ArrayList getAllFields(Class mainClass)
+	public static ArrayList<Field> getAllFields(Class mainClass)
 	{
-		ArrayList list = new ArrayList();
+		ArrayList<Field> list = new ArrayList<Field>();
 		while (mainClass != null)
 		{
 		   	Field[] fields = getFields(mainClass);
@@ -186,12 +188,12 @@ public class UtilReflector
         }
 	    catch (SecurityException security)
 	    {
-	    	System.out.println("Security Exception: " + security.getMessage() + " for class " + mainClass.getName());
+	    	Logger.error("Security Exception: " + security.getMessage() + " for class " + mainClass.getName());
 	    	return null;
 	    }
 	    catch (Exception e)
 	    {
-	    	e.printStackTrace();
+	    	Logger.error("Unknown Error", e);
 	    	return null;
 	    }
 	}
@@ -223,7 +225,7 @@ public class UtilReflector
 	{
 		if (mainClass == null)
 		{
-			System.out.println("Error: Null main class in getting method " + methodName);
+			Logger.error("Error: Null main class in getting method " + methodName);
 			return null;
 		}
 		Class mainClassObject = null;
@@ -233,7 +235,7 @@ public class UtilReflector
             mainClassObject = mainClass.getClass();
 		if (mainClassObject == null)
 		{
-			System.out.println("Error: Null main class object in getting method " + methodName);
+			Logger.error("Error: Null main class object in getting method " + methodName);
 			return null;
 		}
 		boolean found = false;
@@ -250,18 +252,18 @@ public class UtilReflector
 	    		mainClassObject = mainClassObject.getSuperclass();
 	    		if (mainClassObject == null)
 				{
-		    		System.out.println("No Such Method Exception: " + nsm.getMessage() + " for method " + methodName);
+		    		Logger.error("No Such Method Exception: " + nsm.getMessage() + " for method " + methodName);
 	    			return null;
 	    		}
 	    	}
 	    	catch (SecurityException security)
 	    	{
-	    		System.out.println("Security Exception: " + security.getMessage() + " for class " + mainClassObject.getName());
+	    		Logger.error("Security Exception: " + security.getMessage() + " for class " + mainClassObject.getName());
 	    		return null;
 	    	}
 	    	catch (Exception e)
 	    	{
-	    		e.printStackTrace();
+	    		Logger.error("Unknown Error", e);
 	    		return null;
 	    	}
 	    }
@@ -277,7 +279,7 @@ public class UtilReflector
     {
         if (mainClass == null)
         {
-            System.out.println("Error: Null main class in getting methods ");
+            Logger.error("Error: Null main class in getting methods ");
             return null;
         }
         Class mainClassObject = null;
@@ -287,7 +289,7 @@ public class UtilReflector
             mainClassObject = mainClass.getClass();
         if (mainClassObject == null)
         {
-            System.out.println("Error: Null main class object in getting methods ");
+            Logger.error("Error: Null main class object in getting methods ");
             return null;
         }
         boolean found = false;
@@ -301,12 +303,12 @@ public class UtilReflector
             }
             catch (SecurityException security)
             {
-                System.out.println("Security Exception: " + security.getMessage() + " for class " + mainClassObject.getName());
+                Logger.error("Security Exception: " + security.getMessage() + " for class " + mainClassObject.getName());
                 return null;
             }
             catch (Exception e)
             {
-                e.printStackTrace();
+                Logger.error("Unknown Error", e);
                 return null;
             }
         }
@@ -326,14 +328,14 @@ public class UtilReflector
 	{
 		if (mainClass == null)
 		{
-			System.out.println("Error: Null main class in executing method " + methodName);
+			Logger.error("Error: Null main class in executing method " + methodName);
 			return null;
 		}
 		Method methodObject = getMethod(mainClass, methodName, params);
 
 		if (methodObject == null)
 		{
-			System.out.println("Error: Null method object in executing method " + methodName);
+			Logger.error("Error: Null method object in executing method " + methodName);
 			return null;
 		}
         return executeMethod(mainClass, args, methodObject);
@@ -348,22 +350,22 @@ public class UtilReflector
 		}
         catch (IllegalAccessException iae)
         {
-            System.out.println("Illegal Access Exception: " + iae.getMessage() + " for method " + methodObject.getName());
+            Logger.error("Illegal Access Exception: " + iae.getMessage() + " for method " + methodObject.getName());
             return null;
         }
         catch (IllegalArgumentException iArge)
         {
-            System.out.println("Illegal Arguement Exception: " + iArge.getMessage() + " for method " + methodObject.getName());
+            Logger.error("Illegal Arguement Exception: " + iArge.getMessage() + " for method " + methodObject.getName());
             return null;
         }
         catch (InvocationTargetException ite)
         {
-            System.out.println("Invocation Target Exception: " + ite.getMessage() + " for method " + methodObject.getName());
+            Logger.error("Invocation Target Exception: " + ite.getMessage() + " for method " + methodObject.getName());
             return null;
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            Logger.error("Unknown Error", e);
             return null;
         }
     }
@@ -378,7 +380,7 @@ public class UtilReflector
 	{
 		if (readMethod == null)
 		{
-	    	System.out.println("Read Method null in getReadMethodObject");
+	    	Logger.error("Read Method null in getReadMethodObject");
 			return null;
 		}
 		Object returnValue = null;
@@ -388,7 +390,7 @@ public class UtilReflector
 			Object[] args = new Object[params.length];
 			for (int j=0; j < params.length; j++)
 			{
-				System.out.println("Parameter Name: " + params[j].getName());
+				Logger.error("Parameter Name: " + params[j].getName());
 				args[j] = params[j].newInstance();
 			}
 
@@ -409,7 +411,7 @@ public class UtilReflector
 		}
 	    catch (Exception e)
 	    {
-	    	e.printStackTrace();
+	    	Logger.error("Unknown Error", e);
 	    }
 	    return returnValue;
 	}

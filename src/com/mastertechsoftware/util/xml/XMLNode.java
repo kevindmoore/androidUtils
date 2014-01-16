@@ -5,7 +5,7 @@
 package com.mastertechsoftware.util.xml;
 
 
-import com.mastertechsoftware.list.MapList;
+import com.mastertechsoftware.util.list.MapList;
 import com.mastertechsoftware.util.log.Logger;
 
 import java.io.UnsupportedEncodingException;
