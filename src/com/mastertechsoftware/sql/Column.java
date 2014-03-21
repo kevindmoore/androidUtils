@@ -7,6 +7,7 @@ public class Column {
 	public enum COLUMN_TYPE {
 		INTEGER,
         LONG,
+        DOUBLE,
         TEXT,
         FLOAT,
         BOOLEAN,

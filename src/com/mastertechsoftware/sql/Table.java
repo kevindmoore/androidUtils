@@ -57,6 +57,18 @@ public abstract class Table<T> {
 		return columns;
 	}
 
+    /**
+     * Return the names of the columns
+     * @return List<String>
+     */
+    public List<String> getColumnNames() {
+        ArrayList<String> columnNames = new ArrayList<String>();
+        for (Column column : columns) {
+            columnNames.add(column.getName());
+        }
+        return columnNames;
+    }
+
 	/**
 	 * Replace the current columns with this list
 	 * @param columns
@@ -122,7 +134,7 @@ public abstract class Table<T> {
 	 */
 	public String getCreateTableString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("CREATE TABLE ").append(tableName).append(" (");
+		builder.append("CREATE TABLE IF NOT EXISTS ").append(tableName).append(" (");
 		boolean firstColumn = true;
 		for (Column column : columns) {
 			if (!firstColumn) {

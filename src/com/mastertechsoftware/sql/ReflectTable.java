@@ -19,9 +19,9 @@ public class ReflectTable<T> extends AbstractTable<T> {
 		mapper = new Mapper();
 		String tableName = type.getClass().getSimpleName().toLowerCase();
 		setTableName(tableName);
-		Field[] fields = UtilReflector.getFields(type.getClass());
-		boolean idFieldFound = false;
-		for (Field field : fields) {
+        ArrayList<Field> allFields = UtilReflector.getAllFields(type.getClass());
+        boolean idFieldFound = false;
+		for (Field field : allFields) {
 			Column.COLUMN_TYPE column_type = Column.COLUMN_TYPE.TEXT;
 			Class<?> fieldType = field.getType();
 			if (fieldType == int.class || fieldType == Integer.class) {
@@ -32,6 +32,8 @@ public class ReflectTable<T> extends AbstractTable<T> {
 				column_type = Column.COLUMN_TYPE.BOOLEAN;
 			} else if (fieldType == long.class || fieldType == Long.class) {
 				column_type = Column.COLUMN_TYPE.LONG;
+			} else if (fieldType == double.class || fieldType == Double.class) {
+				column_type = Column.COLUMN_TYPE.DOUBLE;
 			} else if (fieldType == Number.class) {
 				column_type = Column.COLUMN_TYPE.INTEGER;
 			}
@@ -45,7 +47,7 @@ public class ReflectTable<T> extends AbstractTable<T> {
 			addColumn(column);
 		}
 		if (!idFieldFound) {
-			throw new RuntimeException("No ID field found");
+			throw new RuntimeException("No ID field found for table " + tableName);
 		}
 	}
 
@@ -57,8 +59,12 @@ public class ReflectTable<T> extends AbstractTable<T> {
 
 		@Override
 		public void write(ContentValues cv, Column column, T type) {
-			Field[] fields = UtilReflector.getFields(type.getClass());
-			Field field = fields[column.getColumnPosition()];
+            ArrayList<Field> allFields = UtilReflector.getAllFields(type.getClass());
+            if (allFields.size() < column.getColumnPosition()) {
+                Logger.error(this, "Field at position " + column.getColumnPosition() + " does not exist");
+                return;
+            }
+            Field field = allFields.get(column.getColumnPosition());
 			field.setAccessible(true);
 
 			// Need to skip ID
@@ -101,6 +107,13 @@ public class ReflectTable<T> extends AbstractTable<T> {
 						Logger.error(this, "Problems mapping column " + column.getName(), e);
 					}
 					break;
+				case DOUBLE:
+					try {
+						cv.put(column.getName(), (Double)field.get(type));
+					} catch (IllegalAccessException e) {
+						Logger.error(this, "Problems mapping column " + column.getName(), e);
+					}
+					break;
 			}
 		}
 
@@ -111,8 +124,12 @@ public class ReflectTable<T> extends AbstractTable<T> {
 				Logger.error(this, "Mapper.read: Column " + column.getName() + " does not exist in cursor");
 				return;
 			}
-			Field[] fields = UtilReflector.getFields(type.getClass());
-			Field field = fields[column.getColumnPosition()];
+            ArrayList<Field> allFields = UtilReflector.getAllFields(type.getClass());
+            if (allFields.size() < column.getColumnPosition()) {
+                Logger.error(this, "Field at position " + column.getColumnPosition() + " does not exist");
+                return;
+            }
+            Field field = allFields.get(column.getColumnPosition());
 			field.setAccessible(true);
 			switch (column.getType()) {
 				case TEXT:
@@ -146,6 +163,13 @@ public class ReflectTable<T> extends AbstractTable<T> {
 				case LONG:
 					try {
 						field.set(type, cursor.getLong(columnIndex));
+					} catch (IllegalAccessException e) {
+						Logger.error(this, "Problems mapping column " + column.getName(), e);
+					}
+					break;
+				case DOUBLE:
+					try {
+						field.set(type, cursor.getDouble(columnIndex));
 					} catch (IllegalAccessException e) {
 						Logger.error(this, "Problems mapping column " + column.getName(), e);
 					}

@@ -129,15 +129,14 @@ public class Database {
 	 * Create the database from all the tables
 	 */
 	public void createDatabase() {
-		try {
-			for (Table table : tables) {
-				String createTableString = table.getCreateTableString();
-				database.execSQL(createTableString);
-			}
-
-		} catch (SQLiteException e) {
-			Logger.error(this, e.getMessage());
-		}
+        for (Table table : tables) {
+            String createTableString = table.getCreateTableString();
+            try {
+                database.execSQL(createTableString);
+            } catch (SQLiteException e) {
+                Logger.error(this, e.getMessage());
+            }
+        }
 	}
 
 	/**

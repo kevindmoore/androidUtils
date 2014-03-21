@@ -5,7 +5,6 @@
       <configuration>
         <option name="LIBRARY_PROJECT" value="true" />
         <includeAssetsFromLibraries>true</includeAssetsFromLibraries>
-        <resOverlayFolders />
         <notImportedProperties>
           <property>MANIFEST_FILE_PATH</property>
           <property>RESOURCES_DIR_PATH</property>
@@ -24,7 +23,7 @@
       <excludeFolder url="file://$MODULE_DIR$/backup" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="jdk" jdkName="Android 4.1 Platform" jdkType="Android SDK" />
+    <orderEntry type="jdk" jdkName="Android API 19 Platform" jdkType="Android SDK" />
     <orderEntry type="library" name="android-support-v4" level="application" />
   </component>
 </module>

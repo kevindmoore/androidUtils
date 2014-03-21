@@ -410,7 +410,7 @@ public class AbstractTable<T> extends Table<T> {
      * @param mapper
      * @return List<T>
      */
-    public List<T> getAllEntries(Database database, Class<T> cls, DataMapper<T> mapper) {
+    public List<? extends T> getAllEntries(Database database, Class<? extends T> cls, DataMapper<T> mapper) {
         Cursor cursor = null;
         List<T> dataList = new ArrayList<T>();
         try {

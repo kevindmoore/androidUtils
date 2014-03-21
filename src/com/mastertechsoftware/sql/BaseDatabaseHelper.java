@@ -8,9 +8,7 @@ import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import com.mastertechsoftware.util.log.Logger;
-import com.mastertechsoftware.util.reflect.UtilReflector;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -72,7 +70,7 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper {
 		createLocalDB();
 
 		try {
-			if (cursor.getCount() == 0) {
+			if (cursor == null || cursor.getCount() == 0) {
 				//                Logger.debug(this, "Creating DB");
 				localDatabase.createDatabase();
 				state = STATE.CREATED;
@@ -80,7 +78,9 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper {
 		} catch (SQLiteException e) {
 			Logger.error(this, e.getMessage());
 		} finally {
-			cursor.close();
+            if (cursor != null) {
+                cursor.close();
+            }
 		}
 	}
 
@@ -253,6 +253,9 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper {
 		try {
 			open();
 			sqLiteDatabase.execSQL(sql);
+        } catch (IllegalArgumentException e) {
+            Logger.error(this, e.getMessage());
+            throw new DBException("Problems executing " + sql + " for database " + mainTableName, e);
 		} catch (SQLiteException e) {
 			Logger.error(this, e.getMessage());
 			throw new DBException("Problems executing " + sql + " for database " + mainTableName, e);
@@ -272,6 +275,9 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper {
 		try {
 			open();
 			return sqLiteDatabase.rawQuery(sql, selectionArgs);
+		} catch (IllegalArgumentException e) {
+            Logger.error(this, e.getMessage());
+            throw new DBException("Problems executing " + sql + " for database " + mainTableName, e);
 		} catch (SQLiteException e) {
 			Logger.error(this, e.getMessage());
 			throw new DBException("Problems executing " + sql + " for database " + mainTableName, e);

@@ -21,13 +21,13 @@ public class TextAdapter<T> extends ArrayAdapter<T> {
         this.section = section;
     }
 
-    public TextAdapter(int section, Context context, int textViewResourceId, T[] objects) {
-        super(context, textViewResourceId, objects);
+    public TextAdapter(int section, Context context, int resource, T[] objects) {
+        super(context, resource, objects);
         this.section = section;
     }
 
-    public TextAdapter(int section, Context context, int textViewResourceId, List<T> objects) {
-        super(context, textViewResourceId, objects);
+    public TextAdapter(int section, Context context, int resource, List<T> objects) {
+        super(context, resource, objects);
         this.section = section;
     }
 
@@ -43,16 +43,16 @@ public class TextAdapter<T> extends ArrayAdapter<T> {
         super(context, resource, textViewResourceId, objects);
     }
 
-    public TextAdapter(Context context, int textViewResourceId) {
-        super(context, textViewResourceId);
+    public TextAdapter(Context context, int resource) {
+        super(context, resource);
     }
 
-    public TextAdapter(Context context, int textViewResourceId, List<T> objects) {
-        super(context, textViewResourceId, objects);
+    public TextAdapter(Context context, int resource, List<T> objects) {
+        super(context, resource, objects);
     }
 
-    public TextAdapter(Context context, int textViewResourceId, T[] objects) {
-        super(context, textViewResourceId, objects);
+    public TextAdapter(Context context, int resource, T[] objects) {
+        super(context, resource, objects);
     }
 
     public int getSection() {

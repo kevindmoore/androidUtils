@@ -9,18 +9,18 @@ import java.util.List;
 /**
  * Hold all the pieces needed for Handling a reflection db.
  */
-public class ReflectionDBHelper<ReflectTableInterface> {
+public class ReflectionDBHelper {
 
 	protected List<CRUDHelper<ReflectTableInterface>> crudHelpers = new ArrayList<CRUDHelper<ReflectTableInterface>>();
 	protected Database database;
 	protected BaseDatabaseHelper databaseHelper;
 
-	public ReflectionDBHelper(Context context, String dbName, String tableName, Class<ReflectTableInterface> ... types) {
-		databaseHelper = new BaseDatabaseHelper(context, dbName, tableName, 1);
+	public ReflectionDBHelper(Context context, String dbName, String mainTableName, Class<? extends ReflectTableInterface> ... types) {
+		databaseHelper = new BaseDatabaseHelper(context, dbName, mainTableName, 1);
 		database = new Database();
 		databaseHelper.setLocalDatabase(database);
 		try {
-			for (Class<ReflectTableInterface> reflectClass : types) {
+			for (Class<? extends ReflectTableInterface> reflectClass : types) {
 				ReflectTable<ReflectTableInterface> table = new ReflectTable<ReflectTableInterface>(reflectClass.newInstance());
 				database.addTable(table);
 				CRUDHelper<ReflectTableInterface> crudHelper = new CRUDHelper<ReflectTableInterface>(table, databaseHelper);
@@ -33,7 +33,15 @@ public class ReflectionDBHelper<ReflectTableInterface> {
 		}
 	}
 
-	public CRUDHelper<ReflectTableInterface> getCrudHelper(int position) {
+    public Database getDatabase() {
+        return database;
+    }
+
+    public BaseDatabaseHelper getDatabaseHelper() {
+        return databaseHelper;
+    }
+
+    public CRUDHelper<ReflectTableInterface> getCrudHelper(int position) {
 		return crudHelpers.get(position);
 	}
 

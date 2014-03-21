@@ -1,5 +1,6 @@
 package com.mastertechsoftware.util.log;
 
+import android.os.Environment;
 import android.util.Log;
 
 import com.mastertechsoftware.util.StackTraceOutput;
@@ -9,23 +10,33 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 /**
  * Date: Jun 21, 2010
  */
 public class SDLogger {
+    public static final String LOG_DIRECTORY = "com.mastertechsoftware/";
     private static File sdFile;
-    private static String directory = "/sdcard/com.mastertechsoftware/";
+    private static String directory;
     private static String logFile = "Log.txt";
     private static boolean logFileSet = false;
-    protected static SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy hh:mm");
+    protected static SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy hh:mm", Locale.US);
 	protected static int error_file_size = -1; // Unlimited
 	protected static int application_log_lines = -1; // Unlimited
 	protected static int max_log_lines = -1; // Unlimited
 	private static String application_filter = "com\\.mastertechsoftware.*";
 	private static String system_filter = "(com\\.android.*)|(android\\..*)|(org\\.apache\\..*)|(java\\..*)";
 
-	/**
+    static {
+        directory = Environment.getExternalStorageDirectory().getAbsolutePath();
+        if (!directory.endsWith("/")) {
+            directory += "/";
+        }
+        directory += LOG_DIRECTORY;
+    }
+
+    /**
 	 * Write the stack trace and msg
 	 * @param msg
 	 * @param e
@@ -70,7 +81,7 @@ public class SDLogger {
                 writer.close();
 
             } catch (IOException e1) {
-                Log.e("SDLogger", "Problems Writting Error Log", e1);
+                Log.e("SDLogger", "Problems Writing Error Log", e1);
             }
         }
     }
