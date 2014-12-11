@@ -2,6 +2,8 @@
 .classpath
 .project
 .settings/
+.gradle/
+build/
 local.properties
 gen/
 AndroidUtils.apk
