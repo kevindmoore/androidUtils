@@ -1,32 +1,38 @@
 buildscript {
     repositories {
-        mavenCentral()
+        maven { url 'http://repo1.maven.org/maven2' }
     }
-
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.4.2'
+        classpath 'com.android.tools.build:gradle:1.0.0'
     }
 }
 
-apply plugin: 'android-library'
+apply plugin: 'com.android.library'
 
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
 
 dependencies {
-    compile 'android-support:v4:1'
+    compile 'com.android.support:support-v4:21.0.0'
 }
 
 android {
-    buildToolsVersion "17.0"
-    compileSdkVersion 18
+    compileSdkVersion 19
+    buildToolsVersion "20"
+    defaultConfig {
+        minSdkVersion 14
+        targetSdkVersion 19
+    }
+    packagingOptions {
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE.txt'
+    }
+    lintOptions {
+        abortOnError false
+    }
     sourceSets {
-        main {
-            manifest.srcFile 'AndroidManifest.xml'
-            java.srcDirs = ['src']
-            resources.srcDirs = ['res']
-            aidl.srcDirs = ['src']
-            renderscript.srcDirs = ['src']
-            res.srcDirs = ['res']
-        }
         debug.setRoot('build-types/debug')
         release.setRoot('build-types/release')
     }
