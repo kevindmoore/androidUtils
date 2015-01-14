@@ -17,10 +17,12 @@ public class FileCache {
     protected static int defaultBufferSize = 8192;
     private static FileCache instance;
     private Context context;
+	private File cacheDir;
 
     public static FileCache getInstance(Context context) {
         if (instance == null) {
             instance = new FileCache(context);
+			instance.cacheDir = context.getCacheDir();
         }
         return instance;
     }
@@ -33,11 +35,14 @@ public class FileCache {
         this.context = context;
     }
 
-    /**
+	public void setCacheDir(File cacheDir) {
+		this.cacheDir = cacheDir;
+	}
+
+	/**
      * Clear all cache files
      */
     public void clearCache() {
-        File cacheDir = context.getCacheDir();
         File[] files = cacheDir.listFiles();
         if (files == null) {
             return;
@@ -47,7 +52,6 @@ public class FileCache {
         }
     }
     public File getFileCache(String name) {
-        File cacheDir = context.getCacheDir();
         return new File(cacheDir, name);
     }
 
@@ -70,7 +74,6 @@ public class FileCache {
     }
 
     public void saveFileCache(String name, String data) {
-        File cacheDir = context.getCacheDir();
         File fileCache = new File(cacheDir, name);
         try {
             FileWriter writer = new FileWriter(fileCache, false);

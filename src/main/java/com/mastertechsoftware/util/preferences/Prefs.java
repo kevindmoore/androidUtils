@@ -3,7 +3,9 @@ package com.mastertechsoftware.util.preferences;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.text.TextUtils;
 
+import com.mastertechsoftware.json.JSONData;
 import com.mastertechsoftware.util.log.Logger;
 /**
  * Handle System Preferences
@@ -100,6 +102,17 @@ public class Prefs {
         return mSharedPreferences.getLong(key, 0);
     }
 
+	public Object getObject(String key, Class type) {
+		if (!checkSharedPreferences()) {
+			return null;
+		}
+		String stringObject = mSharedPreferences.getString(key, null);
+		if (!TextUtils.isEmpty(stringObject)) {
+			return JSONData.convertFromJSON(stringObject, type);
+		}
+		return null;
+	}
+
     public void putBoolean(String key, boolean value) {
         if (!checkSharedPreferences()) {
             return;
@@ -127,6 +140,21 @@ public class Prefs {
         }
         mSharedPreferences.edit().putLong(key, value).commit();
     }
+
+	public void putObject(String key, Object object) {
+		if (!checkSharedPreferences()) {
+			return;
+		}
+		mSharedPreferences.edit().putString(key, JSONData.convertToJSON(object)).commit();
+
+	}
+
+	public void removePref(String key) {
+		if (!checkSharedPreferences()) {
+			return;
+		}
+		mSharedPreferences.edit().remove(key).commit();
+	}
 
     private boolean checkSharedPreferences() {
         if (mSharedPreferences == null) {

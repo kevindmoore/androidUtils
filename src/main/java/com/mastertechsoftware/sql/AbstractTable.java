@@ -389,7 +389,6 @@ public class AbstractTable<T> extends Table<T> {
                 mapper.write(cv, column, data);
                 columnPosition++;
             }
-			Logger.debug(this, "updateEntry for table " + getTableName() + " id: " + getIdField() + " with where args: " + whereArgs[0]);
             return database.getDatabase().update(getTableName(), cv, getIdField() + "=?", whereArgs);
         } catch (SQLiteException e) {
             Logger.error(this, e.getMessage());
@@ -504,7 +503,7 @@ public class AbstractTable<T> extends Table<T> {
         List<T> dataList = new ArrayList<T>();
         String[] params = { String.valueOf(columnValue) };
         try {
-            cursor = database.getDatabase().query(getTableName(), getProjection(), columnName + " LIKE ?",
+			cursor = database.getDatabase().query(getTableName(), getProjection(), columnName + " LIKE ?",
                     params, null,
                     null, null);
             if (cursor == null) {

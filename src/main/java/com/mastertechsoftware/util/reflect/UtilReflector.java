@@ -99,7 +99,7 @@ public class UtilReflector
         return constructor.newInstance();
     }
 
-    /**
+   /**
 	* getField - method to return a field object
 	* @param mainClass class to check for field
 	* @param fieldName field name  to check for
@@ -256,12 +256,24 @@ public class UtilReflector
 		while (mainClass != null)
 		{
 		   	Field[] fields = getFields(mainClass);
-		   	for (int i=0; i < fields.length; i++)
-		   	{
-                if (!fields[i].getType().getName().equalsIgnoreCase(android.os.Parcelable.Creator.class.getName())) {
-                    list.add(fields[i]);
-                }
-		   	}
+			// For Enums, only get the ordinal
+			if (mainClass.isEnum()) {
+				mainClass = mainClass.getSuperclass();
+				fields = getFields(mainClass);
+				for (int i = 0; i < fields.length; i++) {
+					if (fields[i].getName().equalsIgnoreCase("ordinal")) {
+						list.add(fields[i]);
+						return list;
+					}
+				}
+
+			} else {
+				for (int i = 0; i < fields.length; i++) {
+					if (!fields[i].getType().getName().equalsIgnoreCase(android.os.Parcelable.Creator.class.getName())) {
+						list.add(fields[i]);
+					}
+				}
+			}
 		   	mainClass = mainClass.getSuperclass();
 		}
 		return list;

@@ -14,20 +14,25 @@ import java.util.Map;
  */
 public class ReflectionDBHelper {
 
-    protected List<CRUDHelper<ReflectTableInterface>> crudHelpers = new ArrayList<CRUDHelper<ReflectTableInterface>>();
+	protected List<CRUDHelper<ReflectTableInterface>> crudHelpers = new ArrayList<CRUDHelper<ReflectTableInterface>>();
     protected Database database;
     protected BaseDatabaseHelper databaseHelper;
     protected Map<Class, Integer> classMapper = new HashMap<Class, Integer>();
 	protected boolean debugging = false;
 
-    public ReflectionDBHelper(Context context, String dbName, String mainTableName, Class<? extends ReflectTableInterface>... types) {
+	public ReflectionDBHelper(Context context, String dbName, String mainTableName, int version, Class<? extends ReflectTableInterface>... types) {
 		Logger.setDebug(ReflectionDBHelper.class.getSimpleName(), debugging);
-        databaseHelper = new BaseDatabaseHelper(context, dbName, mainTableName, 1);
-        database = new Database();
-        databaseHelper.setLocalDatabase(database);
-        for (Class<? extends ReflectTableInterface> reflectClass : types) {
-            addTable(reflectClass);
-        }
+		databaseHelper = new BaseDatabaseHelper(context, dbName, mainTableName, version);
+		database = new Database();
+		databaseHelper.setLocalDatabase(database);
+		for (Class<? extends ReflectTableInterface> reflectClass : types) {
+			addTable(reflectClass);
+		}
+
+	}
+	
+	public ReflectionDBHelper(Context context, String dbName, String mainTableName, Class<? extends ReflectTableInterface>... types) {
+		this(context, dbName, mainTableName, 1, types);
     }
 
     private void addTable(Class<? extends ReflectTableInterface> reflectClass) {
@@ -139,4 +144,32 @@ public class ReflectionDBHelper {
         CRUDHelper<ReflectTableInterface> crudHelper = getCrudHelper(position);
         return (List) crudHelper.getItemsWhere(type, columnName, columnValue);
     }
+
+	public Object getItem(Class type, long id, ReflectTableInterface newItem) {
+		Integer position = classMapper.get(type);
+		if (position == null) {
+			Logger.error("Type " + type.getName() + " Not found");
+			return null;
+		}
+		CRUDHelper<ReflectTableInterface> crudHelper = getCrudHelper(position);
+		return crudHelper.getItem(id, newItem);
+	}
+
+	public Object getItemWhere(Class type, String columnName, String columnValue) {
+		Integer position = classMapper.get(type);
+		if (position == null) {
+			Logger.error("Type " + type.getName() + " Not found");
+			return null;
+		}
+		CRUDHelper<ReflectTableInterface> crudHelper = getCrudHelper(position);
+		try {
+			return crudHelper.getItemWhere((ReflectTableInterface) type.newInstance(), columnName, columnValue);
+		} catch (InstantiationException e) {
+			Logger.error("Problems Creating object of type " + type.getName(), e);
+		} catch (IllegalAccessException e) {
+			Logger.error("Problems Creating object of type " + type.getName(), e);
+		}
+		return null;
+	}
+
 }

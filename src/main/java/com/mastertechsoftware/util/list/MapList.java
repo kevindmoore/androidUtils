@@ -5,6 +5,7 @@ import java.util.*;
 /**
  * Date: Aug 7, 2010
  * This is a map that allows duplicate values, like a list
+ * and allows you to have a list of items for a key
  */
 public class MapList<K,V> implements Map<K,V> {
 

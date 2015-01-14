@@ -111,6 +111,28 @@ public class CRUDHelper<T> {
 	}
 
 	/**
+	 * Return a specific item that matches the given column & value
+	 * @param classItem
+	 * @param columnName
+	 * @param columnValue
+	 * @return T
+	 */
+	public T getItemWhere(T classItem, String columnName, String columnValue) {
+		// Lock it!
+		mLock.lock();
+		try {
+			databaseHelper.startTransaction();
+			return table.getEntry(database, classItem, columnName, columnValue, table.getMapper());
+		} catch (DBException e) {
+			Logger.error(this, "Problems starting transaction");
+		} finally {
+			databaseHelper.endTransaction();
+			mLock.unlock();
+		}
+		return null;
+	}
+
+	/**
 	 * Get the list of all items
 	 * @return List<T>
 	 */
@@ -226,4 +248,25 @@ public class CRUDHelper<T> {
     public List<String> getColumnNames() {
         return table.getColumnNames();
     }
+
+	/**
+	 * Get an item with the given id
+	 * @param id
+	 * @param item
+	 * @return Object
+	 */
+	public Object getItem(long id, T item) {
+		// Lock it!
+		mLock.lock();
+		try {
+			databaseHelper.startTransaction();
+			return table.getEntry(database, id, item, table.getMapper());
+		} catch (DBException e) {
+			Logger.error(this, "Problems starting transaction");
+		} finally {
+			databaseHelper.endTransaction();
+			mLock.unlock();
+		}
+		return null;
+	}
 }

@@ -3,15 +3,38 @@ package com.mastertechsoftware.util.log;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.mastertechsoftware.json.JSONData;
+import com.mastertechsoftware.json.JSONDataException;
 import com.mastertechsoftware.util.StackTraceOutput;
 
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Class used to funnel all error messages so that we can log to sd card.
  */
 public class Logger {
     public static final int MESSAGE_MAX_LENGTH = 4000;
+	public static final String SETUP = "setup";
+	public static final String LOG_FILENAME = "logFilename";
+	public static final String LOG_FILESIZE = "logFilesize";
+	public static final String APPTAG = "apptag";
+	public static final String APP_LOG_LINES = "appLogLines";
+	public static final String MAX_LOG_LINES = "maxLogLines";
+	public static final String CLASSES = "classes";
+	public static final String CLASS_NAME = "className";
+	public static final String VERBOSE = "VERBOSE";
+	public static final String DEBUG = "debug";
+	public static final String INFO = "INFO";
+	public static final String WARNING = "Warning";
+	public static final String ERROR = "ERROR";
+	public static final String WTF = "WTF";
+	public static final String LOGGING = "logging";
+	public static final String ENABLED = "enabled";
+	public static final String DISABLED = "disabled";
+	public static final String CATEGORY = "category";
+	public static final String CATEGORIES = "Categories";
+	public static final String NAME = "name";
 
 	public enum TYPE {
 		INFO,
@@ -24,8 +47,82 @@ public class Logger {
 
     private static String applicationTag = "MasterTech";
     private static HashMap<String, Boolean> classesDebugStates = new HashMap<String, Boolean>();
-    private static HashMap<String, Boolean> classesDebugLogging = new HashMap<String, Boolean>();
+    private static HashMap<String, Boolean> classesToWriteToSD = new HashMap<String, Boolean>();
+    private static HashMap<String, ClassInfo> classInfoHashMap = new HashMap<String, ClassInfo>();
+    private static HashMap<String, Category> classCategoryMap = new HashMap<String, Category>();
 	private static boolean debuggingDisabled = false;
+
+	public static void readConfiguration(String json) {
+		try {
+			JSONData jsonData = new JSONData(json);
+			if (jsonData.has(SETUP)) {
+				JSONData setup = jsonData.findChild(SETUP);
+				if (setup.has(LOG_FILENAME)) {
+					SDLogger.setLogFile(setup.getChildString(LOG_FILENAME));
+				}
+				if (setup.has(APPTAG)) {
+					setApplicationTag(setup.getChildString(APPTAG));
+				}
+				if (setup.has(LOG_FILESIZE)) {
+					SDLogger.setSDFileSize(setup.getChildInt(LOG_FILESIZE));
+				}
+				if (setup.has(APP_LOG_LINES)) {
+					SDLogger.setApplicationLogLines(setup.getChildInt(APP_LOG_LINES));
+				}
+				if (setup.has(MAX_LOG_LINES)) {
+					SDLogger.setMaxLogLines(setup.getChildInt(MAX_LOG_LINES));
+				}
+			}
+			if (jsonData.has(CATEGORIES)) {
+				JSONData categories = jsonData.findChild(CATEGORIES);
+				List<JSONData> children = categories.getChildren();
+				for (JSONData childData : children) {
+					Category category = new Category();
+					if (childData.has(NAME)) {
+						category.setName(categories.getChildString(NAME));
+					}
+					if (childData.has(LOGGING)) {
+						String enabled = childData.getChildString(LOGGING);
+						if (ENABLED.equalsIgnoreCase(enabled)) {
+							category.setEnabled(true);
+						} else if (DISABLED.equalsIgnoreCase(enabled)) {
+							category.setEnabled(false);
+						}
+					}
+					classCategoryMap.put(category.getName(), category);
+				}
+			}
+			if (jsonData.has(CLASSES)) {
+				JSONData classes = jsonData.findChild(CLASSES);
+				List<JSONData> children = classes.getChildren();
+				for (JSONData childData : children) {
+
+					ClassInfo classInfo = new ClassInfo();
+					if (childData.has(CLASS_NAME)) {
+						classInfo.setClassName(childData.getChildString(CLASS_NAME));
+					} else {
+						Log.e("Logger", "Invalid Logging Setup File. Classes need a classname");
+						return;
+					}
+					if (childData.has(CATEGORY)) {
+						String categoryName = childData.getChildString(CATEGORY);
+						classInfo.setCategory(categoryName);
+					}
+					if (childData.has(LOGGING)) {
+						String enabled = childData.getChildString(LOGGING);
+						if (ENABLED.equalsIgnoreCase(enabled)) {
+							classInfo.setEnabled(true);
+						} else if (DISABLED.equalsIgnoreCase(enabled)) {
+							classInfo.setEnabled(false);
+						}
+					}
+					classInfoHashMap.put(classInfo.getClassName(), classInfo);
+				}
+			}
+		} catch (JSONDataException e) {
+			e.printStackTrace();
+		}
+	}
 
     /**
      * Required. Set the tag that will always show. Usually your application name.
@@ -254,7 +351,7 @@ public class Logger {
     }
 
     public static void setDebugLogging(String classToDebug, Boolean enabled) {
-		classesDebugLogging.put(classToDebug, enabled);
+		classesToWriteToSD.put(classToDebug, enabled);
     }
 
     /**
@@ -336,17 +433,16 @@ public class Logger {
     }
 
 	public static void debugLocal(TYPE type, String tag, String simpleName, String message, Throwable throwable) {
-		Boolean debugEnabled = classesDebugStates.get(simpleName);
-		if (debuggingDisabled || (debugEnabled != null && !debugEnabled)) {
+		if (shouldNotLog(simpleName)) {
 			return;
 		}
 		if (message == null || message.length() == 0) {
 			message = "";
 		}
         try {
-		if (simpleName != null && simpleName.length() > 1) {
-			message = simpleName + ": " + message;
-		}
+			if (simpleName != null && simpleName.length() > 1) {
+				message = simpleName + ": " + message;
+			}
             splitLongMessage(type, tag, message, throwable);
         } catch (OutOfMemoryError oom) {
             Log.e(applicationTag,"OOM Error caught in Logger.debugLocal(TYPE type, String tag, String simpleName, String message, Throwable throwable)! switch case was: " + type, oom);
@@ -355,7 +451,7 @@ public class Logger {
 		}
 
         try {
-			Boolean logDebugMsgs = classesDebugLogging.get(simpleName);
+			Boolean logDebugMsgs = classesToWriteToSD.get(simpleName);
 			if (logDebugMsgs != null && logDebugMsgs) {
 				SDLogger.log(message);
 			}
@@ -366,15 +462,38 @@ public class Logger {
         }
 	}
 
+	/**
+	 * Check to see if we should be logging this class.
+	 * @param simpleName
+	 * @return true if we should not log
+	 */
+	private static boolean shouldNotLog(String simpleName) {
+		Boolean debugEnabled = classesDebugStates.get(simpleName);
+		if (debuggingDisabled || (debugEnabled != null && !debugEnabled)) {
+			return true;
+		}
+		ClassInfo classInfo = classInfoHashMap.get(simpleName);
+		if (classInfo != null && !classInfo.isEnabled()) {
+			return true;
+		}
+		if (classInfo != null) {
+			Category category = classCategoryMap.get(classInfo.getCategory());
+			if (category != null && !category.isEnabled()) {
+				return true;
+			}
+		}
+		return false;
+	}
 
-    public static void debug(String message) {
+	public static void debug(String message) {
         debug(applicationTag, message);
     }
 
 	public static void debug(String message, Object... args) {
         debug(applicationTag, parseMessage(message, args));
 	}
-    public static void debugNow(String message) {
+
+	public static void debugNow(String message) {
 		if (debuggingDisabled) {
 			return;
 		}
@@ -431,8 +550,7 @@ public class Logger {
 			return;
 		}
 		String callerClassName = StackTraceOutput.getCallerClassName();
-		Boolean debugEnabled = classesDebugStates.get(callerClassName);
-		if (debuggingDisabled || (debugEnabled != null && !debugEnabled)) {
+		if (shouldNotLog(callerClassName)) {
 			return;
 		}
         if (TextUtils.isEmpty(tag)) {

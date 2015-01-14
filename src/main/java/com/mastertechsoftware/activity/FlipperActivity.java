@@ -1,10 +1,5 @@
 package com.mastertechsoftware.activity;
 
-import com.mastertechsoftware.AndroidUtil.R;
-import com.mastertechsoftware.util.ExceptionHandler;
-import com.mastertechsoftware.util.StackTraceOutput;
-import com.mastertechsoftware.util.log.Logger;
-
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -29,6 +24,10 @@ import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ListView;
 import android.widget.ViewFlipper;
+
+import com.mastertechsoftware.AndroidUtil.R;
+import com.mastertechsoftware.util.StackTraceOutput;
+import com.mastertechsoftware.util.log.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,7 +60,7 @@ public abstract class FlipperActivity extends Activity {
 	protected List<ActivityListener> activityListenerList = new ArrayList<ActivityListener>();
 	protected List<ActivityListener> allActivities = new ArrayList<ActivityListener>();
 	protected boolean handlingBack = false;
-	protected boolean debugging = true;
+	protected boolean debugging = false;
 	private int[] location = new int[2];
 	private final Rect mTempRect = new Rect();
 
@@ -70,7 +69,7 @@ public abstract class FlipperActivity extends Activity {
 	public void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
-		Logger.setDebug(getClass().getSimpleName(), debugging);
+//		Logger.setDebug("FlipperActivity", debugging);
 //		Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler(this));
 
 		DisplayMetrics dm = getResources().getDisplayMetrics();

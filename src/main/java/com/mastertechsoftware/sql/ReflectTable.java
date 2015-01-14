@@ -214,21 +214,32 @@ public class ReflectTable<T> extends AbstractTable<T> {
      */
 	public class Mapper extends AbstractDataMapper<T> {
         Database database;
+		private ArrayList<Field> allFields;
+		private List<Field> reflectFields;
+		private boolean recurse = true;
 
-        public void setDatabase(Database database) {
+		public void setDatabase(Database database) {
             this.database = database;
         }
 
-        @Override
+		public void setRecurse(boolean recurse) {
+			this.recurse = recurse;
+		}
+
+		@Override
 		public void write(ContentValues cv, Column column, T type) {
-            ArrayList<Field> allFields = UtilReflector.getAllFields(type.getClass());
-            List<Field> reflectfields = getReflectFields();
+			if (allFields == null) {
+				allFields = UtilReflector.getAllFields(type.getClass());
+			}
+			if (reflectFields == null) {
+				reflectFields = getReflectFields();
+			}
             Field field = getColumnField(allFields, column);
             if (field == null) {
-                field = getReflectColumnField(reflectfields, column);
+				field = getReflectColumnField(reflectFields, column);
                 if (field != null) {
                     cv.put(column.getName(), (Long) cv.get(column.getName()));
-                    return;
+					return;
                 }
                 Logger.error(this, "Field at position " + column.getColumnPosition() + " does not exist");
                 return;
@@ -296,18 +307,24 @@ public class ReflectTable<T> extends AbstractTable<T> {
 				Logger.error(this, "Mapper.read: Column " + column.getName() + " does not exist in cursor");
 				return;
 			}
-            ArrayList<Field> allFields = UtilReflector.getAllFields(type.getClass());
-            List<Field> reflectfields = getReflectFields();
-            Field field = getColumnField(allFields, column);
+			if (allFields == null) {
+				allFields = UtilReflector.getAllFields(type.getClass());
+			}
+			if (reflectFields == null) {
+				reflectFields = getReflectFields();
+			}
+			Field field = getColumnField(allFields, column);
             if (field == null) {
-                field = getReflectColumnField(reflectfields, column);
+                field = getReflectColumnField(reflectFields, column);
                 if (field != null) {
                     field.setAccessible(true);
                     long id = cursor.getLong(columnIndex);
                     if (database != null) {
                         ReflectTable subTable = (ReflectTable) database.getTable(field.getType().getSimpleName());
                         try {
-                            Object data = subTable.getEntry(database, id, field.getType().newInstance(), subTable.getMapper());
+							Mapper subTableMapper = subTable.getMapper();
+							subTableMapper.setRecurse(false);
+							Object data = subTable.getEntry(database, id, field.getType().newInstance(), subTableMapper);
                             field.set(type, data);
                         } catch (IllegalAccessException e) {
                             Logger.error(this, "Problems mapping column " + column.getName(), e);
@@ -320,7 +337,7 @@ public class ReflectTable<T> extends AbstractTable<T> {
                 }
                 Logger.error(this, "Field at position " + column.getColumnPosition() + " does not exist");
                 return;
-            }
+			}
 			field.setAccessible(true);
             if (!isValidType(field.getType())) {
                 Logger.debug("Invalid object of type " + field.getType());

@@ -23,6 +23,7 @@ public class NotifBuilder {
     protected boolean autoCancel;
     protected boolean localOnly = false;
     protected boolean ongoing = false;
+    protected boolean vibrate = false;
     protected TaskStackBuilder stackBuilder;
     private NotificationCompat.WearableExtender wearableExtender;
     protected List<NotificationCompat.Action.Builder> wearableActions = new ArrayList<NotificationCompat.Action.Builder>();
@@ -81,7 +82,12 @@ public class NotifBuilder {
         return this;
     }
 
-    public NotifBuilder addBackStack(Context context, Class backClass) {
+	public NotifBuilder setVibrating(boolean vibrate) {
+		this.vibrate = vibrate;
+		return this;
+	}
+
+	public NotifBuilder addBackStack(Context context, Class backClass) {
         if (stackBuilder == null) {
             stackBuilder = TaskStackBuilder.create(context);
         }
@@ -90,13 +96,13 @@ public class NotifBuilder {
         return this;
     }
 
-    public NotifBuilder addCurrentWearableAction() {
-        wearableActions.add(createBuilder(wearIcon, wearableTitle, wearIntent));
+    public NotifBuilder addWearableAction(int icon, String title, PendingIntent intent) {
+        wearableActions.add(createBuilder(icon, title, intent));
         return this;
     }
 
-    public NotifBuilder addWearableAction(int icon, String title, PendingIntent intent) {
-        wearableActions.add(createBuilder(icon, title, intent));
+    public NotifBuilder addWearableAction(WearableAction wearableAction) {
+        wearableActions.add(createBuilder(wearableAction.getIcon(), wearableAction.getTitle(), wearableAction.getPendingIntent()));
         return this;
     }
 
@@ -115,6 +121,9 @@ public class NotifBuilder {
         deviceNotification.setAutoCancel(autoCancel);
         deviceNotification.setOngoing(ongoing);
         deviceNotification.setLocalOnly(localOnly);
+		if (vibrate) {
+			deviceNotification.setDefaults(NotificationCompat.DEFAULT_VIBRATE);
+		}
         if (phoneTitle != null) {
             deviceNotification.setContentTitle(phoneTitle);
         }
@@ -131,6 +140,10 @@ public class NotifBuilder {
             deviceNotification.setContentIntent(phoneIntent);
         }
 
+		if (wearIcon != 0 && wearableTitle != null && wearIntent != null) {
+			deviceNotification.addAction(wearIcon, wearableTitle, wearIntent);
+		}
+
         if (wearableActions.size() > 0) {
             wearableExtender = new NotificationCompat.WearableExtender();
             for (NotificationCompat.Action.Builder wearableAction : wearableActions) {
@@ -139,8 +152,8 @@ public class NotifBuilder {
             for (NotificationCompat.Builder wearablePage : wearablePages) {
                 wearableExtender.addPage(wearablePage.build());
             }
-//            return deviceNotification.extend(wearableExtender);
-            return wearableExtender.extend(deviceNotification);
+            return deviceNotification.extend(wearableExtender);
+//            return wearableExtender.extend(deviceNotification);
 //        }
 //        NotificationCompat.Action.Builder wearActionBuilder = null;
 //        if (wearIcon != 0 || wearableTitle != null || wearIntent != null) {

@@ -2,6 +2,8 @@ package com.mastertechsoftware.sql;
 
 import android.content.Context;
 
+import com.mastertechsoftware.util.log.Logger;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -118,6 +120,25 @@ public class DatabaseManager {
         return reflectionDBHelper.getItemsWhere(type, columnName, columnValue);
     }
 
+	/**
+	 * Get a single item
+	 * @param dbName
+	 * @param type
+	 * @param id
+	 * @return Object
+	 */
+	public Object getItem(String dbName, Class type, long id) {
+		ReflectionDBHelper reflectionDBHelper = databases.get(dbName);
+		try {
+			return reflectionDBHelper.getItem(type, id, (ReflectTableInterface) type.newInstance());
+		} catch (InstantiationException e) {
+			Logger.error("Problems Creating object of type " + type.getName(), e);
+		} catch (IllegalAccessException e) {
+			Logger.error("Problems Creating object of type " + type.getName(), e);
+		}
+		return null;
+	}
+
     /**
      * Delete the whole database
      * @param dbName
@@ -126,4 +147,17 @@ public class DatabaseManager {
         ReflectionDBHelper reflectionDBHelper = databases.get(dbName);
         reflectionDBHelper.deleteDatabase();
     }
+
+	/**
+	 * Get a specific item that has the given column name & value
+	 * @param dbName
+	 * @param type
+	 * @param columnName
+	 * @param columnValue
+	 * @return
+	 */
+	public Object getItemWhere(String dbName, Class type, String columnName, String columnValue) {
+		ReflectionDBHelper reflectionDBHelper = databases.get(dbName);
+		return reflectionDBHelper.getItemWhere(type, columnName, columnValue);
+	}
 }

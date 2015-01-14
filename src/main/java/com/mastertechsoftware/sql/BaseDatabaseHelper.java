@@ -141,7 +141,6 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper {
             } else {
                 metaDatabase.setDatabase(sqLiteDatabase);
             }
-            Logger.debug(this, "metaDatabase creation screen " + metaDatabase.getCreateDatabaseString());
             if (cursor == null || cursor.getCount() == 0) {
                 //                Logger.debug(this, "Creating DB");
                 metaDatabase.createDatabase();
