@@ -18,6 +18,7 @@ public class ProgressTimer {
 	protected long hours;
 	protected long minutes;
 	protected long seconds;
+	protected long milliSeconds;
 
 	public void start() {
 		start = System.currentTimeMillis();
@@ -51,7 +52,10 @@ public class ProgressTimer {
 		if (minutes > 0 && seconds > 0) {
 			seconds = seconds - (minutes*60);
 		}
-
+		milliSeconds = totalMs;
+		if (seconds > 0 && milliSeconds > 0) {
+			milliSeconds = milliSeconds - (seconds);
+		}
 	}
 
 	public long getStart() {
@@ -74,9 +78,16 @@ public class ProgressTimer {
 		return seconds;
 	}
 
-    @Override
+	private long getMilliseconds() {
+		return milliSeconds;
+	}
+
+	@Override
     public String toString() {
         return "Total time: Hours: " + getHours() + " Minutes: " + getMinutes() + " Seconds: " + getSeconds();
+    }
+    public String getResults() {
+        return "Total time: Hours: " + getHours() + " Minutes: " + getMinutes() + " Seconds: " + getSeconds() + " Micro: " + getMilliseconds();
     }
 
 }

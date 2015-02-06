@@ -9,7 +9,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * This is a helper class that will do CRUD (Create, read, update, delete) operations
  */
-public class CRUDHelper<T> {
+public class CRUDHelper<T extends ReflectTableInterface> {
 	// Lock used to serialize access to this API.
 	protected final ReentrantLock mLock = new ReentrantLock();
 	protected ReflectTable<T> table;
@@ -59,7 +59,9 @@ public class CRUDHelper<T> {
 		mLock.lock();
 		try {
 			databaseHelper.startTransaction();
-            return table.insertEntry(database, item, table.getMapper());
+			long id = table.insertEntry(database, item, table.getMapper());
+			item.setId((int) id);
+			return id;
 		} catch (DBException e) {
 			Logger.error(this, "Problems starting transaction");
 		} finally {

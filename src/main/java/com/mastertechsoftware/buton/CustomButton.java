@@ -75,6 +75,11 @@ public class CustomButton extends ImageButton {
         setImageDrawable(defaultImage);
     }
 
+    public void setDefaultImage(int defaultImage) {
+        this.defaultImage = getContext().getResources().getDrawable(defaultImage);
+        setImageDrawable(this.defaultImage);
+    }
+
     public Drawable getDownImage() {
         return downImage;
     }
@@ -83,12 +88,20 @@ public class CustomButton extends ImageButton {
         this.downImage = downImage;
     }
 
+   public void setDownImage(int downImage) {
+	   this.downImage = getContext().getResources().getDrawable(downImage);
+    }
+
     public Drawable getUpImage() {
         return upImage;
     }
 
     public void setUpImage(Drawable upImage) {
         this.upImage = upImage;
+    }
+
+	public void setUpImage(int upImage) {
+		this.upImage = getContext().getResources().getDrawable(upImage);
     }
 
     @Override
@@ -122,6 +135,10 @@ public class CustomButton extends ImageButton {
     public void setDisabledButton(BitmapDrawable drawable) {
         this.disabledImage = drawable;
     }
+
+    public void setDisabledButton(int drawable) {
+		this.disabledImage = getContext().getResources().getDrawable(drawable);
+	}
 
     @Override
     public void setEnabled(boolean enabled) {

@@ -119,7 +119,7 @@ public class NetworkManager {
 		ConnectivityManager mgr = (ConnectivityManager)mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo netInfo = mgr.getActiveNetworkInfo();
 
-		if (netInfo != null && netInfo.isAvailable() && netInfo.isConnected()) {
+		if (netInfo != null && netInfo.isAvailable() && netInfo.isConnectedOrConnecting()) {
 			result = true;
 		}
 

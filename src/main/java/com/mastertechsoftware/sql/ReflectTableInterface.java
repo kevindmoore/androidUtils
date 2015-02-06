@@ -6,4 +6,5 @@ package com.mastertechsoftware.sql;
  */
 public interface ReflectTableInterface {
 	int getId();
+	void setId(int id);
 }

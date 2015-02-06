@@ -307,11 +307,11 @@ public class Logger {
         }
         try {
         if (exception != null) {
-                String msg = (caller instanceof Class ? ((Class) caller).getSimpleName() : caller.getClass().getSimpleName()) + ": " + buildErrorString(exception) + message;
+                String msg = getSimpleName(caller) + ": " + buildErrorString(exception) + message;
                 splitLongMessage(TYPE.ERROR, applicationTag, msg, exception);
 			SDLogger.error(msg, exception);
         } else {
-                String msg = (caller instanceof Class ? ((Class) caller).getSimpleName() : caller.getClass().getSimpleName()) + ": " + message;
+                String msg = getSimpleName(caller) + ": " + message;
                 splitLongMessage(TYPE.ERROR, applicationTag, msg, null);
 			SDLogger.error(msg, exception);
         }
@@ -358,8 +358,7 @@ public class Logger {
      * Log a debug message.
      */
     public static void debug(Object caller, String message) {
-        String simpleName = caller instanceof Class ? ((Class) caller).getSimpleName() : caller.getClass().getSimpleName();
-		debugLocal(TYPE.DEBUG, applicationTag, simpleName, message);
+		debugLocal(TYPE.DEBUG, applicationTag, getSimpleName(caller), message);
     }
 
     public static void debug(String tag, String message, Throwable throwable) {
@@ -367,18 +366,15 @@ public class Logger {
     }
 
     public static void debug(String tag, Object caller, String message) {
-        String simpleName = caller instanceof Class ? ((Class) caller).getSimpleName() : caller.getClass().getSimpleName();
-		debugLocal(TYPE.DEBUG, tag, simpleName, message);
+		debugLocal(TYPE.DEBUG, tag, getSimpleName(caller), message);
     }
 
     public static void debug(Class caller, String message) {
-        String simpleName = caller instanceof Class ? ((Class) caller).getSimpleName() : caller.getClass().getSimpleName();
-		debugLocal(TYPE.DEBUG, applicationTag, simpleName, message);
+		debugLocal(TYPE.DEBUG, applicationTag, getSimpleName(caller), message);
     }
 
     public static void info(Object caller, String message) {
-        String simpleName = caller instanceof Class ? ((Class) caller).getSimpleName() : caller.getClass().getSimpleName();
-		debugLocal(TYPE.INFO, applicationTag, simpleName, message);
+		debugLocal(TYPE.INFO, applicationTag, getSimpleName(caller), message);
     }
 
     public static void info(String tag, String message) {
@@ -402,14 +398,16 @@ public class Logger {
 	}
 
 	public static void warn(Object caller, String message) {
-        String simpleName = caller instanceof Class ? ((Class) caller).getSimpleName() : caller.getClass().getSimpleName();
-		debugLocal(TYPE.WARNING, applicationTag, simpleName, message);
+		debugLocal(TYPE.WARNING, applicationTag, getSimpleName(caller), message);
     }
 
     public static void warn(Object caller, String message, Throwable t) {
-        String simpleName = caller instanceof Class ? ((Class) caller).getSimpleName() : caller.getClass().getSimpleName();
-		debugLocal(TYPE.WARNING, applicationTag, simpleName, message, t);
+		debugLocal(TYPE.WARNING, applicationTag, getSimpleName(caller), message, t);
     }
+
+	private static String getSimpleName(Object caller) {
+		return caller == null ? applicationTag : caller instanceof Class ? ((Class) caller).getSimpleName() : caller.getClass().getSimpleName();
+	}
 
     public static void warn(String tag, String message) {
         debugLocal(TYPE.WARNING, applicationTag, tag, message);
@@ -420,8 +418,7 @@ public class Logger {
     }
 
     public static void verbose(Object caller, String message) {
-        String simpleName = caller instanceof Class ? ((Class) caller).getSimpleName() : caller.getClass().getSimpleName();
-		debugLocal(TYPE.VERBOSE, applicationTag, simpleName, message);
+		debugLocal(TYPE.VERBOSE, applicationTag, getSimpleName(caller), message);
     }
 
     public static void verbose(String tag, String message) {
@@ -513,8 +510,7 @@ public class Logger {
 		if (debuggingDisabled) {
 			return;
 		}
-        String simpleName = caller instanceof Class ? ((Class) caller).getSimpleName() : caller.getClass().getSimpleName();
-		debugLocal(TYPE.WTF, applicationTag, simpleName, message);
+		debugLocal(TYPE.WTF, applicationTag, getSimpleName(caller), message);
 	}
 
     public static void wtf(String tag, String message) {

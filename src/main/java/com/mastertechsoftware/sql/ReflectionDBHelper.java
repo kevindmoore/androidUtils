@@ -30,7 +30,7 @@ public class ReflectionDBHelper {
 		}
 
 	}
-	
+
 	public ReflectionDBHelper(Context context, String dbName, String mainTableName, Class<? extends ReflectTableInterface>... types) {
 		this(context, dbName, mainTableName, 1, types);
     }
@@ -103,6 +103,16 @@ public class ReflectionDBHelper {
         }
         CRUDHelper<ReflectTableInterface> crudHelper = getCrudHelper(position);
         crudHelper.updateItem(data, data.getId());
+    }
+
+    public void deleteItem(Class type, int id) {
+        Integer position = classMapper.get(type);
+        if (position == null) {
+            Logger.error("Type " + type.getName() + " Not found");
+            return;
+        }
+        CRUDHelper<ReflectTableInterface> crudHelper = getCrudHelper(position);
+        crudHelper.deleteItem(id);
     }
 
     public void deleteItemWhere(Class type, String columnName, String columnValue) {

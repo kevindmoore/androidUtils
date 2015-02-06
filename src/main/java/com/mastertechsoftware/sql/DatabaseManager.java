@@ -86,6 +86,17 @@ public class DatabaseManager {
         reflectionDBHelper.deleteItemWhere(type, columnName, columnValue);
     }
 
+	/**
+	 * Delete the item with the given id
+	 * @param dbName
+	 * @param type
+	 * @param id
+	 */
+    public void deleteItem(String dbName, Class type, int id) {
+        ReflectionDBHelper reflectionDBHelper = databases.get(dbName);
+        reflectionDBHelper.deleteItem(type, id);
+    }
+
     /**
      * Remove all items of the given type
      * @param dbName

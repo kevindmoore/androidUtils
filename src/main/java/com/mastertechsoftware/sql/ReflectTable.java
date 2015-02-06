@@ -30,9 +30,10 @@ public class ReflectTable<T> extends AbstractTable<T> {
 
     private void readProperties(T type) {
         ArrayList<Field> allFields = UtilReflector.getAllFields(type.getClass());
+		allFields = UtilReflector.removeTransient(allFields);
         boolean idFieldFound = false;
         for (Field field : allFields) {
-            Column.COLUMN_TYPE column_type = Column.COLUMN_TYPE.TEXT;
+            Column.COLUMN_TYPE column_type;
             Class<?> fieldType = field.getType();
             String fieldName = field.getName();
             if (fieldType == int.class || fieldType == Integer.class) {
@@ -56,7 +57,7 @@ public class ReflectTable<T> extends AbstractTable<T> {
                     Column column = new Column(fieldName + "_id", Column.COLUMN_TYPE.INTEGER, false);
                     addColumn(column);
                 } else {
-                    Logger.error("Unhandled type " + fieldType + ". Please use basic field types");
+                    Logger.debug("Unhandled type " + fieldType + ". Please use basic field types");
                 }
                 continue;
             }
@@ -77,6 +78,7 @@ public class ReflectTable<T> extends AbstractTable<T> {
     public List<Field> getReflectFields() {
         List<Field> reflectFields = new ArrayList<Field>();
         ArrayList<Field> allFields = UtilReflector.getAllFields(type.getClass());
+		allFields = UtilReflector.removeTransient(allFields);
         for (Field field : allFields) {
             Class<?> fieldType = field.getType();
             if (UtilReflector.hasInterface(fieldType, ReflectTableInterface.class)) {
@@ -106,6 +108,7 @@ public class ReflectTable<T> extends AbstractTable<T> {
             return super.insertEntry(database, data, mapper);
         }
         ArrayList<Field> allFields = UtilReflector.getAllFields(type.getClass());
+		allFields = UtilReflector.removeTransient(allFields);
         int columnPosition = 0;
         ContentValues cv = new ContentValues();
         for (Column column : columns) {
@@ -230,6 +233,7 @@ public class ReflectTable<T> extends AbstractTable<T> {
 		public void write(ContentValues cv, Column column, T type) {
 			if (allFields == null) {
 				allFields = UtilReflector.getAllFields(type.getClass());
+				allFields = UtilReflector.removeTransient(allFields);
 			}
 			if (reflectFields == null) {
 				reflectFields = getReflectFields();
@@ -309,6 +313,7 @@ public class ReflectTable<T> extends AbstractTable<T> {
 			}
 			if (allFields == null) {
 				allFields = UtilReflector.getAllFields(type.getClass());
+				allFields = UtilReflector.removeTransient(allFields);
 			}
 			if (reflectFields == null) {
 				reflectFields = getReflectFields();
@@ -322,7 +327,7 @@ public class ReflectTable<T> extends AbstractTable<T> {
                     if (database != null) {
                         ReflectTable subTable = (ReflectTable) database.getTable(field.getType().getSimpleName());
                         try {
-							Mapper subTableMapper = subTable.getMapper();
+							Mapper subTableMapper = (Mapper)subTable.getMapper();
 							subTableMapper.setRecurse(false);
 							Object data = subTable.getEntry(database, id, field.getType().newInstance(), subTableMapper);
                             field.set(type, data);
