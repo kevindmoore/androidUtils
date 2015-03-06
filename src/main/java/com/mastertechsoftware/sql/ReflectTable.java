@@ -99,7 +99,7 @@ public class ReflectTable<T> extends AbstractTable<T> {
      * @param mapper
      * @return new id
      */
-    public long insertEntry(Database database, T data, DataMapper<T> mapper) {
+    public long insertEntry(Database database, T data, DataMapper<T> mapper) throws DBException {
         if (data == null) {
             Logger.error("insertEntry data is null");
             return -1;
@@ -142,7 +142,7 @@ public class ReflectTable<T> extends AbstractTable<T> {
     }
 
     @Override
-    public void deleteAllEntries(Database database) {
+    public void deleteAllEntries(Database database) throws DBException {
         List<? extends T> allEntries = getAllEntries(database, (Class<? extends T>) type.getClass(), getMapper());
         List<Field> reflectfields = getReflectFields();
         for (Field reflectfield : reflectfields) {
@@ -166,7 +166,7 @@ public class ReflectTable<T> extends AbstractTable<T> {
 
 
     @Override
-    public int deleteEntryWhere(Database database, String whereClause, String[] whereArgs) {
+    public int deleteEntryWhere(Database database, String whereClause, String[] whereArgs) throws DBException {
         List<? extends T> allEntries = getAllEntriesWhere(database, whereClause, whereArgs, (Class<T>) type.getClass(), getMapper());
         List<Field> reflectfields = getReflectFields();
         for (Field reflectfield : reflectfields) {
@@ -188,7 +188,7 @@ public class ReflectTable<T> extends AbstractTable<T> {
         return super.deleteEntryWhere(database, whereClause, whereArgs);
     }
 
-    public int deleteEntryWhere(Database database, String columnName, String columnValue) {
+    public int deleteEntryWhere(Database database, String columnName, String columnValue) throws DBException {
         List<? extends T> allEntries = getAllEntriesWhere(database, (Class<T>) type.getClass(), columnName, columnValue, getMapper());
         List<Field> reflectfields = getReflectFields();
         for (Field reflectfield : reflectfields) {
@@ -305,7 +305,7 @@ public class ReflectTable<T> extends AbstractTable<T> {
 		}
 
 		@Override
-		public void read(Cursor cursor, Column column, T type) {
+		public void read(Cursor cursor, Column column, T type) throws DBException {
 			int columnIndex = getColumnIndex(cursor, column.getName());
 			if (columnIndex == -1) {
 				Logger.error(this, "Mapper.read: Column " + column.getName() + " does not exist in cursor");

@@ -21,7 +21,7 @@ public class MetaDatabase extends Database {
      * @param databaseName
      * @return
      */
-    public boolean databaseExists(int version, String databaseName) {
+    public boolean databaseExists(int version, String databaseName) throws DBException {
         return getMeta(version, databaseName) != null;
     }
 
@@ -31,7 +31,7 @@ public class MetaDatabase extends Database {
      * @param databaseName
      * @return
      */
-    protected Meta getMeta(int version, String databaseName) {
+    protected Meta getMeta(int version, String databaseName) throws DBException {
         return metaTable.getEntry(this, "version = ? and database = ?", new String[]{String.valueOf(version), databaseName},
                                         new Meta(), metaTable.getMapper());
     }
@@ -42,7 +42,7 @@ public class MetaDatabase extends Database {
      * @param databaseName
      * @param creationString
      */
-    public void addDatabaseEntry(int version, String databaseName, String creationString) {
+    public void addDatabaseEntry(int version, String databaseName, String creationString) throws DBException {
         Meta meta = new Meta();
         meta.creationString = creationString;
         meta.database = databaseName;

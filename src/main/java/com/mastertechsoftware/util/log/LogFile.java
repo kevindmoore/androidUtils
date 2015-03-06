@@ -1,5 +1,6 @@
 package com.mastertechsoftware.util.log;
 
+import android.os.Environment;
 import android.util.Log;
 
 import java.io.File;
@@ -11,10 +12,24 @@ import java.util.Date;
  * Helper class for writing to a file
  */
 public class LogFile {
+	public static final String LOG_DIRECTORY = "com.mastertechsoftware/";
 	private File sdFile;
-	private String directory = "/sdcard/com.ostuka/";
+	private static String externalDirectory;
+	private String directory = "/sdcard/com.mastertechsoftware/";
 	private String logFile = "Log.txt";
 	protected static SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy hh:mm");
+
+	static {
+		externalDirectory = Environment.getExternalStorageDirectory().getAbsolutePath();
+		if (!externalDirectory.endsWith("/")) {
+			externalDirectory += "/";
+		}
+		externalDirectory += LOG_DIRECTORY;
+	}
+
+	public void setDirectoryName(String directoryName) {
+		directory = externalDirectory + directoryName;
+	}
 
 	public void setDirectory(String directory) {
 		this.directory = directory;
@@ -49,6 +64,10 @@ public class LogFile {
 	 * Initial the sd file
 	 */
 	private void initFile() {
+		if (logFile == null) {
+			Logger.error("LogFile:initFile. Logfile is null");
+			return;
+		}
 		if (sdFile == null) {
 			sdFile = new File(directory + logFile);
 			if (!sdFile.exists()) {
@@ -58,17 +77,17 @@ public class LogFile {
 					path += "/" + tokenizer.nextToken();
 					File dir = new File(path);
 					if (!dir.exists() && !dir.mkdir()) {
-						Log.e("LogFile", "Could not create directory " + dir.getAbsolutePath());
+						Logger.error("Could not create directory " + dir.getAbsolutePath());
 						return;
 					}
 				}
 				try {
 					boolean created = sdFile.createNewFile();
 					if (!created) {
-						Log.e("LogFile", "Could not create  " + sdFile.getAbsolutePath());
+						Logger.error("Could not create  " + sdFile.getAbsolutePath());
 					}
 				} catch (IOException e) {
-					Log.e("LogFile", "Could not create file " + sdFile.getAbsolutePath());
+					Logger.error("Could not create file " + sdFile.getAbsolutePath());
 				}
 			}
 		}

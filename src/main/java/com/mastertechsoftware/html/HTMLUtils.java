@@ -131,26 +131,26 @@ public class HTMLUtils {
 
     private static void populateCodeMap() {
         htmlCodeMap = new ListMap<String, String>();
-//        htmlCodeMap.add("&quot;", "\"");
+        htmlCodeMap.add("&quot;", "\"");
         htmlCodeMap.add("&amp;", "&");
         htmlCodeMap.add("&amp;", "&"); // Need to do this 2x
         htmlCodeMap.add("&nbsp;", " ");
         htmlCodeMap.add("&lt;", "<");
         htmlCodeMap.add("&gt;", ">");
-//        htmlCodeMap.add("&lsquo;", "&quot;");
-//        htmlCodeMap.add("&tilde;", "~");
-//        htmlCodeMap.add("&nbsp;", " ");
+        htmlCodeMap.add("&lsquo;", "&quot;");
+        htmlCodeMap.add("&tilde;", "~");
+        htmlCodeMap.add("&nbsp;", " ");
         htmlCodeMap.add("%", "&#37;");
         htmlCodeMap.add("\\?", "&#63;");
-//        htmlCodeMap.add("&#8211;", "-");
-//        htmlCodeMap.add("&#8212;", "-");
-//        htmlCodeMap.add("&#8216;", "&quot;");
-//        htmlCodeMap.add("&#8217;", "&quot;");
-//        htmlCodeMap.add("&#8218;", "&quot;");
-//        htmlCodeMap.add("&#8220;", "\"");
-//        htmlCodeMap.add("&#8221;", "\"");
-//        htmlCodeMap.add("&#8222;", "\"");
-//        htmlCodeMap.add("&#8230;", "...");
+        htmlCodeMap.add("&#8211;", "-");
+        htmlCodeMap.add("&#8212;", "-");
+        htmlCodeMap.add("&#8216;", "&quot;");
+        htmlCodeMap.add("&#8217;", "&quot;");
+        htmlCodeMap.add("&#8218;", "&quot;");
+        htmlCodeMap.add("&#8220;", "\"");
+        htmlCodeMap.add("&#8221;", "\"");
+        htmlCodeMap.add("&#8222;", "\"");
+        htmlCodeMap.add("&#8230;", "...");
     }
 
     private static void populateHTMLMap() {

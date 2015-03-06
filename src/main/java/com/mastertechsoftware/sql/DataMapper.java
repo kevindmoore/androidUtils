@@ -7,5 +7,5 @@ import android.database.Cursor;
  */
 public interface DataMapper<T> {
     void write(ContentValues cv, Column column, T data);
-    void read(Cursor cursor, Column column, T data);
+    void read(Cursor cursor, Column column, T data) throws DBException;
 }

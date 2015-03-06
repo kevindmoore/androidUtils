@@ -197,7 +197,7 @@ public class Database {
 	 * @param table
 	 * @param data
 	 */
-	public void deleteTableEntry(Table table, Object data) {
+	public void deleteTableEntry(Table table, Object data) throws DBException {
 		table.deleteEntry(this, data);
 	}
 
@@ -230,7 +230,7 @@ public class Database {
 	 * @param table
 	 * @return the object created
 	 */
-	public Object getAllTableEntries(Table table) {
+	public Object getAllTableEntries(Table table) throws DBException {
 		return table.getAllEntries(this);
 	}
 }

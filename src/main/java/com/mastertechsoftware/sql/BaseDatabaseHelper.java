@@ -52,7 +52,7 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper {
 	// The ExecutorService we use to run requests.
 	protected final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
     protected UpgradeStrategy upgradeStrategy;
-    protected static boolean upgradeCheck = false;
+    protected boolean upgradeCheck = false;
 
 	/**
 	 * Create a helper object to create, open, and/or manage a database. This method always returns very quickly. The database is not
@@ -119,15 +119,32 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper {
 		}
 	}
 
+	/**
+	 * Create the database if it was dropped
+	 * @throws DBException
+	 */
+	public void createDatabase() throws DBException {
+		try {
+			open();
+			sqLiteDatabase.beginTransaction();
+			sqLiteDatabase.setVersion(version);
+			sqLiteDatabase.setTransactionSuccessful();
+			sqLiteDatabase.endTransaction();
+			localDatabase.createDatabase();
+			close();
+		} catch (SQLiteException e) {
+			Logger.error(this, e.getMessage());
+			throw new DBException(e.getMessage(), e);
+		}
+	}
+
     /**
      * Setup our databases
      */
     protected void setupDatabases() {
         // Create our Databases
         createLocalDB();
-
         setupMetaDatabase();
-
     }
 
     /**
@@ -144,8 +161,8 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper {
             if (cursor == null || cursor.getCount() == 0) {
                 //                Logger.debug(this, "Creating DB");
                 metaDatabase.createDatabase();
-                addDatabaseToMeta();
             }
+			addDatabaseToMeta();
         } catch (SQLiteException e) {
             Logger.error(this, e.getMessage());
         } finally {
@@ -337,6 +354,28 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper {
 	}
 
 	/**
+	 * Get the database verions
+	 * @return
+	 */
+	public int getDBVersion() {
+		if (sqLiteDatabase == null) {
+			try {
+				open();
+				return sqLiteDatabase.getVersion();
+			} catch (DBException e) {
+				Logger.error("Problems opening database", e);
+			} finally {
+				close();
+			}
+			return version;
+		} else if (sqLiteDatabase != null) {
+			return sqLiteDatabase.getVersion();
+		} else {
+			return version;
+		}
+	}
+
+	/**
 	 * Delete the database.
 	 */
 	public void dropDatabase() throws DBException {
@@ -347,6 +386,7 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper {
 			open();
 			localDatabase.dropDatabase();
             openCount = 1; // Make sure we close
+			close();
 		} finally {
 			endTransaction();
 			mLock.unlock();
@@ -717,11 +757,11 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-        /**
-         * Execute the runnable in the executor. Will run on another thread
-         *
-         * @return true if executed.
-         */
+	/**
+	 * Execute the runnable in the executor. Will run on another thread
+	 *
+	 * @return true if executed.
+	 */
 	protected boolean executeTask(Runnable aRunnable) {
 		// Lock it!
 		mLock.lock();

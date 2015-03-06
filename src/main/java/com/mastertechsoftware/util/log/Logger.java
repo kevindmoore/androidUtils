@@ -12,6 +12,9 @@ import java.util.List;
 
 /**
  * Class used to funnel all error messages so that we can log to sd card.
+ * Adding ability to configure from a json file
+ * Can filter out certain classes or everything from debugging
+ * Make sure setApplicationTag is called.
  */
 public class Logger {
     public static final int MESSAGE_MAX_LENGTH = 4000;
@@ -51,6 +54,7 @@ public class Logger {
     private static HashMap<String, ClassInfo> classInfoHashMap = new HashMap<String, ClassInfo>();
     private static HashMap<String, Category> classCategoryMap = new HashMap<String, Category>();
 	private static boolean debuggingDisabled = false;
+	private static boolean addClassNameToMessage = false;
 
 	public static void readConfiguration(String json) {
 		try {
@@ -138,6 +142,10 @@ public class Logger {
 	 */
 	public static void setDebuggingDisabled(boolean debuggingDisabled) {
 		Logger.debuggingDisabled = debuggingDisabled;
+	}
+
+	public static void setAddClassNameToMessage(boolean addClassNameToMessage) {
+		Logger.addClassNameToMessage = addClassNameToMessage;
 	}
 
 	/**
@@ -425,19 +433,28 @@ public class Logger {
         debugLocal(TYPE.VERBOSE, applicationTag, tag, message);
 	}
 
-	public static void debugLocal(TYPE type, String tag, String simpleName, String message) {
+	protected static void debugLocal(TYPE type, String tag, String simpleName, String message) {
         debugLocal(type, tag, simpleName, message, null);
     }
 
-	public static void debugLocal(TYPE type, String tag, String simpleName, String message, Throwable throwable) {
+	protected static void debugLocal(TYPE type, String tag, String simpleName, String message, Throwable throwable) {
 		if (shouldNotLog(simpleName)) {
 			return;
+		}
+		if (TextUtils.isEmpty(tag)) {
+			tag = applicationTag;
+		}
+
+		if (TextUtils.isEmpty(tag)) {
+			tag = "";
 		}
 		if (message == null || message.length() == 0) {
 			message = "";
 		}
         try {
 			if (simpleName != null && simpleName.length() > 1) {
+				message = simpleName + ": " + message;
+			} else if (addClassNameToMessage) {
 				message = simpleName + ": " + message;
 			}
             splitLongMessage(type, tag, message, throwable);
@@ -459,12 +476,25 @@ public class Logger {
         }
 	}
 
+
+	public static void debug(String tag, String message) {
+		String callerClassName = StackTraceOutput.getCallerClassName();
+		debugLocal(TYPE.DEBUG, tag, callerClassName, message, null);
+	}
+
 	/**
 	 * Check to see if we should be logging this class.
 	 * @param simpleName
 	 * @return true if we should not log
 	 */
 	private static boolean shouldNotLog(String simpleName) {
+		if (debuggingDisabled) {
+			return true;
+		}
+		// Look for inner classes
+		if (simpleName.contains("$")) {
+			simpleName = simpleName.substring(0, simpleName.indexOf('$'));
+		}
 		Boolean debugEnabled = classesDebugStates.get(simpleName);
 		if (debuggingDisabled || (debugEnabled != null && !debugEnabled)) {
 			return true;
@@ -513,64 +543,14 @@ public class Logger {
 		debugLocal(TYPE.WTF, applicationTag, getSimpleName(caller), message);
 	}
 
-    public static void wtf(String tag, String message) {
-        if (debuggingDisabled) {
-            return;
-        }
-        debugLocal(TYPE.WTF, applicationTag, tag, message);
-    }
-
-	/**
-	 * Another debugNow call so we can just replace debug with debugNow(this
-	 * @param caller
-	 * @param message
-	 */
-    public static void debugNow(Object caller, String message) {
+	public static void wtf(String tag, String message) {
 		if (debuggingDisabled) {
 			return;
 		}
-        if (message == null || message.length() == 0) {
-            message = "";
-        }
-        try {
-            splitLongMessage(TYPE.DEBUG, applicationTag, message, null);
-        } catch (OutOfMemoryError oom) {
-            Log.e(applicationTag, "OOM Error caught in Logger.debugNow(Object caller, String message)!", oom);
-        } catch (Exception e) {
-            Log.e(applicationTag, "Error caught in Logger.debugNow(Object caller, String message)!", e);
-        }
-    }
+		debugLocal(TYPE.WTF, applicationTag, tag, message);
+	}
 
-    public static void debug(String tag, String message) {
-		if (debuggingDisabled) {
-			return;
-		}
-		String callerClassName = StackTraceOutput.getCallerClassName();
-		if (shouldNotLog(callerClassName)) {
-			return;
-		}
-        if (TextUtils.isEmpty(tag)) {
-            tag = applicationTag;
-        }
-
-        if (TextUtils.isEmpty(tag)) {
-            tag = "";
-        }
-        if (message == null || message.length() == 0) {
-            message = "";
-        }
-        try {
-            splitLongMessage(TYPE.DEBUG, tag, message, null);
-        }
-        catch (OutOfMemoryError oom) {
-            Log.e(applicationTag, "OOM Error caught in Logger.debug(String tag, String message)!", oom);
-        }
-        catch (Exception e) {
-            Log.e(applicationTag, "Error caught in Logger.debug(String tag, String message)!", e);
-        }
-    }
-
-    public static void printTime(String tag, String message, long start, long end) {
+	public static void printTime(String tag, String message, long start, long end) {
         if (applicationTag != null) {
             tag = applicationTag;
         } else if (tag == null || tag.length() == 0) {

@@ -70,4 +70,11 @@ public class EventDataHolder {
 		}
 		return (String)item;
 	}
+
+	/**
+	 * Clear all data. Make sure you are not clearing other activities data.
+	 */
+	public void clear() {
+		eventData.clear();
+	}
 }

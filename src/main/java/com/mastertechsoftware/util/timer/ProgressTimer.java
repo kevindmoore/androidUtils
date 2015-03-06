@@ -54,7 +54,7 @@ public class ProgressTimer {
 		}
 		milliSeconds = totalMs;
 		if (seconds > 0 && milliSeconds > 0) {
-			milliSeconds = milliSeconds - (seconds);
+			milliSeconds = milliSeconds - (seconds * MILLISECONDS);
 		}
 	}
 
@@ -86,6 +86,7 @@ public class ProgressTimer {
     public String toString() {
         return "Total time: Hours: " + getHours() + " Minutes: " + getMinutes() + " Seconds: " + getSeconds();
     }
+
     public String getResults() {
         return "Total time: Hours: " + getHours() + " Minutes: " + getMinutes() + " Seconds: " + getSeconds() + " Micro: " + getMilliseconds();
     }

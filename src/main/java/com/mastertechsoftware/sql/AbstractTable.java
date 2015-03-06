@@ -38,7 +38,7 @@ public class AbstractTable<T> extends Table<T> {
      * @param mapper
      * @return new id
      */
-    public long insertEntry(Database database, T data, DataMapper<T> mapper) {
+    public long insertEntry(Database database, T data, DataMapper<T> mapper) throws DBException {
         int columnPosition = 0;
         ContentValues cv = new ContentValues();
         for (Column column : columns) {
@@ -58,7 +58,7 @@ public class AbstractTable<T> extends Table<T> {
      * @return id of new item
      */
     @Override
-    public long insertEntry(Database database, List<String> data) {
+    public long insertEntry(Database database, List<String> data) throws DBException {
         ContentValues cv = new ContentValues();
         int columnSize = columns.size();
         int dataSize = data.size();
@@ -80,13 +80,13 @@ public class AbstractTable<T> extends Table<T> {
      * @return id of new item
      */
     @Override
-    public long insertEntry(Database database, ContentValues data) {
+    public long insertEntry(Database database, ContentValues data) throws DBException {
         long id = 0;
         try {
             id = database.getDatabase().insert(getTableName(), getIdField(), data);
         } catch (SQLiteException e) {
             Logger.error(this, e.getMessage());
-            return id;
+			throw new DBException(e.getMessage(), e);
         }
         return id;
     }
@@ -97,15 +97,15 @@ public class AbstractTable<T> extends Table<T> {
      * @param key - id to delete
      */
     @Override
-    public int deleteEntry(Database database, Object key) {
+    public int deleteEntry(Database database, Object key) throws DBException {
         String[] whereArgs = new String[1];
         whereArgs[0] = String.valueOf(key);
         try {
             return database.getDatabase().delete(getTableName(), getIdField() + "=?", whereArgs);
         } catch (SQLiteException e) {
             Logger.error(this, e.getMessage());
+			throw new DBException(e.getMessage(), e);
         }
-		return 0;
     }
 
     /**
@@ -115,13 +115,13 @@ public class AbstractTable<T> extends Table<T> {
      * @param whereArgs
      */
     @Override
-    public int deleteEntryWhere(Database database, String whereClause, String[] whereArgs) {
+    public int deleteEntryWhere(Database database, String whereClause, String[] whereArgs) throws DBException {
         try {
             return database.getDatabase().delete(getTableName(), whereClause, whereArgs);
         } catch (SQLiteException e) {
             Logger.error(this, e.getMessage());
+			throw new DBException(e.getMessage(), e);
         }
-		return 0;
     }
 
 	/**
@@ -130,15 +130,15 @@ public class AbstractTable<T> extends Table<T> {
 	 * @param columnName
 	 * @param columnValue
 	 */
-    public int deleteEntryWhere(Database database, String columnName, String columnValue) {
+    public int deleteEntryWhere(Database database, String columnName, String columnValue) throws DBException {
 		String[] whereArgs = new String[1];
 		whereArgs[0] = columnValue;
         try {
             return database.getDatabase().delete(getTableName(), columnName + "=?" , whereArgs);
         } catch (SQLiteException e) {
             Logger.error(this, e.getMessage());
+			throw new DBException(e.getMessage(), e);
         }
-		return 0;
     }
 
     /**
@@ -146,11 +146,12 @@ public class AbstractTable<T> extends Table<T> {
      * @param database
      */
     @Override
-    public void deleteAllEntries(Database database) {
+    public void deleteAllEntries(Database database) throws DBException {
         try {
             database.getDatabase().delete(getTableName(), null, null);
         } catch (SQLiteException e) {
             Logger.error(this, e.getMessage());
+			throw new DBException(e.getMessage(), e);
         }
     }
 
@@ -172,7 +173,7 @@ public class AbstractTable<T> extends Table<T> {
      * @param mapper
      * @return T
      */
-    public T getEntry(Database database, Object key, T data, DataMapper<T> mapper) {
+    public T getEntry(Database database, Object key, T data, DataMapper<T> mapper) throws DBException {
         Cursor cursor = null;
         String[] params = { String.valueOf(key) };
         try {
@@ -196,7 +197,7 @@ public class AbstractTable<T> extends Table<T> {
             return data;
         } catch (SQLiteException e) {
             Logger.error(this, e.getMessage());
-            return null;
+			throw new DBException(e.getMessage(), e);
         } finally {
             if (cursor != null) {
                 cursor.close();
@@ -213,7 +214,7 @@ public class AbstractTable<T> extends Table<T> {
      * @param mapper
      * @return T data
      */
-    public T getEntry(Database database, String selection, String[] selectionArgs, T data, DataMapper<T> mapper) {
+    public T getEntry(Database database, String selection, String[] selectionArgs, T data, DataMapper<T> mapper) throws DBException {
         Cursor cursor = null;
         try {
             cursor = database.getDatabase().query(getTableName(), getProjection(), selection,
@@ -236,7 +237,7 @@ public class AbstractTable<T> extends Table<T> {
             return data;
         } catch (SQLiteException e) {
             Logger.error(this, e.getMessage());
-            return null;
+			throw new DBException(e.getMessage(), e);
         } finally {
             if (cursor != null) {
                 cursor.close();
@@ -253,7 +254,7 @@ public class AbstractTable<T> extends Table<T> {
      * @param mapper
      * @return T
      */
-    public T getEntry(Database database, T data, String columnName, String columnValue, DataMapper<T> mapper) {
+    public T getEntry(Database database, T data, String columnName, String columnValue, DataMapper<T> mapper) throws DBException {
         Cursor cursor = null;
         String[] params = { String.valueOf(columnValue) };
         try {
@@ -277,7 +278,7 @@ public class AbstractTable<T> extends Table<T> {
             return data;
         } catch (SQLiteException e) {
             Logger.error(this, e.getMessage());
-            return null;
+			throw new DBException(e.getMessage(), e);
         } finally {
             if (cursor != null) {
                 cursor.close();
@@ -293,7 +294,7 @@ public class AbstractTable<T> extends Table<T> {
      * @return the cursor for the object
      */
     @Override
-    public Cursor getEntry(Database database, long id) {
+    public Cursor getEntry(Database database, long id) throws DBException {
         Cursor result;
         String[] params = { String.valueOf(id) };
         try {
@@ -301,7 +302,7 @@ public class AbstractTable<T> extends Table<T> {
                     params, null, null, null);
         } catch (SQLiteException e) {
             Logger.error(this, e.getMessage());
-            return null;
+			throw new DBException(e.getMessage(), e);
         }
         return result;
     }
@@ -314,7 +315,7 @@ public class AbstractTable<T> extends Table<T> {
      * @return the cursor for the object
      */
     @Override
-    public Cursor getEntry(Database database, String columnName, String columnValue) {
+    public Cursor getEntry(Database database, String columnName, String columnValue) throws DBException {
         Cursor result;
         String[] params = { columnValue };
         try {
@@ -322,8 +323,8 @@ public class AbstractTable<T> extends Table<T> {
                     params, null, null, null);
         } catch (SQLiteException e) {
             Logger.error(this, e.getMessage());
-        return null;
-    }
+			throw new DBException(e.getMessage(), e);
+	    }
         return result;
     }
 
@@ -340,7 +341,7 @@ public class AbstractTable<T> extends Table<T> {
      * @return # of items updated
      */
     @Override
-    public int updateEntry(Database database, List<String> data, Object key) {
+    public int updateEntry(Database database, List<String> data, Object key) throws DBException {
         ContentValues cv = new ContentValues();
         int columnSize = columns.size();
         int dataSize = data.size();
@@ -359,13 +360,13 @@ public class AbstractTable<T> extends Table<T> {
      * @return # of items updated
      */
     @Override
-    public int updateEntry(Database database, ContentValues data, Object key) {
+    public int updateEntry(Database database, ContentValues data, Object key) throws DBException {
         try {
             String[] whereArgs = {String.valueOf(key)};
             return database.getDatabase().update(getTableName(), data, getIdField() + "=?", whereArgs);
         } catch (SQLiteException e) {
             Logger.error(this, e.getMessage());
-            return 0;
+			throw new DBException(e.getMessage(), e);
         }
     }
 
@@ -377,7 +378,7 @@ public class AbstractTable<T> extends Table<T> {
      * @param mapper
      * @return # of items updated
      */
-    public int updateEntry(Database database, T data, Object key, DataMapper<T> mapper) {
+    public int updateEntry(Database database, T data, Object key, DataMapper<T> mapper) throws DBException {
         try {
             String[] whereArgs = {String.valueOf(key)};
             int columnPosition = 0;
@@ -392,7 +393,7 @@ public class AbstractTable<T> extends Table<T> {
             return database.getDatabase().update(getTableName(), cv, getIdField() + "=?", whereArgs);
         } catch (SQLiteException e) {
             Logger.error(this, e.getMessage());
-            return 0;
+			throw new DBException(e.getMessage(), e);
         }
     }
 
@@ -405,7 +406,7 @@ public class AbstractTable<T> extends Table<T> {
      * @param mapper
      * @return # of items updated
      */
-    public int updateEntry(Database database, T data, String columnName, String columnValue, DataMapper<T> mapper) {
+    public int updateEntry(Database database, T data, String columnName, String columnValue, DataMapper<T> mapper) throws DBException {
         try {
             String[] whereArgs = {columnValue};
             int columnPosition = 0;
@@ -420,7 +421,7 @@ public class AbstractTable<T> extends Table<T> {
             return database.getDatabase().update(getTableName(), cv, columnName + "=?", whereArgs);
         } catch (SQLiteException e) {
             Logger.error(this, e.getMessage());
-            return 0;
+			throw new DBException(e.getMessage(), e);
         }
     }
 
@@ -434,13 +435,13 @@ public class AbstractTable<T> extends Table<T> {
     */
     @Override
     public int updateEntryWhere(Database database, ContentValues cv, String whereClause,
-            String[] whereArgs) {
+            String[] whereArgs) throws DBException {
         try {
             return database.getDatabase().update(getTableName(), cv, whereClause, whereArgs);
         } catch (SQLiteException e) {
             Logger.error(this, e.getMessage());
-        return 0;
-    }
+			throw new DBException(e.getMessage(), e);
+	    }
     }
 
     /**
@@ -450,7 +451,7 @@ public class AbstractTable<T> extends Table<T> {
      * @param mapper
      * @return List<T>
      */
-    public List<? extends T> getAllEntries(Database database, Class<? extends T> cls, DataMapper<T> mapper) {
+    public List<? extends T> getAllEntries(Database database, Class<? extends T> cls, DataMapper<T> mapper) throws DBException {
         Cursor cursor = null;
         List<T> dataList = new ArrayList<T>();
         try {
@@ -477,10 +478,13 @@ public class AbstractTable<T> extends Table<T> {
             } while (cursor.moveToNext());
         } catch (SQLiteException e) {
             Logger.error(this, e.getMessage());
+			throw new DBException(e.getMessage(), e);
         } catch (InstantiationException e) {
             Logger.error(this, e.getMessage());
+			throw new DBException(e.getMessage(), e);
         } catch (IllegalAccessException e) {
             Logger.error(this, e.getMessage());
+			throw new DBException(e.getMessage(), e);
 		} finally {
 			if (cursor != null) {
 				cursor.close();
@@ -498,7 +502,8 @@ public class AbstractTable<T> extends Table<T> {
      * @param mapper
      * @return List<T>
      */
-    public List<T> getAllEntriesWhere(Database database, Class<T> cls, String columnName, String columnValue, DataMapper<T> mapper) {
+    public List<T> getAllEntriesWhere(Database database, Class<T> cls, String columnName, String columnValue, DataMapper<T> mapper)
+		throws DBException {
         Cursor cursor = null;
         List<T> dataList = new ArrayList<T>();
         String[] params = { String.valueOf(columnValue) };
@@ -527,10 +532,13 @@ public class AbstractTable<T> extends Table<T> {
             } while (cursor.moveToNext());
         } catch (SQLiteException e) {
             Logger.error(this, e.getMessage());
+			throw new DBException(e.getMessage(), e);
         } catch (InstantiationException e) {
             Logger.error(this, e.getMessage());
+			throw new DBException(e.getMessage(), e);
         } catch (IllegalAccessException e) {
             Logger.error(this, e.getMessage());
+			throw new DBException(e.getMessage(), e);
 		} finally {
 			if (cursor != null) {
 				cursor.close();
@@ -548,7 +556,8 @@ public class AbstractTable<T> extends Table<T> {
      * @param mapper
      * @return List<T>
      */
-    public List<T> getAllEntriesWhere(Database database, String whereClause, String[] whereArgs, Class<T> cls, DataMapper<T> mapper) {
+    public List<T> getAllEntriesWhere(Database database, String whereClause, String[] whereArgs, Class<T> cls, DataMapper<T> mapper)
+		throws DBException {
         Cursor cursor = null;
         List<T> dataList = new ArrayList<T>();
         try {
@@ -576,10 +585,13 @@ public class AbstractTable<T> extends Table<T> {
             } while (cursor.moveToNext());
         } catch (SQLiteException e) {
             Logger.error(this, e.getMessage());
+			throw new DBException(e.getMessage(), e);
         } catch (InstantiationException e) {
             Logger.error(this, e.getMessage());
+			throw new DBException(e.getMessage(), e);
         } catch (IllegalAccessException e) {
             Logger.error(this, e.getMessage());
+			throw new DBException(e.getMessage(), e);
         } finally {
             if (cursor != null) {
                 cursor.close();
@@ -594,14 +606,14 @@ public class AbstractTable<T> extends Table<T> {
      * @return Cursor
      */
     @Override
-    public Cursor getAllEntries(Database database) {
+    public Cursor getAllEntries(Database database) throws DBException {
         Cursor cursor;
         try {
             cursor = database.getDatabase().query(getTableName(), getProjection(), null, null, null,
                     null, null);
         } catch (SQLiteException e) {
             Logger.error(this, e.getMessage());
-            return null;
+			throw new DBException(e.getMessage(), e);
         }
         if (!cursor.moveToFirst()) {
             cursor.close();

@@ -1,13 +1,17 @@
 package com.mastertechsoftware.util.image;
 
-import com.mastertechsoftware.util.log.Logger;
-
+import android.content.ContentResolver;
 import android.content.Context;
-import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
+import android.provider.MediaStore;
 import android.util.Log;
+
+import com.mastertechsoftware.util.log.Logger;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -51,6 +55,8 @@ public class ImageUtil {
 			final Bitmap bm = BitmapFactory.decodeStream(bis);
 			bis.close();
 			return bm;
+		} catch (OutOfMemoryError error) {
+			Logger.error("Out of Memory Error for url " + aURL, error);
 		} catch (IOException e) {
 			Log.d("ImageUtil", "Problems loading Bitmap " + e.getMessage());
 		}
@@ -67,8 +73,10 @@ public class ImageUtil {
 			final Bitmap bm = BitmapFactory.decodeStream(bis);
 			bis.close();
 			return bm;
+		} catch (OutOfMemoryError error) {
+			Logger.error("Out of Memory Error for url " + url, error);
 		} catch (IOException e) {
-			Log.d("ImageUtil", "Problems loading Bitmap " + e.getMessage());
+			Logger.error("Problems loading Bitmap " + e.getMessage());
 		}
 		return null;
 	}
@@ -77,7 +85,7 @@ public class ImageUtil {
 		try {
 			return BitmapFactory.decodeStream(input, null, sBitmapOptions);
 		} catch (OutOfMemoryError error) {
-			Logger.error("ImageUtil", "loadBitmap Failed", error);
+			Logger.error("Out of Memory Error", error);
 		}
 		return null;
 	}
@@ -250,7 +258,165 @@ public class ImageUtil {
 			fos = new FileOutputStream(filename);
 			bitmap.compress(Bitmap.CompressFormat.JPEG, JPG_QUALITY, fos);
 		} catch (FileNotFoundException e) {
-			Logger.error("saveOutput", e);
+			Logger.error("File not found for " + filename, e);
 		}
 	}
+
+	/**
+	 * Gets the width and height for a bitmap for a uri
+	 *
+	 * @param context
+	 * @param uri
+	 *
+	 * @return Rect
+	 */
+	public static Rect getBitmapRect(Context context, Uri uri)
+	{
+		// Decode the image
+		try
+		{
+			// Prepare the decode options to just load the bounds
+			BitmapFactory.Options options = new BitmapFactory.Options();
+			options.inJustDecodeBounds = true;
+
+			// Load the information
+			InputStream is = context.getContentResolver().openInputStream(uri);
+			BitmapFactory.decodeStream(is, null, options);
+
+			// Invert the sizes if 90 or 270 degrees
+			int orientation = getImageOrientation(context, uri);
+			orientation %= 360;
+			orientation /= 90;
+			if (orientation % 2 != 0)
+			{
+				// Rotated by 90 or 270 degrees, invert width and height
+				return new Rect(0, 0, options.outHeight, options.outWidth);
+			}
+			else
+			{
+				// Rotated by 0 or 180, do not invert
+				return new Rect(0, 0, options.outWidth, options.outHeight);
+			}
+		}
+		catch(OutOfMemoryError ex)
+		{
+			Logger.error("Out of memory while loading bitmap of " + uri.toString(), ex);
+			return null;
+		}
+		catch (FileNotFoundException ex)
+		{
+			Logger.error("Could not get bounds of bitmap " + uri.toString(), ex);
+			return null;
+		}
+	}
+
+	/**
+	 * Gets the width and height for a bitmap on the file system
+	 *
+	 * @param data
+	 *
+	 * @return Rect
+	 */
+	public static Rect getBitmapRect(byte[] data)
+	{
+		// Decode the image
+		try
+		{
+			// Prepare the decode options to just load the bounds
+			BitmapFactory.Options options = new BitmapFactory.Options();
+			options.inJustDecodeBounds = true;
+
+			// Load the information
+			BitmapFactory.decodeByteArray(data, 0, data.length, options);
+
+			return new Rect(0, 0, options.outWidth, options.outHeight);
+		}
+		catch(OutOfMemoryError ex)
+		{
+			Logger.error("Out of memory while loading bitmap", ex);
+			return null;
+		}
+	}
+
+	/**
+	 * Gets the image rotation from the MediaStore data base
+	 *
+	 * @param context
+	 * @param uri
+	 *
+	 * @return int
+	 */
+	static public int getImageOrientation(Context context, Uri uri)
+	{
+		// Not need to log, getMediaStoreValue will have done it for us
+		String orientation = getMediaStoreValue(context, uri, MediaStore.Images.ImageColumns.ORIENTATION);
+
+		// Generated thumbnails or downloaded files will not appear in the media store.
+		// So the call above will return null, which is OK.
+		if (orientation == null)
+		{
+			return 0;
+		}
+
+		// Parse the value to an int
+		try
+		{
+			return Integer.parseInt(orientation);
+		}
+		catch(NumberFormatException ex)
+		{
+			Logger.warn("Obtained a non-integer orientation from the MediaStore: " + orientation);
+			return 0;
+		}
+	}
+
+	/**
+	 * General utility to get a value from the MediaStore database
+	 *
+	 * @param context
+	 * @param uri
+	 * @param column
+	 *
+	 * @return String The queried value, or null if not found
+	 */
+	public static String getMediaStoreValue(Context context,
+											Uri uri,
+											String column)
+	{
+		String result = null;
+
+		// We will log errors only if the uri starts with "content".  If it starts with file,
+		// it is possible that we are querying for a generated thumbnail or downloaded file,
+		// which are NOT part of the media store.
+		boolean logError = uri.getScheme().equalsIgnoreCase(ContentResolver.SCHEME_CONTENT);
+
+		// Prepare and run the query
+		String[] columns = new String[]
+			{
+				column,
+			};
+		Cursor c = context.getContentResolver().query(uri, columns, null, null, null);
+
+		// Check if we caught something
+		if (c != null)
+		{
+			if (c.moveToFirst())
+			{
+				result = c.getString(0);
+			}
+			else if (logError)
+			{
+				Logger.error("Could not get \"" + column + "\" column from MediaStore for " + uri);
+			}
+			c.close();
+		}
+		else if (logError)
+		{
+			Logger.error("Could not get \"" + column + "\" column from MediaStore for " + uri);
+		}
+
+		return result;
+	}
+
+
 }

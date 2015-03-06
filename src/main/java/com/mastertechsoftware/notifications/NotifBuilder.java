@@ -1,10 +1,10 @@
 package com.mastertechsoftware.notifications;
 
 import android.app.PendingIntent;
-import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.TaskStackBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -88,13 +88,13 @@ public class NotifBuilder {
 	}
 
 	public NotifBuilder addBackStack(Context context, Class backClass) {
-        if (stackBuilder == null) {
-            stackBuilder = TaskStackBuilder.create(context);
-        }
-        stackBuilder.addParentStack(backClass);
-        stackBuilder.addNextIntent(new Intent(context, backClass));
-        return this;
-    }
+		if (stackBuilder == null) {
+			stackBuilder = TaskStackBuilder.create(context);
+		}
+		stackBuilder.addParentStack(backClass);
+		stackBuilder.addNextIntent(new Intent(context, backClass));
+		return this;
+	}
 
     public NotifBuilder addWearableAction(int icon, String title, PendingIntent intent) {
         wearableActions.add(createBuilder(icon, title, intent));
@@ -118,9 +118,7 @@ public class NotifBuilder {
 
     public NotificationCompat.Builder build(Context context) {
         NotificationCompat.Builder deviceNotification = new NotificationCompat.Builder(context);
-        deviceNotification.setAutoCancel(autoCancel);
-        deviceNotification.setOngoing(ongoing);
-        deviceNotification.setLocalOnly(localOnly);
+        deviceNotification.setAutoCancel(autoCancel).setOngoing(ongoing).setLocalOnly(localOnly);
 		if (vibrate) {
 			deviceNotification.setDefaults(NotificationCompat.DEFAULT_VIBRATE);
 		}
@@ -140,9 +138,6 @@ public class NotifBuilder {
             deviceNotification.setContentIntent(phoneIntent);
         }
 
-		if (wearIcon != 0 && wearableTitle != null && wearIntent != null) {
-			deviceNotification.addAction(wearIcon, wearableTitle, wearIntent);
-		}
 
         if (wearableActions.size() > 0) {
             wearableExtender = new NotificationCompat.WearableExtender();
@@ -163,6 +158,11 @@ public class NotifBuilder {
 //            wearableExtender.addAction(wearActionBuilder.build());
 //            return wearableExtender.extend(deviceNotification);
         } else {
+			if (wearIcon != 0 && wearableTitle != null && wearIntent != null) {
+				wearableExtender = new NotificationCompat.WearableExtender();
+				wearableExtender.addAction(createBuilder(wearIcon, wearableTitle, wearIntent).build());
+				return deviceNotification.extend(wearableExtender);
+			}
             return deviceNotification;
         }
     }

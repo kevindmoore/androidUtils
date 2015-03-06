@@ -2,50 +2,80 @@ package com.mastertechsoftware.util.timer;
 
 import android.os.Handler;
 
+import com.mastertechsoftware.util.log.Logger;
+
 import java.util.Timer;
 import java.util.TimerTask;
 /**
  * Timer Helper for handling repeating timer
  */
-public class TimerHelper extends TimerTask {
-	private boolean paused = false;
-	private boolean scheduled = false;
-	private Timer timer;
+public class TimerHelper {
+	protected boolean paused = false;
+	protected boolean scheduled = false;
+	protected boolean oneTime = false;
+	protected boolean cancelled = false;
+	protected Timer timer;
 	protected Handler handler;
+	protected InternalTimerTask timerTask;
+	protected int delay = -1;
+	protected int period = -1;
 
 	public TimerHelper(Handler handler) {
 		this.handler = handler;
 		timer = new Timer();
+		timerTask = new InternalTimerTask();
 	}
 
-	@Override
-	public void run() {
-		if (!paused) {
-			handler.sendMessage(handler.obtainMessage());
-		}
-	}
 
 	public void schedule(int delay, int period) {
-		if (scheduled) {
+		if (isScheduled()) {
 			cancel();
 		}
+		cancelled = false;
 		scheduled = true;
-		timer.schedule(this, delay, period);
+		this.delay = delay;
+		this.period = period;
+		try {
+			timer.schedule(timerTask, delay, period);
+		} catch (IllegalStateException e) {
+			Logger.error("Problems scheduling timer ", e);
+		}
 	}
 
 	public void schedule(int period) {
-		if (scheduled) {
+		if (isScheduled()) {
 			cancel();
 		}
+		cancelled = false;
 		scheduled = true;
-		timer.schedule(this, period);
+		oneTime = true;
+		Logger.debug("Scheduling Timer for " + period);
+		try {
+			timer.schedule(timerTask, period);
+		} catch (IllegalStateException e) {
+			Logger.error("Problems scheduling timer ", e);
+		}
+	}
+
+	public boolean isScheduled() {
+		if (timer != null && scheduled) {
+			return true;
+		}
+		return scheduled;
 	}
 
 	public boolean cancel() {
 		scheduled = false;
+		if (cancelled) {
+			return true;
+		}
+		Logger.debug("Cancelling Timer");
 		timer.cancel();
+		cancelled = true;
 		timer = new Timer();
-		return super.cancel();
+		final boolean result = timerTask.cancel();
+		timerTask = new InternalTimerTask();
+		return result;
 	}
 
 	public boolean isPaused() {
@@ -55,4 +85,28 @@ public class TimerHelper extends TimerTask {
 		this.paused = paused;
 	}
 
+	/**
+	 * Cancel & reschedule
+	 */
+	public void reset() {
+		if (delay != -1) {
+			schedule(delay, period);
+		} else if (period != -1) {
+			schedule(period);
+		}
+	}
+
+	class InternalTimerTask extends TimerTask {
+
+		@Override
+		public void run() {
+			if (!paused) {
+				Logger.debug("TimerHelper:run");
+				handler.sendMessage(handler.obtainMessage());
+				if (oneTime) {
+					cancel();
+				}
+			}
+		}
+	}
 }

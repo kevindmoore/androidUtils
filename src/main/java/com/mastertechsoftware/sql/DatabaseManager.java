@@ -50,6 +50,34 @@ public class DatabaseManager {
         databases.put(dbName, reflectionDBHelper);
     }
 
+	/**
+	 * Add a database, specifying the version number
+	 * @param dbName
+	 * @param mainTableName
+	 * @param version
+	 * @param types
+	 */
+    public void addDatabase(String dbName, String mainTableName, int version, Class<? extends ReflectTableInterface>... types) {
+        ReflectionDBHelper reflectionDBHelper = new ReflectionDBHelper(context, dbName, mainTableName, version, types);
+        databases.put(dbName, reflectionDBHelper);
+    }
+
+	/**
+	 * After deleting database, readd the database
+	 * @param dbName
+	 * @param mainTableName
+	 * @param version
+	 * @param types
+	 */
+    public void reAddDatabase(String dbName, String mainTableName, int version, Class<? extends ReflectTableInterface>... types) {
+		ReflectionDBHelper reflectionDBHelper = databases.get(dbName);
+		if (reflectionDBHelper != null) {
+			databases.remove(reflectionDBHelper);
+		}
+        reflectionDBHelper = new ReflectionDBHelper(context, dbName, mainTableName, version, types);
+        databases.put(dbName, reflectionDBHelper);
+    }
+
     /**
      * Add a new item
      * @param dbName
@@ -170,5 +198,24 @@ public class DatabaseManager {
 	public Object getItemWhere(String dbName, Class type, String columnName, String columnValue) {
 		ReflectionDBHelper reflectionDBHelper = databases.get(dbName);
 		return reflectionDBHelper.getItemWhere(type, columnName, columnValue);
+	}
+
+	/**
+	 * Return the current version of the database
+	 * @param dbName
+	 * @return
+	 */
+	public int getCurrentVersion(String dbName) {
+		ReflectionDBHelper reflectionDBHelper = databases.get(dbName);
+		return reflectionDBHelper.getCurrentVersion();
+	}
+
+	/**
+	 * Create the database if it was dropped.
+	 * @throws DBException
+	 */
+	public void createDatabase(String dbName) throws DBException {
+		ReflectionDBHelper reflectionDBHelper = databases.get(dbName);
+		reflectionDBHelper.createDatabase();
 	}
 }

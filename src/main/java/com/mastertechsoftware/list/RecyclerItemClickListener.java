@@ -1,10 +1,14 @@
 package com.mastertechsoftware.list;
 
 import android.content.Context;
+import android.graphics.Rect;
 import android.support.v7.widget.RecyclerView;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+
+import com.mastertechsoftware.util.log.Logger;
 /**
  * Class used to handle clicks for RecyclerView
  */
@@ -47,11 +51,33 @@ public class RecyclerItemClickListener implements RecyclerView.OnItemTouchListen
 	@Override
 	public boolean onInterceptTouchEvent(RecyclerView view, MotionEvent e)
 	{
-		View childView = view.findChildViewUnder(e.getX(), e.getY());
+		View mainLayout = view.findChildViewUnder(e.getX(), e.getY());
 
-		if(childView != null && mListener != null && mGestureDetector.onTouchEvent(e))
+		switch (e.getAction()) {
+			case MotionEvent.ACTION_DOWN:
+			case MotionEvent.ACTION_UP: {
+				if (mainLayout instanceof ViewGroup) {
+					Rect hitRect = new Rect();
+					ViewGroup viewGroup = ((ViewGroup) mainLayout);
+					final int childCount = viewGroup.getChildCount();
+					for (int i = 0; i < childCount; i++) {
+						View childView = viewGroup.getChildAt(i);
+						childView.getGlobalVisibleRect(hitRect);
+						if (hitRect.contains((int)e.getRawX(), (int)e.getRawY()) && childView.hasOnClickListeners()) {
+							Logger.debug("onInterceptTouchEvent. ChildView has click listeners");
+							return false;
+						}
+
+					}
+				} else if (mainLayout != null && mainLayout.hasOnClickListeners()) {
+					Logger.debug("onInterceptTouchEvent. mainLayout has click listeners");
+					return false;
+				}
+			}
+		}
+		if (mainLayout != null && mListener != null && mGestureDetector.onTouchEvent(e))
 		{
-			mListener.onItemClick(childView, view.getChildPosition(childView));
+			mListener.onItemClick(mainLayout, view.getChildPosition(mainLayout));
 		}
 
 		return false;

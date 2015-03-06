@@ -19,13 +19,16 @@ public class ReflectionDBHelper {
     protected BaseDatabaseHelper databaseHelper;
     protected Map<Class, Integer> classMapper = new HashMap<Class, Integer>();
 	protected boolean debugging = false;
+	protected int version = 1;
 
 	public ReflectionDBHelper(Context context, String dbName, String mainTableName, int version, Class<? extends ReflectTableInterface>... types) {
 		Logger.setDebug(ReflectionDBHelper.class.getSimpleName(), debugging);
+		this.version = version;
 		databaseHelper = new BaseDatabaseHelper(context, dbName, mainTableName, version);
 		database = new Database();
+		database.setVersion(version);
 		databaseHelper.setLocalDatabase(database);
-		for (Class<? extends ReflectTableInterface> reflectClass : types) {
+ 		for (Class<? extends ReflectTableInterface> reflectClass : types) {
 			addTable(reflectClass);
 		}
 
@@ -35,9 +38,18 @@ public class ReflectionDBHelper {
 		this(context, dbName, mainTableName, 1, types);
     }
 
+	/**
+	 * Return the current version of the database
+	 * @return version
+	 */
+	public int getCurrentVersion() {
+		return databaseHelper.getDBVersion();
+	}
+
     private void addTable(Class<? extends ReflectTableInterface> reflectClass) {
         try {
             ReflectTable<ReflectTableInterface> table = new ReflectTable<ReflectTableInterface>(reflectClass.newInstance(), database);
+			table.setVersion(version);
             if (!database.tableExists(table.getTableName())) {
                 Logger.debug("Adding " + table.toString());
                 database.addTable(table);
@@ -180,6 +192,14 @@ public class ReflectionDBHelper {
 			Logger.error("Problems Creating object of type " + type.getName(), e);
 		}
 		return null;
+	}
+
+	/**
+	 * Create the database if it was dropped.
+	 * @throws DBException
+	 */
+	public void createDatabase() throws DBException {
+		databaseHelper.createDatabase();
 	}
 
 }
