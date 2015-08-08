@@ -102,6 +102,21 @@ public class Prefs {
         return mSharedPreferences.getLong(key, 0);
     }
 
+
+    public Float getFloat(String key) {
+        if (!checkSharedPreferences()) {
+            return null;
+        }
+        return mSharedPreferences.getFloat(key, 0);
+    }
+
+    public Double getDouble(String key) {
+        if (!checkSharedPreferences()) {
+            return null;
+        }
+        return Double.valueOf(mSharedPreferences.getFloat(key, 0));
+    }
+
 	public Object getObject(String key, Class type) {
 		if (!checkSharedPreferences()) {
 			return null;
@@ -162,5 +177,20 @@ public class Prefs {
             return false;
         }
         return true;
+    }
+
+    public void putFloat(String key, Float value) {
+        if (!checkSharedPreferences()) {
+            return;
+        }
+        mSharedPreferences.edit().putFloat(key, value).commit();
+    }
+
+    public void putDouble(String key, Double value) {
+        if (!checkSharedPreferences()) {
+            return;
+        }
+        mSharedPreferences.edit().putFloat(key, value.floatValue()).commit();
+
     }
 }

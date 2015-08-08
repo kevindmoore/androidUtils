@@ -30,7 +30,7 @@ public class EventDataHolder {
 	/**
 	 * Return true if it contains the given key
 	 * @param key
-	 * @return
+	 * @return true if it contains the given key
 	 */
 	public boolean containsKey(String key) {
 		return eventData.containsKey(key);
@@ -41,8 +41,9 @@ public class EventDataHolder {
 	 * @param key
 	 * @return Object
 	 */
+	@SuppressWarnings("unchecked")
 	public Object getData(String key) {
-		return eventData.remove(key);
+		return eventData.get(key);
 	}
 
 	/**
@@ -51,7 +52,7 @@ public class EventDataHolder {
 	 * @return
 	 */
 	public int getInt(String key) {
-		Object item = eventData.remove(key);
+		Object item = eventData.get(key);
 		if (item == null || !(item instanceof Integer)) {
 			return -1;
 		}
@@ -64,6 +65,55 @@ public class EventDataHolder {
 	 * @return
 	 */
 	public String getString(String key) {
+		Object item = eventData.get(key);
+		if (item == null || !(item instanceof String)) {
+			return null;
+		}
+		return (String)item;
+	}
+
+	/**
+	 * Get boolean from key
+	 * @param key
+	 * @return
+	 */
+	public boolean getBoolean(String key) {
+		Object item = eventData.get(key);
+		if (item == null || !(item instanceof Boolean)) {
+			return false;
+		}
+		return (Boolean)item;
+	}
+
+
+	/**
+	 * Get the data stored at the given key and remove it from the list
+	 * @param key
+	 * @return Object
+	 */
+	public Object removeData(String key) {
+		return eventData.remove(key);
+	}
+
+	/**
+	 * Return an int value or -1 if not found
+	 * @param key
+	 * @return
+	 */
+	public int removeInt(String key) {
+		Object item = eventData.remove(key);
+		if (item == null || !(item instanceof Integer)) {
+			return -1;
+		}
+		return (Integer)item;
+	}
+
+	/**
+	 * Get a string value or null if not found
+	 * @param key
+	 * @return
+	 */
+	public String removeString(String key) {
 		Object item = eventData.remove(key);
 		if (item == null || !(item instanceof String)) {
 			return null;

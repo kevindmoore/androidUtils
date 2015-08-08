@@ -1,14 +1,19 @@
 package com.mastertechsoftware.util;
 
-import com.mastertechsoftware.util.log.Logger;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.os.Build;
+import android.support.design.widget.Snackbar;
 import android.text.Html;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Display;
+import android.view.Gravity;
+import android.view.View;
+import android.widget.Toast;
+
+import com.mastertechsoftware.util.log.Logger;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -80,6 +85,9 @@ public class Utils {
 			if (url.contains("|")) {
 				url = url.replace("|", "&");
 			}
+			if (url.contains(" ")) {
+				url = url.replace(" ", "%20");
+			}
         } catch (UnsupportedEncodingException e) {
             Logger.error(e);
         }
@@ -149,4 +157,44 @@ public class Utils {
         }
 		return true;
     }
+
+	/**
+	 * Show a long toast
+	 * @param context
+	 * @param message
+	 */
+	public static void showLongToast(Context context, String message) {
+		Toast toast = Toast.makeText(context,
+									 message, Toast.LENGTH_LONG);
+		toast.setGravity(Gravity.CENTER, 0, 0);
+		toast.show();
+	}
+
+	/**
+	 * Show a short toast
+	 * @param context
+	 * @param message
+	 */
+	public static void showShortToast(Context context, String message) {
+		Toast toast = Toast.makeText(context,
+									 message, Toast.LENGTH_SHORT);
+		toast.setGravity(Gravity.CENTER, 0, 0);
+		toast.show();
+	}
+
+    /**
+     * Show a snackbar on the given view
+     * @param view
+     * @param message
+     * @param actionText
+     * @param clickListener
+     */
+    public static void showLongSnackbar(View view, String message, String actionText, View.OnClickListener clickListener) {
+        Snackbar snackbar = Snackbar.make(view, message, Snackbar.LENGTH_LONG);
+        if (!TextUtils.isEmpty(actionText) && clickListener != null) {
+            snackbar.setAction(actionText, clickListener);
+        }
+        snackbar.show();
+    }
+
 }

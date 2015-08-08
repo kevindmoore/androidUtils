@@ -20,4 +20,6 @@
     <string name="menu_delete">Delete</string>
     <string name="quit">Quit</string>
     <string name="loading">Loading...</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
 </resources>

@@ -29,4 +29,27 @@ public class ViewUtils {
         }
         return null;
     }
+
+    /**
+     * Find a view that matches the given class. Useful for finding the parent FrameLayout
+     * @param parent
+     * @param type
+     * @return View
+     */
+    public static View findViewByClass(ViewGroup parent, Class type) {
+        int childCount = parent.getChildCount();
+        for (int i = 0; i < childCount; i++) {
+            View childAt = parent.getChildAt(i);
+            if (childAt != null && childAt.getClass().equals(type)) {
+                return childAt;
+            }
+            if (childAt instanceof ViewGroup) {
+                View foundView = findViewByClass((ViewGroup) childAt, type);
+                if (foundView != null) {
+                    return foundView;
+                }
+            }
+        }
+        return null;
+    }
 }

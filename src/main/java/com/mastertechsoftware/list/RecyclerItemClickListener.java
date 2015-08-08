@@ -2,11 +2,11 @@ package com.mastertechsoftware.list;
 
 import android.content.Context;
 import android.graphics.Rect;
-import android.support.v7.widget.RecyclerView;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.support.v7.widget.RecyclerView;
 
 import com.mastertechsoftware.util.log.Logger;
 /**
@@ -85,4 +85,9 @@ public class RecyclerItemClickListener implements RecyclerView.OnItemTouchListen
 
 	@Override
 	public void onTouchEvent(RecyclerView view, MotionEvent motionEvent){}
+
+	@Override
+	public void onRequestDisallowInterceptTouchEvent(boolean b) {
+
+	}
 }

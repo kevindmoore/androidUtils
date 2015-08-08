@@ -1,11 +1,11 @@
 package com.mastertechsoftware.util.log;
 
-import android.text.TextUtils;
-import android.util.Log;
-
 import com.mastertechsoftware.json.JSONData;
 import com.mastertechsoftware.json.JSONDataException;
 import com.mastertechsoftware.util.StackTraceOutput;
+
+import android.text.TextUtils;
+import android.util.Log;
 
 import java.util.HashMap;
 import java.util.List;
@@ -164,12 +164,19 @@ public class Logger {
             message = "";
         }
         try {
+        String callerClassName = StackTraceOutput.getCallerClassName();
         if (exception != null) {
             String msg = buildErrorString(exception) + message;
-                splitLongMessage(TYPE.ERROR, tag, msg, exception);
+            if (addClassNameToMessage) {
+                msg = callerClassName + ": " + msg;
+            }
+            splitLongMessage(TYPE.ERROR, tag, msg, exception);
             SDLogger.error(msg, exception);
         } else {
-                splitLongMessage(TYPE.ERROR, tag, message, null);
+            if (addClassNameToMessage) {
+                message = callerClassName + ": " + message;
+            }
+            splitLongMessage(TYPE.ERROR, tag, message, null);
             SDLogger.error(message, null);
         }
         } catch (OutOfMemoryError oom) {

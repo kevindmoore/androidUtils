@@ -125,7 +125,7 @@ public class StringUtilities {
 	 * @return the cleaned up String
 	 */
 	public static String cleanUp(String s) {
-		return s.replaceAll("[*:/ \\\\?|<>\"]", "-");
+		return s.replaceAll("[*:/ \\\\?|<>\\ \"]", "-");
 	}
 
 	/**

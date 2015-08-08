@@ -280,6 +280,7 @@ public class JSONData {
 	protected static void setField(Field field, Object object, JSONData value) {
 		Class<?> fieldType = field.getType();
 		try {
+			field.setAccessible(true);
 			if (fieldType == Object.class) {
 				field.set(object, convertFromJSON(value.getStringValue(), fieldType));
 			} else {
@@ -304,6 +305,7 @@ public class JSONData {
 		}
 		Class<?> fieldType = field.getType();
 		try {
+			field.setAccessible(true);
 			if (fieldType == int.class || fieldType == Integer.class) {
 				field.set(object, value);
 			} else if (fieldType == float.class || fieldType == Float.class) {

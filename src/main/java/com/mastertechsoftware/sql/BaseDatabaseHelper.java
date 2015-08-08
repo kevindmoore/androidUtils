@@ -382,13 +382,8 @@ public class BaseDatabaseHelper extends SQLiteOpenHelper {
 		// Lock it!
 		mLock.lock();
 		try {
-			startTransaction();
-			open();
-			localDatabase.dropDatabase();
-            openCount = 1; // Make sure we close
-			close();
+			context.deleteDatabase(getDatabaseName());
 		} finally {
-			endTransaction();
 			mLock.unlock();
 		}
 		state = STATE.INITIALIZING;

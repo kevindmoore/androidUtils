@@ -1,19 +1,30 @@
 
 apply plugin: 'com.android.library'
 
+buildscript {
+    repositories {
+        jcenter()
+        mavenCentral()
+//        maven {url 'http://repository.sonatype.org'}
+    }
+}
 
 dependencies {
-    compile 'com.android.support:support-v4:21.0.3'
-    compile 'com.google.code.gson:gson:2.3.1'
-    compile "com.android.support:recyclerview-v7:21.0.3"
+    ext.supportVersion = "22.2.1"
+
+    compile "com.android.support:support-v13:$ext.supportVersion"
+    compile "com.google.code.gson:gson:2.3.1"
+    compile "com.android.support:recyclerview-v7:$ext.supportVersion"
+    compile "com.android.support:appcompat-v7:$ext.supportVersion"
+    compile "com.android.support:design:$ext.supportVersion"
 }
 
 android {
-    compileSdkVersion 19
-    buildToolsVersion "20"
+    compileSdkVersion 22
+    buildToolsVersion "22.0.1"
     defaultConfig {
         minSdkVersion 15
-        targetSdkVersion 19
+        targetSdkVersion 22
     }
     packagingOptions {
         exclude 'META-INF/LICENSE.txt'
@@ -22,10 +33,10 @@ android {
     lintOptions {
         abortOnError false
     }
-    sourceSets {
-        debug.setRoot('build-types/debug')
-        release.setRoot('build-types/release')
-    }
+//    sourceSets {
+//        debug.setRoot('build-types/debug')
+//        release.setRoot('build-types/release')
+//    }
 }
 
 

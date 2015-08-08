@@ -52,10 +52,10 @@ public class ProgressTimer {
 		if (minutes > 0 && seconds > 0) {
 			seconds = seconds - (minutes*60);
 		}
-		milliSeconds = totalMs;
-		if (seconds > 0 && milliSeconds > 0) {
-			milliSeconds = milliSeconds - (seconds * MILLISECONDS);
-		}
+		milliSeconds = Math.max(0, totalMs - (hours * HOURS) - (minutes * MINUTES) - (seconds * SECONDS));
+//		if (seconds > 0 && milliSeconds > 0) {
+//			milliSeconds = milliSeconds - (seconds * MILLISECONDS);
+//		}
 	}
 
 	public long getStart() {

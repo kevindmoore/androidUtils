@@ -1,6 +1,8 @@
 package com.mastertechsoftware.views;
 
+import android.annotation.TargetApi;
 import android.content.Context;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.View;
@@ -25,7 +27,39 @@ public class CheckboxText extends RelativeLayout implements Checkable {
 	protected TextView textView;
 	protected CheckBox checkBox;
 
-    /**
+	/**
+	 * Constructors
+	 * @param context
+	 * @param checkBoxOnLeft
+	 */
+	public CheckboxText(Context context, boolean checkBoxOnLeft) {
+		super(context);
+		this.checkBoxOnLeft = checkBoxOnLeft;
+		init();
+	}
+
+	public CheckboxText(Context context) {
+		super(context);
+		init();
+	}
+
+	public CheckboxText(Context context, AttributeSet attrs) {
+		super(context, attrs);
+		init();
+	}
+
+	public CheckboxText(Context context, AttributeSet attrs, int defStyleAttr) {
+		super(context, attrs, defStyleAttr);
+		init();
+	}
+
+	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
+	public CheckboxText(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+		super(context, attrs, defStyleAttr, defStyleRes);
+		init();
+	}
+
+	/**
      * Constructor. Pass in your own layout.
      * @param context
      * @param layout
@@ -44,7 +78,7 @@ public class CheckboxText extends RelativeLayout implements Checkable {
         int childCount = layout.getChildCount();
         for (int i=0; i < childCount; i++) {
             View view = layout.getChildAt(i);
-            if (view.getClass().equals(CheckBox.class)) {
+            if (view instanceof CheckBox) {
                 return (CheckBox)view;
             }
             if (view instanceof ViewGroup) {
@@ -61,7 +95,7 @@ public class CheckboxText extends RelativeLayout implements Checkable {
         int childCount = layout.getChildCount();
         for (int i=0; i < childCount; i++) {
             View view = layout.getChildAt(i);
-            if (view.getClass().equals(TextView.class)) {
+			if (view instanceof TextView && !(view instanceof CheckBox)) {
                 return (TextView)view;
             }
             if (view instanceof ViewGroup) {
@@ -73,27 +107,6 @@ public class CheckboxText extends RelativeLayout implements Checkable {
         }
         return null;
     }
-    /**
-     * Constructors
-     * @param context
-     * @param checkBoxOnLeft
-     */
-    public CheckboxText(Context context, boolean checkBoxOnLeft) {
-		super(context);
-		this.checkBoxOnLeft = checkBoxOnLeft;
-		init();
-	}
-
-	public CheckboxText(Context context) {
-		super(context);
-		init();
-	}
-
-	public CheckboxText(Context context, AttributeSet attrs) {
-		super(context, attrs);
-		init();
-	}
-
 	/**
 	 * Initialize the layout, create the objects
 	 */

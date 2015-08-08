@@ -2,6 +2,8 @@ package com.mastertechsoftware.util;
 
 import android.os.AsyncTask;
 
+import com.mastertechsoftware.util.log.Logger;
+
 public abstract class AbstractAsync extends AsyncTask<Void, Integer, Void> {
 	protected ParamHolder holder = new ParamHolder();
 	protected AsyncCallback callback;
@@ -24,7 +26,11 @@ public abstract class AbstractAsync extends AsyncTask<Void, Integer, Void> {
 
 	@Override
 	protected Void doInBackground(Void... params) {
-		doBackground();
+		try {
+			doBackground();
+		} catch (Exception e) {
+			Logger.error("doInBackground", e);
+		}
 		return null;
 	}
 

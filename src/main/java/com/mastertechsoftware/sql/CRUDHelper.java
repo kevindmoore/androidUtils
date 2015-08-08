@@ -63,7 +63,7 @@ public class CRUDHelper<T extends ReflectTableInterface> {
 			item.setId((int) id);
 			return id;
 		} catch (DBException e) {
-			Logger.error(this, "Problems starting transaction");
+			Logger.error(this, "Problems starting transaction", e);
 		} finally {
 			databaseHelper.endTransaction();
 			mLock.unlock();

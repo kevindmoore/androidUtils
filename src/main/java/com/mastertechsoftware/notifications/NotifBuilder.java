@@ -1,8 +1,12 @@
 package com.mastertechsoftware.notifications;
 
+import android.annotation.TargetApi;
+import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 
@@ -25,9 +29,13 @@ public class NotifBuilder {
     protected boolean ongoing = false;
     protected boolean vibrate = false;
     protected TaskStackBuilder stackBuilder;
-    private NotificationCompat.WearableExtender wearableExtender;
+    protected NotificationCompat.WearableExtender wearableExtender;
     protected List<NotificationCompat.Action.Builder> wearableActions = new ArrayList<NotificationCompat.Action.Builder>();
+    protected List<Notification.Action.Builder> wearableLollipopActions = new ArrayList<Notification.Action.Builder>();
+    protected List<Notification.Action.Builder> actions = new ArrayList<Notification.Action.Builder>();
     protected List<NotificationCompat.Builder> wearablePages = new ArrayList<NotificationCompat.Builder>();
+    protected Notification.Style style;
+    protected Bitmap largeIcon;
 
     public NotifBuilder setPhoneIntent(PendingIntent phoneIntent) {
         this.phoneIntent = phoneIntent;
@@ -62,6 +70,11 @@ public class NotifBuilder {
         return this;
     }
 
+    public NotifBuilder setLargeBitmap(Bitmap largeIcon) {
+        this.largeIcon = largeIcon;
+        return this;
+    }
+
     public NotifBuilder setId(int id) {
         this.id = id;
         return this;
@@ -87,6 +100,11 @@ public class NotifBuilder {
 		return this;
 	}
 
+	public NotifBuilder setStyle(Notification.Style style) {
+		this.style = style;
+		return this;
+	}
+
 	public NotifBuilder addBackStack(Context context, Class backClass) {
 		if (stackBuilder == null) {
 			stackBuilder = TaskStackBuilder.create(context);
@@ -103,6 +121,22 @@ public class NotifBuilder {
 
     public NotifBuilder addWearableAction(WearableAction wearableAction) {
         wearableActions.add(createBuilder(wearableAction.getIcon(), wearableAction.getTitle(), wearableAction.getPendingIntent()));
+        return this;
+    }
+
+    public NotifBuilder addLollipopWearableAction(int icon, String title, PendingIntent intent) {
+        wearableLollipopActions.add(createLollipopBuilder(icon, title, intent));
+        return this;
+    }
+
+    public NotifBuilder addLollipopWearableAction(WearableAction wearableAction) {
+        wearableLollipopActions.add(createLollipopBuilder(wearableAction.getIcon(), wearableAction.getTitle(),
+                                                          wearableAction.getPendingIntent()));
+        return this;
+    }
+
+    public NotifBuilder addAction(WearableAction wearableAction) {
+        actions.add(createLollipopBuilder(wearableAction.getIcon(), wearableAction.getTitle(), wearableAction.getPendingIntent()));
         return this;
     }
 
@@ -138,6 +172,7 @@ public class NotifBuilder {
             deviceNotification.setContentIntent(phoneIntent);
         }
 
+        deviceNotification.setShowWhen(false);
 
         if (wearableActions.size() > 0) {
             wearableExtender = new NotificationCompat.WearableExtender();
@@ -167,13 +202,95 @@ public class NotifBuilder {
         }
     }
 
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public Notification.Builder buildLollipop(Context context) {
+        Notification.Builder deviceNotification = new Notification.Builder(context);
+        deviceNotification.setAutoCancel(autoCancel).setOngoing(ongoing).setLocalOnly(localOnly);
+		if (vibrate) {
+			deviceNotification.setDefaults(NotificationCompat.DEFAULT_VIBRATE);
+		}
+        if (phoneTitle != null) {
+            deviceNotification.setContentTitle(phoneTitle);
+        }
+        if (style != null) {
+            deviceNotification.setStyle(style);
+        }
+        if (msg != null) {
+            deviceNotification.setContentText(msg);
+        }
+        if (phoneIcon != 0) {
+            deviceNotification.setSmallIcon(phoneIcon);
+        }
+        if (largeIcon != null) {
+            deviceNotification.setLargeIcon(largeIcon);
+        }
+        deviceNotification.setVisibility(Notification.VISIBILITY_PUBLIC);
+        if (stackBuilder != null) {
+            PendingIntent pendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+            deviceNotification.setContentIntent(pendingIntent);
+        } else if (phoneIntent != null) {
+            deviceNotification.setContentIntent(phoneIntent);
+        }
+
+        deviceNotification.setShowWhen(false);
+        if (actions.size() > 0) {
+            for (Notification.Action.Builder action : actions) {
+                deviceNotification.addAction(action.build());
+            }
+        }
+        Notification.WearableExtender wearableExtender;
+        if (wearableActions.size() > 0) {
+            wearableExtender = new Notification.WearableExtender();
+            for (Notification.Action.Builder wearableAction : wearableLollipopActions) {
+                wearableExtender.addAction(wearableAction.build());
+            }
+            for (NotificationCompat.Builder wearablePage : wearablePages) {
+                wearableExtender.addPage(wearablePage.build());
+            }
+            return deviceNotification.extend(wearableExtender);
+//            return wearableExtender.extend(deviceNotification);
+//        }
+//        Notification.Action.Builder wearActionBuilder = null;
+//        if (wearIcon != 0 || wearableTitle != null || wearIntent != null) {
+//            wearActionBuilder = createBuilder(wearIcon != 0 ? wearIcon : phoneIcon, wearableTitle != null ? wearableTitle : phoneTitle,
+//                                              wearIntent != null ? wearIntent : phoneIntent);
+//            wearableExtender = new Notification.WearableExtender();
+//            wearableExtender.addAction(wearActionBuilder.build());
+//            return wearableExtender.extend(deviceNotification);
+        } else {
+			if (wearIcon != 0 && wearableTitle != null && wearIntent != null) {
+				wearableExtender = new Notification.WearableExtender();
+				wearableExtender.addAction(createLollipopBuilder(wearIcon, wearableTitle, wearIntent).build());
+				return deviceNotification.extend(wearableExtender);
+			}
+            return deviceNotification;
+        }
+    }
+
     public NotificationCompat.Action.Builder createBuilder(int icon, String title, PendingIntent intent) {
         return new NotificationCompat.Action.Builder(icon, title, intent);
+    }
+
+    @TargetApi(Build.VERSION_CODES.KITKAT_WATCH)
+    public Notification.Action.Builder createLollipopBuilder(int icon, String title, PendingIntent intent) {
+        return new Notification.Action.Builder(icon, title, intent);
     }
 
     public NotificationCompat.Builder createBuilder(Context context, int icon, String title, PendingIntent intent) {
 //        NotificationCompat.BigPictureStyle builder = new NotificationCompat.BigPictureStyle();
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context);
+//        builder.setBigContentTitle(title);
+//        builder.setSmallIcon(icon);
+//        builder.set(intent);
+        builder.setContentTitle(title);
+        builder.setSmallIcon(icon);
+        builder.setContentIntent(intent);
+        return builder;
+    }
+
+    public Notification.Builder createLollipopBuilder(Context context, int icon, String title, PendingIntent intent) {
+//        NotificationCompat.BigPictureStyle builder = new NotificationCompat.BigPictureStyle();
+        Notification.Builder builder = new Notification.Builder(context);
 //        builder.setBigContentTitle(title);
 //        builder.setSmallIcon(icon);
 //        builder.set(intent);

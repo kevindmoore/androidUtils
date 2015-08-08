@@ -15,7 +15,7 @@ public abstract class AbstractDataMapper<T> implements DataMapper<T> {
 
     public static boolean isValidType(Class type) {
         if (type.equals(String.class) || type.equals(Number.class) ||
-			type.equals(Float.class) ||
+			type.equals(Float.class) || type.equals(Integer.class) ||
             type.equals(Boolean.class) || type.equals(int.class)
             || type.equals(boolean.class) || type.equals(char.class)
             || type.equals(float.class) || type.equals(long.class)

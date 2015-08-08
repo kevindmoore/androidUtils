@@ -185,6 +185,7 @@ public class DatabaseManager {
     public void deleteDatabase(String dbName) {
         ReflectionDBHelper reflectionDBHelper = databases.get(dbName);
         reflectionDBHelper.deleteDatabase();
+        databases.remove(dbName);
     }
 
 	/**
